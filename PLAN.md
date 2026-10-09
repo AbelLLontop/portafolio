@@ -7,7 +7,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 ## Estado
 
 - [x] F1 — Scaffold mínimo que corre
-- [ ] F2 — Tailwind + layout base + dark mode
+- [x] F2 — Tailwind + layout base + dark mode
 - [ ] F3 — Header/Footer estáticos
 - [ ] F4 — Content Collections de blog + schema
 - [ ] F5 — Listado de blog

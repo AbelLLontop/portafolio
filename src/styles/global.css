@@ -1,0 +1,14 @@
+@import "tailwindcss";
+@config "../../tailwind.config.mjs";
+
+:root {
+  --color-accent: #61dafb;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-zinc-950 text-zinc-100;
+}
