@@ -14,7 +14,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F6 — Página de post individual + syntax highlighting
 - [x] F7 — Tech badges + selección de texto con accent
 - [x] F8 — Hero estático + Wordmark (sin animación)
-- [ ] F9 — TerminalHero animado (isla React + Framer Motion)
+- [x] F9 — TerminalHero animado (isla React + Framer Motion)
 - [ ] F10 — Wordmark con tratamiento animado
 - [ ] F11 — Sección de proyectos (placeholder "en construcción")
 - [ ] F12 — Sección de contacto + ScrollReveal

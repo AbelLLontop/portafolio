@@ -1,6 +1,6 @@
 ---
 import Wordmark from "../ui/Wordmark.astro";
-import TerminalPlaceholder from "./TerminalPlaceholder.astro";
+import TerminalHero from "../react/TerminalHero.tsx";
 ---
 
 <section
@@ -13,5 +13,6 @@ import TerminalPlaceholder from "./TerminalPlaceholder.astro";
       detalle visual y dejar notas técnicas en el camino.
     </p>
   </div>
-  <TerminalPlaceholder />
+  <!-- client:load: above-the-fold, único caso justificado fuera de client:visible -->
+  <TerminalHero client:load />
 </section>
