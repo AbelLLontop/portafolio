@@ -35,7 +35,8 @@ Deploy target is **Vercel** (confirmed, static site, no VPS/monorepo structure).
 ## Working with this repo
 
 - **At the start of a session:** read `PLAN.md` and state which feature is in progress.
-- **When closing a feature:** mark it done in `PLAN.md` and commit.
+- **When closing a feature:** mark it done in `PLAN.md`.
+- No hagas commit nunca por tu cuenta. Cuando termines un cambio, muéstrame qué hiciste y espera. Solo commitea cuando yo te lo pida explícitamente.
 - No feature is considered done without its tests passing.
 - "Verify" means running the actual commands and showing their real output — never listing commands for the user to run themselves.
 - Before any behavior change, check whether it contradicts `SPEC.md`. If it does, STOP and tell the user which part of the spec conflicts and what you propose. Do not update `SPEC.md` without their approval.
