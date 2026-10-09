@@ -11,7 +11,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F3 — Header/Footer estáticos
 - [x] F4 — Content Collections de blog + schema
 - [x] F5 — Listado de blog
-- [ ] F6 — Página de post individual + syntax highlighting
+- [x] F6 — Página de post individual + syntax highlighting
 - [ ] F7 — Tech badges + selección de texto con accent
 - [ ] F8 — Hero estático + Wordmark (sin animación)
 - [ ] F9 — TerminalHero animado (isla React + Framer Motion)

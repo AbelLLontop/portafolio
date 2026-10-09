@@ -1,0 +1,40 @@
+---
+import type { CollectionEntry } from "astro:content";
+import BaseLayout from "./BaseLayout.astro";
+
+interface Props {
+  post: CollectionEntry<"blog">;
+}
+
+const { post } = Astro.props;
+const { title, date, tags } = post.data;
+
+const formattedDate = date.toLocaleDateString("es-PE", {
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+});
+---
+
+<BaseLayout title={`${title} — abelitolll`}>
+  <main class="mx-auto max-w-3xl px-4 py-12">
+    <article>
+      <header class="mb-8 border-b border-zinc-800 pb-6">
+        <h1 class="text-3xl font-bold text-zinc-100">{title}</h1>
+        <p class="mt-2 text-sm text-zinc-400">{formattedDate}</p>
+        {tags.length > 0 && (
+          <ul class="mt-4 flex flex-wrap gap-2">
+            {tags.map((tag) => (
+              <li class="rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">
+                {tag}
+              </li>
+            ))}
+          </ul>
+        )}
+      </header>
+      <div class="prose-post-body">
+        <slot />
+      </div>
+    </article>
+  </main>
+</BaseLayout>
