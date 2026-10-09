@@ -17,6 +17,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F9 — TerminalHero animado (isla React + Framer Motion)
 - [x] F10 — Wordmark con tratamiento animado
 - [x] F11 — Sección de proyectos (placeholder "en construcción")
+- [x] F11b — TechMarquee: carrusel infinito de logos de stack
 - [ ] F12 — Sección de contacto + ScrollReveal
 - [ ] F13 — SEO + Analytics
 - [ ] F14 — Smoke tests E2E (Playwright)
@@ -89,6 +90,12 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 **Incluye:** `src/content/projects/` + actualización de schema en `config.ts`, `src/components/astro/ProjectCard.astro`, sección de proyectos en `index.astro` con placeholder de alta calidad visual y copy personal/casual.
 **Excluye:** proyectos reales (no existen hoy).
 **Verificación:** build; sección visible, no se siente "coming soon" plano.
+
+## F11b — TechMarquee: carrusel infinito de logos de stack
+
+**Incluye:** `src/lib/tech-icons.ts` (mapa de iconos simple-icons compartido, extraído de `TechBadge.astro`), `src/components/astro/TechMarquee.astro` (marquee CSS puro, sin JS, con loop infinito por `@keyframes`/`translateX`, pausa en hover, `prefers-reduced-motion`), insertado en `index.astro` entre `Hero` y `ProjectsSection`. Logos: Node.js, Go, Java, Python, .NET, Claude, React, Astro, Angular, Tailwind.
+**Excluye:** AWS (sin logo de marca disponible en simple-icons), animación con JS/React.
+**Verificación:** `astro check`; `npm run build`; visual en desktop y 375px sin overflow horizontal; loop sin salto visible; animación se detiene con `prefers-reduced-motion: reduce`.
 
 ## F12 — Sección de contacto + ScrollReveal
 

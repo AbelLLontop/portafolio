@@ -1,0 +1,60 @@
+---
+import { monoIcon } from "../../lib/tech-icons";
+
+const TECHS = [
+  "node",
+  "go",
+  "java",
+  "python",
+  "dotnet",
+  "claude",
+  "react",
+  "astro",
+  "angular",
+  "tailwind",
+] as const;
+
+// Lista duplicada para loop infinito sin salto: la animación recorre -50%
+// del ancho total (dos copias idénticas), así el segundo set reemplaza
+// exactamente al primero cuando termina el ciclo.
+const items = [...TECHS, ...TECHS];
+---
+
+<section class="mx-auto max-w-3xl px-4 py-6 md:py-8" aria-label="Tecnologías">
+  <div class="group relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
+    <ul class="marquee flex w-max items-center gap-8 pr-8 motion-reduce:animate-none group-hover:[animation-play-state:paused]">
+      {items.map((tech, i) => {
+        const icon = monoIcon(tech);
+        return (
+          <li
+            class="flex shrink-0 items-center gap-2 text-zinc-500 transition-colors hover:text-accent"
+            aria-hidden={i >= TECHS.length ? "true" : undefined}
+          >
+            {icon && <span class="[&>svg]:h-9 [&>svg]:w-9" set:html={icon} />}
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .marquee {
+    animation: marquee-scroll 28s linear infinite;
+  }
+
+  @keyframes marquee-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .marquee {
+      animation: none;
+    }
+  }
+</style>
