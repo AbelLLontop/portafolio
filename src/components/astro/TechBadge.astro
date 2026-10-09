@@ -1,0 +1,30 @@
+---
+import astroIcon from "simple-icons/icons/astro.svg?raw";
+import typescriptIcon from "simple-icons/icons/typescript.svg?raw";
+import tailwindcssIcon from "simple-icons/icons/tailwindcss.svg?raw";
+
+interface Props {
+  name: string;
+}
+
+const { name } = Astro.props;
+
+// Mapa estático: los iconos de simple-icons se importan explícitamente (sin
+// import() dinámico, que Vite no puede resolver de forma fiable en build SSG).
+// Agregar una línea aquí al introducir un nuevo tag con logo.
+const ICONS: Record<string, string> = {
+  astro: astroIcon,
+  typescript: typescriptIcon,
+  tailwind: tailwindcssIcon,
+};
+
+const rawIcon = ICONS[name.toLowerCase()];
+const icon = rawIcon?.replace("<svg ", '<svg fill="currentColor" ');
+---
+
+<li
+  class="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400"
+>
+  {icon && <span class="[&>svg]:h-3.5 [&>svg]:w-3.5" set:html={icon} />}
+  <span>{name}</span>
+</li>
