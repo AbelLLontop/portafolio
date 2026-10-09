@@ -15,7 +15,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F7 — Tech badges + selección de texto con accent
 - [x] F8 — Hero estático + Wordmark (sin animación)
 - [x] F9 — TerminalHero animado (isla React + Framer Motion)
-- [ ] F10 — Wordmark con tratamiento animado
+- [x] F10 — Wordmark con tratamiento animado
 - [ ] F11 — Sección de proyectos (placeholder "en construcción")
 - [ ] F12 — Sección de contacto + ScrollReveal
 - [ ] F13 — SEO + Analytics

@@ -1,5 +1,5 @@
 ---
-import Wordmark from "../ui/Wordmark.astro";
+import Wordmark from "../react/Wordmark.tsx";
 
 const navLinks = [
   { href: "/", label: "Inicio" },
@@ -10,7 +10,7 @@ const navLinks = [
 <header class="border-b border-zinc-800">
   <div class="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-4 px-4 py-4">
     <a href="/" class="transition-colors hover:text-accent">
-      <Wordmark size="sm" />
+      <Wordmark size="sm" client:visible />
     </a>
     <nav>
       <ul class="flex gap-6">
