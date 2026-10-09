@@ -75,7 +75,7 @@ export default function TerminalHero({ lines = DEFAULT_LINES }: TerminalHeroProp
         <span className="h-3 w-3 rounded-full bg-yellow-500/70" />
         <span className="h-3 w-3 rounded-full bg-green-500/70" />
       </div>
-      <div className="space-y-2 p-4 font-mono text-sm">
+      <div className="h-56 space-y-2 overflow-hidden p-4 font-mono text-sm">
         {visibleLines.map((line, index) => {
           const isCurrent = index === lineIndex;
           const isTyping = isCurrent && phase === "typing";
