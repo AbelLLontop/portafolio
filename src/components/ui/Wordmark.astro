@@ -1,0 +1,26 @@
+---
+interface Props {
+  size?: "sm" | "lg";
+}
+
+const { size = "sm" } = Astro.props;
+const word = "abelitolll";
+const sizeClasses =
+  size === "lg"
+    ? "text-5xl sm:text-6xl md:text-7xl font-extrabold"
+    : "text-lg font-semibold";
+---
+
+<span class={`font-mono tracking-tight text-zinc-100 ${sizeClasses}`}>
+  {
+    word.split("").map((letter, index) => (
+      <span
+        class={letter === "l" ? "text-accent" : undefined}
+        data-letter={letter}
+        data-index={index}
+      >
+        {letter}
+      </span>
+    ))
+  }
+</span>

@@ -1,4 +1,6 @@
 ---
+import Wordmark from "../ui/Wordmark.astro";
+
 const navLinks = [
   { href: "/", label: "Inicio" },
   { href: "/blog", label: "Blog" },
@@ -7,7 +9,9 @@ const navLinks = [
 
 <header class="border-b border-zinc-800">
   <div class="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-4 px-4 py-4">
-    <a href="/" class="font-mono text-lg font-semibold text-zinc-100">abelitolll</a>
+    <a href="/" class="transition-colors hover:text-accent">
+      <Wordmark size="sm" />
+    </a>
     <nav>
       <ul class="flex gap-6">
         {navLinks.map((link) => (

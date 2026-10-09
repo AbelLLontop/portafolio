@@ -7,6 +7,9 @@ export default {
       colors: {
         accent: "var(--color-accent)",
       },
+      fontFamily: {
+        mono: ['"JetBrains Mono"', "ui-monospace", "SFMono-Regular", "monospace"],
+      },
     },
   },
 };
