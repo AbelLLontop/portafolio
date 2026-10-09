@@ -1,0 +1,25 @@
+---
+title: "Post de prueba: validando el diseño del blog"
+date: 2026-01-15
+tags: ["astro", "typescript", "tailwind"]
+summary: "Post seed para probar el schema de Content Collections y el diseño del listado/post individual antes de escribir notas reales."
+draft: true
+---
+
+Este post es contenido de prueba (`draft: true`), no una nota real. Sirve para validar
+visualmente el listado de blog, la página de post individual y el syntax highlighting
+antes de empezar a escribir de verdad. Se reemplaza o elimina cuando exista contenido real.
+
+Un ejemplo de bloque de código para probar el highlighting más adelante:
+
+```ts
+interface Post {
+  title: string;
+  date: Date;
+  tags: string[];
+}
+
+function resumen(post: Post): string {
+  return `${post.title} (${post.tags.join(", ")})`;
+}
+```

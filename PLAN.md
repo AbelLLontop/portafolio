@@ -9,7 +9,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F1 — Scaffold mínimo que corre
 - [x] F2 — Tailwind + layout base + dark mode
 - [x] F3 — Header/Footer estáticos
-- [ ] F4 — Content Collections de blog + schema
+- [x] F4 — Content Collections de blog + schema
 - [ ] F5 — Listado de blog
 - [ ] F6 — Página de post individual + syntax highlighting
 - [ ] F7 — Tech badges + selección de texto con accent
