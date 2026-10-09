@@ -1,0 +1,33 @@
+---
+import { getCollection } from "astro:content";
+import ProjectCard from "./ProjectCard.astro";
+
+const projects = await getCollection("projects");
+---
+
+<section class="mx-auto max-w-3xl px-4 py-16 md:py-24">
+  <h2 class="text-2xl font-semibold text-zinc-100">Proyectos</h2>
+  {projects.length === 0 ? (
+    <div class="mt-6 flex flex-col gap-3 rounded-lg border border-zinc-800 p-8 transition-colors hover:border-accent/50">
+      <span class="inline-flex w-fit items-center gap-1.5 rounded-full border border-accent/40 px-3 py-1 text-xs text-accent">
+        <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-accent"></span>
+        en construcción
+      </span>
+      <p class="max-w-prose text-zinc-300">
+        Todavía no hay nada que enseñar por aquí — estoy construyendo cosas interesantes y
+        pronto las vas a ver en esta sección.
+      </p>
+      <p class="max-w-prose text-sm text-zinc-500">
+        Mientras tanto, el{" "}
+        <a href="/blog" class="underline decoration-accent/50 underline-offset-4 hover:text-accent">
+          blog
+        </a>{" "}
+        tiene notas reales de lo que voy aprendiendo.
+      </p>
+    </div>
+  ) : (
+    <div class="mt-6 grid gap-4 sm:grid-cols-2">
+      {projects.map((project) => <ProjectCard project={project} />)}
+    </div>
+  )}
+</section>
