@@ -70,7 +70,11 @@ Format:                 npm run format       # prettier --write .
 /
 ├── public/
 │   ├── favicon.svg
-│   └── og-image.png              → imagen para Open Graph/social preview
+│   ├── favicon.ico                → fallback para navegadores sin soporte de favicon SVG
+│   ├── og-image.png              → imagen para Open Graph/social preview
+│   └── images/
+│       ├── abelitolll-head.svg    → logo de marca (cabeza), usado en el navbar
+│       └── abelitolll-rocket.svg  → cabeza + cohete, usado junto al wordmark en el hero
 ├── src/
 │   ├── components/
 │   │   ├── react/                → islas interactivas
