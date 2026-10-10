@@ -41,3 +41,4 @@ Deploy target is **Vercel** (confirmed, static site, no VPS/monorepo structure).
 - "Verify" means running the actual commands and showing their real output — never listing commands for the user to run themselves.
 - Before any behavior change, check whether it contradicts `SPEC.md`. If it does, STOP and tell the user which part of the spec conflicts and what you propose. Do not update `SPEC.md` without their approval.
 - `SPEC.md` is written in present tense: a requirement that changes is rewritten, not annotated as a correction.
+- **Al crear o editar un post de blog:** completa el campo `summary` en el frontmatter. Se usa automáticamente como meta description y como descripción de Open Graph/Twitter card para ese post (ver `src/lib/seo.ts` y `src/layouts/BlogPostLayout.astro`, F13). Si se omite, el post cae a la descripción genérica del sitio en vez de una específica.

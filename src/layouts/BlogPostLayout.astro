@@ -8,7 +8,7 @@ interface Props {
 }
 
 const { post } = Astro.props;
-const { title, date, tags } = post.data;
+const { title, date, tags, summary } = post.data;
 
 const formattedDate = date.toLocaleDateString("es-PE", {
   year: "numeric",
@@ -17,7 +17,7 @@ const formattedDate = date.toLocaleDateString("es-PE", {
 });
 ---
 
-<BaseLayout title={`${title} — abelitolll`}>
+<BaseLayout title={`${title} — abelitolll`} description={summary}>
   <main class="mx-auto max-w-3xl px-4 py-12">
     <article>
       <header class="mb-8 border-b border-zinc-800 pb-6">
