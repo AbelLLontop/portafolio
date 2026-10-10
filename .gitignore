@@ -30,3 +30,8 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 !.vscode/launch.json
+
+# Playwright
+/test-results/
+/playwright-report/
+/playwright/.cache/

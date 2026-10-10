@@ -20,7 +20,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F11b — TechMarquee: carrusel infinito de logos de stack
 - [x] F12 — Sección de contacto + ScrollReveal
 - [x] F13 — SEO + Analytics
-- [ ] F14 — Smoke tests E2E (Playwright)
+- [x] F14 — Smoke tests E2E (Playwright)
 - [ ] F15 — Deploy a Vercel + dominio
 
 ---
