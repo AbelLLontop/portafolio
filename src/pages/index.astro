@@ -3,10 +3,17 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import Hero from "../components/astro/Hero.astro";
 import TechMarquee from "../components/astro/TechMarquee.astro";
 import ProjectsSection from "../components/astro/ProjectsSection.astro";
+import ContactSection from "../components/astro/ContactSection.astro";
+import ScrollReveal from "../components/react/ScrollReveal.tsx";
 ---
 
 <BaseLayout title="abelitolll">
   <Hero />
   <TechMarquee />
-  <ProjectsSection />
+  <ScrollReveal client:visible>
+    <ProjectsSection />
+  </ScrollReveal>
+  <ScrollReveal client:visible>
+    <ContactSection />
+  </ScrollReveal>
 </BaseLayout>
