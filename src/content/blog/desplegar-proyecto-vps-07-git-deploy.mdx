@@ -1,0 +1,140 @@
+---
+title: "Flujo de Git para desplegar tu código en el VPS"
+date: 2026-10-21
+tags: ["vps", "git", "github", "deploy"]
+summary: "Pasar de editar directamente en el servidor con nano a un flujo real: código en GitHub con una deploy key de solo lectura, y git pull + pm2 restart para desplegar cada cambio."
+draft: false
+dependsOn: ["desplegar-proyecto-vps-05-usuario-no-root"]
+---
+
+Hasta ahora el código solo existe en el servidor, escrito con nano. Eso significa que no hay historial de cambios, no se puede volver atrás si algo se rompe, y si el servidor desaparece, el código se va con él. Además, editar directamente en producción es la forma más fácil de romper un sitio que está funcionando.
+
+## El flujo correcto
+
+Escribes el código en tu laptop → `git push` a GitHub → entras al servidor y haces `git pull` → reinicias la app. GitHub queda como el punto central donde vive la verdad de tu código.
+
+### Paso 1: prepara el repositorio en el servidor
+
+Como **abel**:
+
+```bash
+cd /home/abel/app
+git init
+```
+
+Antes de nada, protege tus secretos. Crea el archivo que le dice a git qué ignorar:
+
+```bash
+nano .gitignore
+```
+
+Pega esto:
+
+```
+node_modules/
+.env
+*.log
+```
+
+Guarda con Ctrl+O, Enter, Ctrl+X.
+
+Esto es fundamental: **el `.env` con la contraseña de la base de datos nunca debe subir a GitHub**, y `node_modules` tampoco, porque se reinstala con `npm install`.
+
+Ahora el primer commit:
+
+```bash
+git add .
+git status
+```
+
+Revisa la lista que muestra `git status`. **Confirma que `.env` NO aparece** ahí. Si aparece, no sigas hasta resolverlo.
+
+```bash
+git config --global user.email "tu-correo@ejemplo.com"
+git config --global user.name "Tu Nombre"
+git commit -m "Version inicial de la app"
+```
+
+### Paso 2: crea el repositorio en GitHub
+
+En tu navegador, entra a github.com y crea un repositorio nuevo, por ejemplo `todo-produccion`. Puede ser privado o público, da igual porque no contiene secretos. **No marques ninguna opción de inicializar** (ni README, ni .gitignore, ni licencia), porque tu repositorio ya tiene contenido.
+
+Al crearlo, GitHub te mostrará la URL. Copia la versión **SSH**, que se ve así:
+
+```
+git@github.com:TU-USUARIO/todo-produccion.git
+```
+
+### Paso 3: dale al servidor acceso a GitHub
+
+Tu servidor necesita su propia llave SSH para hablar con GitHub. Como **abel**:
+
+```bash
+ssh-keygen -t ed25519 -C "servidor-produccion"
+```
+
+Presiona Enter en todas las preguntas.
+
+```bash
+cat ~/.ssh/id_ed25519.pub
+```
+
+Copia esa línea completa.
+
+### Paso 4: dale al servidor acceso solo a este repositorio
+
+Aquí está la diferencia importante. Si pegaras la llave en la configuración de tu **cuenta**, el servidor podría leer y escribir en **todos** tus repositorios, incluidos los de tu empresa. En cambio, GitHub permite registrar una llave **dentro de un repositorio específico**, y ese acceso no alcanza a ningún otro. Esa opción se llama "Deploy key", y es lo que usan los servidores en producción.
+
+En GitHub, entra a **tu repositorio** → pestaña **Settings** (la del repositorio) → menú izquierdo, **Deploy keys** → **Add deploy key**.
+
+- **Title:** `droplet-produccion`
+- **Key:** pega la línea que copiaste
+- **Allow write access:** déjalo **desmarcado**, para que el servidor solo pueda leer
+
+Comprueba que funcione:
+
+```bash
+ssh -T git@github.com
+```
+
+Escribe `yes` si pregunta.
+
+### Paso 5: sube tu código por primera vez
+
+Tu código solo existe en el servidor, y el servidor solo tiene permiso de lectura. Así que para esta única vez, vuelve a esa llave en GitHub y **marca "Allow write access"**. Luego:
+
+```bash
+cd /home/abel/app
+git remote add origin git@github.com:TU-USUARIO/todo-produccion.git
+git branch -M main
+git push -u origin main
+```
+
+Cuando termine, **regresa a GitHub y desmarca ese permiso**. A partir de ahí el servidor solo podrá bajar código, nunca subirlo, que es como debe ser.
+
+### Desde tu laptop
+
+Clona el repositorio en tu máquina de trabajo:
+
+```bash
+git clone git@github.com:TU-USUARIO/todo-produccion.git
+cd todo-produccion
+```
+
+Haces los cambios que quieras en los archivos, y luego subes los cambios:
+
+```bash
+git add .
+git commit -m "Cambio el titulo"
+git push
+```
+
+### Desplegar
+
+Y por último, lo único que hay que hacer es desplegarlo en el servidor. Entras al servidor y ejecutas:
+
+```bash
+cd /home/abel/app
+git pull
+pm2 restart mi-app
+```

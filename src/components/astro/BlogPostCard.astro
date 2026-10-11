@@ -1,13 +1,12 @@
 ---
 import type { CollectionEntry } from "astro:content";
-import TechBadge from "./TechBadge.astro";
 
 interface Props {
   post: CollectionEntry<"blog">;
 }
 
 const { post } = Astro.props;
-const { title, date, summary, tags } = post.data;
+const { title, date, summary } = post.data;
 
 const formattedDate = date.toLocaleDateString("es-PE", {
   year: "numeric",
@@ -16,18 +15,10 @@ const formattedDate = date.toLocaleDateString("es-PE", {
 });
 ---
 
-<a
-  href={`/blog/${post.id}`}
-  class="group block rounded-lg border border-zinc-800 p-6 transition-colors hover:border-accent"
->
-  <h2 class="text-xl font-semibold text-zinc-100 transition-colors group-hover:text-accent">
+<a href={`/blog/${post.id}`} class="group block">
+  <h2 class="text-lg font-semibold text-zinc-100 transition-colors group-hover:text-accent">
     {title}
   </h2>
-  <p class="mt-1 text-sm text-zinc-400">{formattedDate}</p>
-  {summary && <p class="mt-3 text-zinc-300">{summary}</p>}
-  {tags.length > 0 && (
-    <ul class="mt-4 flex flex-wrap gap-2">
-      {tags.map((tag) => <TechBadge name={tag} />)}
-    </ul>
-  )}
+  <p class="mt-1 text-sm text-zinc-500">{formattedDate}</p>
+  {summary && <p class="mt-2 text-sm text-zinc-400">{summary}</p>}
 </a>

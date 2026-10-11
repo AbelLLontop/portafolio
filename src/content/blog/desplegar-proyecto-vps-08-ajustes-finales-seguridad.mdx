@@ -1,0 +1,132 @@
+---
+title: "Últimos ajustes de seguridad en producción"
+date: 2026-10-22
+tags: ["vps", "nginx", "security"]
+summary: "Actualizaciones de seguridad automáticas, límites de tamaño y de peticiones en Nginx, headers de seguridad, ocultar la tecnología que usa el servidor, y rotación de logs de PM2."
+draft: false
+dependsOn: ["desplegar-proyecto-vps-04-dominio-https", "desplegar-proyecto-vps-05-usuario-no-root"]
+---
+
+Con la app corriendo como usuario normal, con dominio y HTTPS, quedan algunos ajustes finales que endurecen el servidor contra lo más común: parches sin aplicar, peticiones abusivas y filtración de información de más.
+
+## 1. Actualizaciones de seguridad automáticas
+
+Ubuntu publica parches constantemente, y esas vulnerabilidades son públicas: cuando se anuncia un fallo, los atacantes buscan servidores sin parchear ese mismo día.
+
+```bash
+sudo apt install -y unattended-upgrades
+sudo dpkg-reconfigure --priority=low unattended-upgrades
+```
+
+Aparecerá una pantalla azul. Elige **Yes**.
+
+## 2. Proteger Nginx: tamaño y cantidad de peticiones
+
+Abre el archivo principal:
+
+```bash
+sudo nano /etc/nginx/nginx.conf
+```
+
+Busca la línea que dice `http {` y **justo debajo** pega estas dos líneas:
+
+```nginx
+client_max_body_size 5M;
+limit_req_zone $binary_remote_addr zone=mizona:10m rate=10r/s;
+```
+
+La primera rechaza peticiones de más de 5 MB (subidas de archivos enormes). La segunda prepara un límite de 10 peticiones por segundo por visitante.
+
+Guarda con Ctrl+O, Enter, Ctrl+X.
+
+Ahora abre la configuración de tu sitio:
+
+```bash
+sudo nano /etc/nginx/sites-available/default
+```
+
+Busca el bloque que empieza con `location / {` y agrega **dentro** de él:
+
+```nginx
+limit_req zone=mizona burst=20 nodelay;
+```
+
+Esto activa el límite anterior. El `burst=20` permite ráfagas cortas, porque un navegador normal pide varios archivos a la vez.
+
+Guarda y aplica:
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+## 3. Headers de seguridad
+
+Son líneas que el servidor envía junto a cada respuesta, dando instrucciones al navegador del visitante para protegerlo.
+
+En el mismo archivo:
+
+```bash
+sudo nano /etc/nginx/sites-available/default
+```
+
+Dentro del bloque `server {` que tiene `listen 443`, agrega estas tres líneas:
+
+```nginx
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+```
+
+Qué hace cada una: la primera impide que otro sitio muestre tu página dentro de un iframe invisible para engañar a tus usuarios; la segunda evita que el navegador adivine tipos de archivo y ejecute algo que no debía; la tercera limita la información que tus visitantes filtran al salir hacia otros sitios.
+
+```bash
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+### 3.1. Evitar que sepan la tecnología que usas
+
+En tu bloque de Nginx, dentro del `server` que escucha en 443:
+
+```nginx
+proxy_hide_header X-Powered-By;
+```
+
+Eso hace que Nginx elimine ese header de la respuesta antes de enviarla al visitante.
+
+```bash
+sudo nano /etc/nginx/sites-available/default
+sudo nginx -t
+sudo systemctl reload nginx
+```
+
+## 4. Rotación de logs de PM2
+
+PM2 guarda todo lo que imprime tu app. Con el tiempo, esos archivos crecen hasta llenar el disco.
+
+Como **abel**:
+
+```bash
+pm2 install pm2-logrotate
+```
+
+Con eso, los logs se parten en archivos manejables y los viejos se eliminan solos.
+
+## Resumen: dónde va cada cosa
+
+Una duda típica es si una configuración va en Nginx o en el código de la app. Esta es la foto completa de todo lo que se tocó en esta serie:
+
+| Configuración | Qué hace | Dónde va |
+|---|---|---|
+| `proxy_pass` | Pasa las visitas del 80/443 a la app en el 3000 | Solo Nginx |
+| `server_name` | Define a qué dominios responde | Solo Nginx |
+| HTTPS / certificado | Cifra el tráfico | Solo Nginx (lo puso Certbot) |
+| `client_max_body_size` | Rechaza peticiones de más de 5 MB | Nginx |
+| `limit_req_zone` / `limit_req` | Límite de peticiones por segundo | Nginx |
+| `X-Frame-Options` | Impide que tu web se muestre dentro de otro sitio | Nginx o la app, da igual |
+| `X-Content-Type-Options` | Impide que el navegador adivine tipos de archivo | Nginx o la app, da igual |
+| `Referrer-Policy` | Limita la info que el visitante lleva al salir | Nginx o la app, da igual |
+| `X-Powered-By` | Oculta que usas Express | La app (que nunca se genere) o Nginx (que lo oculte) |
+
+Con esto, el proyecto queda con un VPS propio, una app Node.js con base de datos, dominio con HTTPS, usuario sin privilegios de root, backups automáticos, un flujo de despliegue con Git, y los ajustes de seguridad básicos de un servidor en producción.

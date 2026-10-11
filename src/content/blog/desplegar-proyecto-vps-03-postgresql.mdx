@@ -1,0 +1,280 @@
+---
+title: "Agregar PostgreSQL a tu app Node.js en el VPS"
+date: 2026-10-15
+tags: ["vps", "postgresql", "node", "express"]
+summary: "Instalar PostgreSQL, crear la base de datos y el usuario de la app, y conectar un backend Express + pg a esa base, con las credenciales fuera del código en un archivo .env."
+draft: false
+dependsOn: ["desplegar-proyecto-vps-02-nodejs-pm2-nginx"]
+---
+
+Con la app Node.js corriendo detrás de Nginx, el siguiente paso natural es darle una base de datos real. Vamos a instalar PostgreSQL, crear una base y un usuario propios para la app, y reemplazar el server mínimo por un backend Express que lee y escribe en esa base.
+
+## 1. Instalación
+
+```bash
+apt install -y postgresql
+```
+
+Al terminar, comprueba que está corriendo:
+
+```bash
+systemctl status postgresql
+```
+
+Verás algo en verde que dice "active". Presiona **q** para salir de esa pantalla.
+
+Ahora ejecuta `ss -tlnp` y fíjate en algo: Postgres aparecerá escuchando en **127.0.0.1:5432**. Viene protegido de fábrica: solo acepta conexiones desde dentro del servidor, que es exactamente donde vive tu app.
+
+### 1.1. Crear la base de datos y el usuario
+
+Postgres instala un usuario del sistema llamado `postgres`, su administrador (superusuario). Para entrar a su consola:
+
+```bash
+sudo -u postgres psql
+```
+
+Al ser el administrador no pide contraseña, y puede hacer cualquier cosa dentro de Postgres. Es el único que puede crear bases de datos y usuarios, por eso se usa en este paso.
+
+También existe `psql -U todouser -d todoapp -h 127.0.0.1`, que entra como el usuario de la aplicación. A diferencia del administrador, sí pide contraseña y solo puede trabajar dentro de la base `todoapp`, pero es el que se usa para crear las tablas. Esto es porque en Postgres el dueño de una tabla es quien la crea, y solo el dueño puede usarla: si la tabla la crea el administrador, la app no podrá ni leerla ni escribirla y fallará con `permission denied for table`.
+
+Verás un prompt distinto: `postgres=#`. Ya no estás hablando con Linux, sino con la base de datos. Pega estos comandos, uno por uno:
+
+```sql
+CREATE DATABASE todoapp;
+```
+
+```sql
+CREATE USER todouser WITH PASSWORD 'cambia_esta_clave_123';
+```
+
+```sql
+GRANT ALL PRIVILEGES ON DATABASE todoapp TO todouser;
+```
+
+Cambia `cambia_esta_clave_123` por una contraseña tuya y **guárdala**, porque tu app la necesitará.
+
+Ahora conéctate a esa base de datos para darle un permiso más:
+
+```sql
+\c todoapp
+```
+
+```sql
+GRANT ALL ON SCHEMA public TO todouser;
+```
+
+Ese último es necesario desde Postgres 15: ser dueño de la base ya no basta para crear tablas dentro de ella.
+
+Para salir de psql:
+
+```sql
+\q
+```
+
+Para cambiar la contraseña más adelante, entra con `sudo -u postgres psql` y ejecuta `ALTER USER todouser WITH PASSWORD 'nueva_clave_123';`.
+
+### 1.2. Verificar que el usuario funciona
+
+De vuelta en la terminal normal:
+
+```bash
+psql -U todouser -d todoapp -h 127.0.0.1
+```
+
+Te pedirá la contraseña que pusiste. Si entras y ves `todoapp=>`, todo quedó bien. Sal con `\q`.
+
+## 2. Crear la tabla
+
+### 2.1. Conectarse como el usuario de la aplicación
+
+```bash
+psql -U todouser -d todoapp -h 127.0.0.1
+```
+
+Pedirá la contraseña. Verás el prompt `todoapp=>`. Pega esto:
+
+```sql
+CREATE TABLE tareas (
+  id SERIAL PRIMARY KEY,
+  titulo TEXT NOT NULL,
+  creada_en TIMESTAMP DEFAULT NOW()
+);
+```
+
+Comprueba que se creó:
+
+```sql
+\dt
+```
+
+Debe listar la tabla `tareas` con `todouser` en la columna **Owner**. Sal con `\q`.
+
+### 2.2. Preparar el proyecto
+
+```bash
+cd /root/app
+npm init -y
+npm install express pg dotenv
+```
+
+`express` es el framework web, `pg` es la librería para hablar con Postgres, y `dotenv` lee el archivo `.env` y convierte su contenido en variables de entorno que la app puede usar.
+
+### 2.3. Guarda la contraseña fuera del código
+
+```bash
+nano /root/app/.env
+```
+
+Pega esto, con tu contraseña real:
+
+```
+DATABASE_URL=postgres://todouser:TU_CLAVE_AQUI@127.0.0.1:5432/todoapp
+PORT=3000
+```
+
+Guarda con Ctrl+O, Enter, Ctrl+X.
+
+Esta es una práctica clave de producción: **las credenciales nunca van en el código**, porque el código termina en GitHub. Fíjate en la cadena de conexión: lleva usuario, contraseña, dirección (`127.0.0.1`, el servidor hablándose a sí mismo), puerto y nombre de la base.
+
+Como Node 22 lee archivos `.env` de forma nativa, no necesitas instalar nada extra para eso.
+
+### 2.4. El backend
+
+```bash
+nano /root/app/server.js
+```
+
+Borra lo que haya (mantén Ctrl+K) y pega:
+
+```js
+require('dotenv').config();
+const express = require('express');
+const { Pool } = require('pg');
+const path = require('path');
+
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+const app = express();
+
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/api/tareas', async (req, res) => {
+  try {
+    const r = await pool.query('SELECT * FROM tareas ORDER BY id DESC');
+    res.json(r.rows);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error al listar' });
+  }
+});
+
+app.post('/api/tareas', async (req, res) => {
+  try {
+    const { titulo } = req.body;
+    if (!titulo) return res.status(400).json({ error: 'Falta el titulo' });
+    const r = await pool.query(
+      'INSERT INTO tareas (titulo) VALUES ($1) RETURNING *',
+      [titulo]
+    );
+    res.status(201).json(r.rows[0]);
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error al crear' });
+  }
+});
+
+app.delete('/api/tareas/:id', async (req, res) => {
+  try {
+    await pool.query('DELETE FROM tareas WHERE id = $1', [req.params.id]);
+    res.status(204).end();
+  } catch (e) {
+    console.error(e);
+    res.status(500).json({ error: 'Error al eliminar' });
+  }
+});
+
+const port = process.env.PORT || 3000;
+app.listen(port, '127.0.0.1', () => {
+  console.log(`Servidor escuchando en el puerto ${port}`);
+});
+```
+
+Dos cosas que vale la pena notar: `express.static` hace que Node sirva los archivos del frontend desde la carpeta `public`, y el `$1` en las consultas evita inyección SQL, el ataque más común contra bases de datos.
+
+### 2.5. Frontend
+
+```bash
+mkdir -p /root/app/public && nano /root/app/public/index.html
+```
+
+Pega esto:
+
+```html
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mis tareas</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 480px; margin: 40px auto; padding: 0 16px; }
+    li { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ddd; }
+    button { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <h1>Mis tareas</h1>
+  <input id="titulo" placeholder="Nueva tarea">
+  <button onclick="crear()">Agregar</button>
+  <ul id="lista"></ul>
+
+  <script>
+    async function listar() {
+      const r = await fetch('/api/tareas');
+      const tareas = await r.json();
+      document.getElementById('lista').innerHTML = tareas
+        .map(t => `<li>${t.titulo} <button onclick="eliminar(${t.id})">X</button></li>`)
+        .join('');
+    }
+
+    async function crear() {
+      const input = document.getElementById('titulo');
+      if (!input.value) return;
+      await fetch('/api/tareas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ titulo: input.value })
+      });
+      input.value = '';
+      listar();
+    }
+
+    async function eliminar(id) {
+      await fetch('/api/tareas/' + id, { method: 'DELETE' });
+      listar();
+    }
+
+    listar();
+  </script>
+</body>
+</html>
+```
+
+Fíjate que el frontend llama a `/api/tareas` **sin poner dominio ni puerto**. Al ser la misma dirección, no hay problemas de CORS.
+
+### 2.6. Arranca
+
+```bash
+cd /root/app
+pm2 delete mi-app
+pm2 start server.js --name mi-app
+pm2 save
+```
+
+Entra a `http://TU_IP` y prueba crear y eliminar tareas.
+
+Si algo falla, el comando que resuelve todo es:
+
+```bash
+pm2 logs mi-app --lines 30
+```

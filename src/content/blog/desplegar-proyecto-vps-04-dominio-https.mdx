@@ -1,0 +1,147 @@
+---
+title: "Asignar un dominio y HTTPS a tu VPS"
+date: 2026-10-17
+tags: ["vps", "dns", "nginx", "https"]
+summary: "Apuntar un dominio comprado en un registrador a la IP del VPS a través de DigitalOcean, actualizar Nginx para que responda a ese dominio, y activar HTTPS gratis con Let's Encrypt y Certbot."
+draft: false
+dependsOn: ["desplegar-proyecto-vps-02-nodejs-pm2-nginx"]
+---
+
+Con la app funcionando detrás de Nginx en la IP del servidor, el siguiente paso es dejar de depender de esa IP: comprar un dominio, apuntarlo al servidor y activar HTTPS.
+
+## 1. Comprar un nombre de dominio
+
+El dominio es un nombre que todavía no apunta a nada; hay que decirle a qué IP apuntar. Para eso, alguien tiene que guardar esa información — en mi caso elegí que fuera DigitalOcean, el mismo proveedor del VPS.
+
+Entonces lo que se hace en el registrador (Namecheap, en mi caso) es solo esto: **indicar que DigitalOcean será el encargado de guardar esa información.** Nada más — todavía no se pone la IP en ningún lado ahí.
+
+Los pasos concretos en Namecheap:
+
+1. Ve a **Domain List**.
+2. Haz clic en **MANAGE** junto a tu dominio.
+3. Busca la fila que dice **NAMESERVERS**. Por defecto tiene escrito "Namecheap BasicDNS".
+4. Haz clic ahí y cambia esa opción a **Custom DNS**.
+5. Se abrirán campos de texto. Escribe uno en cada campo:
+
+```
+ns1.digitalocean.com
+ns2.digitalocean.com
+ns3.digitalocean.com
+```
+
+## 2. DigitalOcean
+
+Ahora el segundo paso, en **DigitalOcean**:
+
+1. En el menú izquierdo, abre **NETWORKING** y haz clic en **Domains**.
+2. Agrega tu dominio en el campo correspondiente.
+3. Abajo te pedirá elegir un recurso. Selecciona tu droplet.
+4. Haz clic en **Add Domain**.
+
+### 2.1. Asignar la IP
+
+Ahora falta la línea importante, la que dice a qué IP apunta tu dominio.
+
+Haz clic en **"Create a record"** (arriba a la derecha). Se abrirá un formulario con pestañas de tipos de registro (A, AAAA, CNAME, MX...). Llena así:
+
+- **Tipo:** A (suele venir seleccionado por defecto)
+- **HOSTNAME:** escribe solo `@`. Ese símbolo significa "el dominio raíz", o sea tu dominio tal cual.
+- **WILL DIRECT TO:** empieza a escribir el nombre de tu droplet y selecciónalo de la lista. Así DigitalOcean pone su IP automáticamente.
+- **TTL:** déjalo en 3600.
+
+Luego haz clic en **Create Record**. Hasta este punto ya funcionaría `http://tudominio.com`.
+
+### 2.2. Ahora con www
+
+Falta un paso: crear un segundo registro para que el dominio también funcione con "www" adelante (hasta ahora `http://www.tudominio.com` no funcionaría).
+
+En la misma pantalla:
+
+1. Haz clic en **Create a record**.
+2. Tipo: **A**.
+3. En **HOSTNAME** escribe: `www`
+4. En **WILL DIRECT TO**: selecciona tu droplet.
+5. **Create Record**.
+
+Después de eso, entra en el navegador a `http://tudominio.com` o `http://www.tudominio.com`.
+
+### 2.3. Configurar Nginx para que apunte a estas rutas
+
+El `_` que puse al configurar Nginx por IP ahora se reemplaza por el dominio real.
+
+Edita la configuración:
+
+```bash
+nano /etc/nginx/sites-available/default
+```
+
+Busca la línea:
+
+```nginx
+server_name _;
+```
+
+Y cámbiala por:
+
+```nginx
+server_name tudominio.com www.tudominio.com;
+```
+
+Luego verifica y recarga:
+
+```bash
+nginx -t
+systemctl reload nginx
+```
+
+## 3. HTTPS
+
+Hoy, todo lo que viaja entre el visitante y el servidor va en texto plano: cualquiera en la misma red (un WiFi público, por ejemplo) podría leerlo. HTTPS cifra ese tráfico.
+
+Para lograrlo necesitas un **certificado**, un archivo firmado por una autoridad reconocida que demuestra que tú controlas ese dominio. **Let's Encrypt** los emite gratis, y **Certbot** es el programa que lo pide, lo instala y configura Nginx por ti.
+
+### 3.1. Instala Certbot
+
+Conéctate por SSH y ejecuta:
+
+```bash
+apt install -y certbot python3-certbot-nginx
+```
+
+### 3.2. Pide el certificado
+
+```bash
+certbot --nginx -d tudominio.com -d www.tudominio.com
+```
+
+Te hará tres preguntas:
+
+- **Tu correo:** para avisarte si el certificado va a vencer. Pon uno real.
+- **Términos de servicio:** escribe `Y`.
+- **Compartir tu correo con EFF:** puedes poner `N`.
+
+Detrás de escena pasa esto: Certbot le dice a Let's Encrypt "quiero un certificado para tudominio.com", y Let's Encrypt responde con un desafío: coloca cierto archivo en tu servidor. Certbot lo coloca, Let's Encrypt entra a tu dominio, lo encuentra y confirma que efectivamente controlas ese servidor. Por eso era imprescindible que el DNS ya funcionara antes de este paso.
+
+Al instalar el certificado, Certbot edita el archivo `/etc/nginx/sites-enabled/default`: ahí agrega el bloque que escucha en el puerto 443 (HTTPS) y la redirección del 80 al 443.
+
+### 3.3. Comprueba
+
+Al terminar, entra a `https://tudominio.com`. Deberías ver el candado. Prueba también entrar con `http://` y fíjate cómo te redirige automáticamente a la versión segura.
+
+Los certificados de Let's Encrypt duran 90 días, pero Certbot instala una tarea que los renueva solo. Puedes comprobar que funcionará con:
+
+```bash
+certbot renew --dry-run
+```
+
+Si Certbot falla con "Could not automatically find a matching server block", significa que Nginx todavía tiene `server_name _;` y Certbot no sabe dónde instalar el certificado. Se arregla en dos pasos:
+
+1. Corregir el `server_name` (ver punto 2.3) y recargar:
+   ```bash
+   nginx -t
+   systemctl reload nginx
+   ```
+2. Instalar el certificado ya emitido (no hace falta volver a pedirlo):
+   ```bash
+   certbot install --cert-name tudominio.com
+   ```

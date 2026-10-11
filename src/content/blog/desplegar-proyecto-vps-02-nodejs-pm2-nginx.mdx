@@ -1,0 +1,305 @@
+---
+title: "Desplegar una app Node.js en un VPS con PM2 y Nginx"
+date: 2026-10-13
+tags: ["vps", "node", "pm2", "nginx"]
+summary: "Instalar Node.js en el servidor, correr un server mínimo, mantenerlo vivo en segundo plano con PM2, exponerlo por el puerto 80 con Nginx como reverse proxy, y cerrar el resto de puertos con el firewall."
+draft: false
+dependsOn: ["desplegar-proyecto-vps-01-configuracion-inicial"]
+---
+
+Con el servidor creado y actualizado, el siguiente paso es tener una app Node.js corriendo de verdad: que sobreviva a cerrar la terminal, que se reinicie sola si se cae, y que se acceda por el puerto normal de la web (80) en vez de uno improvisado.
+
+## 1. Instalar Node.js
+
+### 1.1. Instalar Node.js en el servidor
+
+```bash
+curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
+apt install -y nodejs
+```
+
+El primer comando le dice a Ubuntu dónde encontrar Node 22 (la versión que trae Ubuntu por defecto es muy vieja), y el segundo lo instala.
+
+### 1.2. Verificar
+
+```bash
+node -v
+npm -v
+```
+
+## 2. Crear y ejecutar un servidor mínimo
+
+### 2.1. Crear el archivo
+
+Primero creamos la carpeta y entramos en ella:
+
+```bash
+mkdir /root/app && cd /root/app
+```
+
+Ahora creamos el archivo:
+
+```bash
+nano server.js
+```
+
+`nano` es un editor de texto dentro de la terminal. Se abrirá una pantalla vacía. Pega esto:
+
+```js
+const http = require('http');
+
+const server = http.createServer((req, res) => {
+  res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+  res.end('<h1>¡Hola! Esto vive en mi servidor 🎉</h1>');
+});
+
+server.listen(3000, '0.0.0.0', () => {
+  console.log('Servidor escuchando en el puerto 3000');
+});
+```
+
+Para guardar y salir de nano: **Ctrl+O**, luego **Enter**, luego **Ctrl+X**.
+
+Un detalle importante de ese código: el `'0.0.0.0'` significa "acepta conexiones desde cualquier parte". Si pusieras `localhost`, el servidor solo se escucharía a sí mismo y nadie de internet podría entrar. Es un error clásico al desplegar.
+
+### 2.2. Ejecutar el archivo
+
+```bash
+node server.js
+```
+
+Debería decir "Servidor escuchando en el puerto 3000". La terminal se quedará "colgada", sin devolverte el `#`. Eso es normal: el programa está corriendo.
+
+### 2.3. Verlo desde un dispositivo
+
+En el navegador de tu celular (o en otra pestaña de tu laptop) entra a `http://TU_IP:3000`. Fíjate bien: es **http**, no https, y con **:3000** al final.
+
+Esto hace que la app escuche en el puerto 3000, pero corriendo en la misma terminal como si estuviera en local: si la cierras, se cierra la aplicación y deja de escuchar. Si ejecutas `server.js` y abres otra terminal conectada al servidor, con `ss -tlnp` verás el listado de todos los puertos escuchando, incluido el 3000. Si cierras la app (Ctrl+C), ese puerto deja de escuchar — el proceso muere y la web deja de responder.
+
+No podemos tener la consola encendida en nuestra computadora, porque si la cerramos la app se detiene. Por eso necesitamos ejecutarla en segundo plano, y para eso usamos un gestor de procesos: **PM2**.
+
+## 3. Gestor de procesos: tu app muere cuando cierras la terminal
+
+Cuando ejecutas `node server.js`, ese proceso **cuelga de tu sesión SSH**. Al cerrar la sesión, Linux avisa a todos sus procesos que la terminal se fue, y tu app se apaga con ella.
+
+Además hay dos problemas más: si tu app **se rompe** por un error, nadie la vuelve a levantar; y si el servidor **se reinicia**, tu app no arranca sola.
+
+La solución se llama **gestor de procesos**: un programa que corre tu app en segundo plano, la reinicia si se cae y la arranca al encender el servidor. Usaremos **PM2**, el más común en Node.
+
+### 3.1. Instalar PM2
+
+```bash
+npm install -g pm2
+```
+
+El `-g` lo instala de forma global, disponible como comando en todo el sistema.
+
+### 3.2. Arrancar tu app con PM2
+
+```bash
+cd /root/app
+pm2 start server.js --name mi-app
+```
+
+Fíjate que **te devuelve el `#`** enseguida: tu app quedó en segundo plano. Verás una tabla con su estado en "online".
+
+### 3.3. Arranque automático al reiniciar el servidor
+
+```bash
+pm2 startup
+```
+
+Este comando imprime **otro comando** en pantalla. Cópialo y ejecútalo tal cual. Luego guarda la lista de apps:
+
+```bash
+pm2 save
+```
+
+### 3.4. Cierra la sesión
+
+```bash
+exit
+```
+
+Ahora, con el SSH cerrado, entra desde el navegador a `http://TU_IP:3000`. Ya tenemos el servidor corriendo en segundo plano con la terminal y la conexión SSH cerradas — prácticamente ya desplegamos la aplicación a internet y se puede entrar desde cualquier dispositivo. Antes teníamos que mantener la terminal abierta; con PM2 ese proceso corre por detrás, sin depender de una terminal.
+
+### 3.5. Comandos útiles de PM2
+
+```
+pm2 list            # ver tus apps y su estado
+pm2 logs mi-app     # ver los logs en vivo (Ctrl+C para salir, --lines 30 para ver más líneas anteriores)
+pm2 restart mi-app  # reiniciarla tras cambiar el código
+pm2 stop mi-app     # detenerla
+pm2 start mi-app    # vuelve a encenderla (usa el nombre, no el archivo)
+pm2 delete mi-app   # la saca de la lista de PM2
+pm2 save            # escribe esa lista en disco para que no se borre si el servidor se reinicia
+```
+
+Hasta ahora ya tenemos todo funcional, pero se entra únicamente por el puerto 3000. Por defecto una web expone el puerto 80, así que lo que sigue es dejar de depender del puerto 3000 hacia afuera: eso lo gestiona Nginx.
+
+## 4. Nginx
+
+Nginx se queda con el puerto de entrada y, según lo que pidan, reparte hacia adentro. Así se puede acceder a la aplicación por el puerto por defecto (80) y Nginx internamente lo redirige al puerto de la app (3000).
+
+Instalar Nginx:
+
+```bash
+apt install -y nginx
+```
+
+Al terminar, entra desde el navegador a `http://TU_IP` (ahora **sin** el `:3000`). Deberías ver una página que dice "Welcome to nginx!". Eso confirma que Nginx ya está escuchando en el puerto 80.
+
+### 4.1. Decirle a Nginx que hable con tu app
+
+Vamos a reemplazar esa página de bienvenida por tu aplicación. Abre el archivo de configuración:
+
+```bash
+nano /etc/nginx/sites-available/default
+```
+
+Verás bastante texto. **Borra todo** (en nano: mantén Ctrl+K presionado hasta vaciarlo) y pega esto:
+
+```nginx
+server {
+    listen 80;
+    server_name _;
+
+    location / {
+        proxy_pass http://localhost:3000;
+        proxy_http_version 1.1;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+}
+```
+
+Guarda con **Ctrl+O**, Enter, **Ctrl+X**.
+
+En simple: escucha en el puerto 80; `server_name _` significa "responde a cualquier nombre o IP"; y `proxy_pass` es la instrucción clave, "pásale la petición a mi app en el 3000". Las líneas `proxy_set_header` le reenvían a tu app datos del visitante original, como su IP real, que de otro modo se perderían.
+
+Aplica los cambios:
+
+```bash
+nginx -t
+systemctl reload nginx
+```
+
+`nginx -t` revisa que no haya errores de sintaxis. Debe decir "syntax is ok" y "test is successful".
+
+## 5. Configurar el firewall
+
+Ahora vamos a cerrar la puerta que dejamos abierta. Aunque ya entras por el 80, tu app **sigue accesible** en `http://TU_IP:3000`. Eso significa que cualquiera puede saltarse a Nginx e ir directo a tu app, y lo mismo pasaría con una base de datos cuando se instale.
+
+La solución es el **firewall**: un portero que decide qué puertos se abren a internet. La regla es dejar abierto solo lo necesario.
+
+### 5.1. ufw
+
+Ubuntu trae uno que se llama **ufw**. Ejecuta estos comandos **en orden**:
+
+```bash
+ufw allow OpenSSH
+```
+
+**Este es crítico.** Abre el puerto 22 para que puedas seguir entrando por SSH. Si activas el firewall sin esto, te quedas fuera de tu propio servidor (y si eso pasara, está el botón **Web Console** de DigitalOcean para rescatarte).
+
+```bash
+ufw allow 'Nginx Full'
+```
+
+Eso abre los puertos 80 y 443 (web normal y HTTPS). El 443 aún no se usa, pero queda listo.
+
+```bash
+ufw enable
+```
+
+Te preguntará si quieres continuar porque puede interrumpir la conexión SSH. Escribe **y** y Enter. Como ya permitiste OpenSSH, no pasará nada.
+
+### 5.2. Verifica
+
+```bash
+ufw status
+```
+
+Deberías ver OpenSSH y Nginx Full permitidos. Ahora haz las dos pruebas:
+
+- `http://TU_IP` → **debe funcionar**.
+- `http://TU_IP:3000` → **debe quedarse cargando y fallar**.
+
+## 6. Notas extra de aprendizaje
+
+### 6.1. `ufw status` vs. `ss -tlnp`
+
+Son dos capas distintas. `ss -tlnp` muestra **qué programas están escuchando dentro del servidor**: eso no cambia con el firewall, tu app sigue escuchando en el 3000 porque Nginx le habla por ahí. **`ufw` es una capa anterior**, en la entrada del servidor: revisa cada conexión que llega desde afuera y decide si la deja pasar o la bota. Tu app nunca se entera de que alguien lo intentó.
+
+La analogía: `ss` dice qué oficinas están abiertas dentro del edificio; **ufw es el guardia de la puerta principal**. Las oficinas siguen abiertas, pero el guardia solo deja subir a quien va a la 22, la 80 o la 443. Quien ya está adentro del edificio (como Nginx) llega a cualquier oficina sin pasar por el guardia.
+
+Un par de detalles extra: el puerto **53** suele aparecer con direcciones `127.0.0.x` ("solo accesible desde dentro"), el servicio de DNS interno de Ubuntu — nunca estuvo expuesto. Y tu app y Nginx muestran `0.0.0.0` ("acepto conexiones de cualquier origen"), por eso el 3000 era alcanzable desde internet antes del firewall.
+
+### 6.1.1. Una mejora que aprovecha justo eso
+
+Ahora que Nginx habla con tu app **desde dentro**, tu app ya no necesita escuchar al mundo. Puedes decirle que escuche solo internamente:
+
+```bash
+nano /root/app/server.js
+```
+
+Cambia esta línea:
+
+```js
+server.listen(3000, '0.0.0.0', () => {
+```
+
+por esta:
+
+```js
+server.listen(3000, '127.0.0.1', () => {
+```
+
+Guarda (Ctrl+O, Enter, Ctrl+X) y reinicia:
+
+```bash
+pm2 restart mi-app
+```
+
+Comprueba con `ss -tlnp` que ahora tu app aparece como `127.0.0.1:3000` en vez de `0.0.0.0:3000`, y entra a `http://TU_IP` para confirmar que la web sigue funcionando (Nginx sigue llegando a ella sin problema).
+
+Esto se llama **defensa en profundidad**: dos barreras independientes. Si algún día alguien desactiva el firewall por error, tu app sigue sin estar expuesta directamente. Es la misma idea que se aplica con Postgres, que por defecto escucha solo en `127.0.0.1`.
+
+### 6.2. Entendiendo ufw
+
+Antes de activarlo, `ufw status` habría respondido una sola línea: `Status: inactive`. El firewall viene **instalado pero apagado** en Ubuntu, sin ninguna regla. Por eso todos los puertos donde hubiera algo escuchando (22, 3000 y luego 80) quedaban accesibles desde internet.
+
+La lista de reglas se lee así: **To** es el destino (el puerto o servicio al que alguien quiere entrar — ufw usa nombres de perfiles: `OpenSSH` es el puerto 22, `Nginx Full` son el 80 y el 443 juntos). **Action: ALLOW** significa permitir. **From: Anywhere** significa desde cualquier IP del mundo (se puede restringir a una IP concreta, típico para SSH en empresas).
+
+Las líneas con **(v6)** son las mismas reglas para IPv6; ufw las crea automáticamente en pareja. Y lo más importante es lo que **no** aparece: todo lo que no esté en la lista queda bloqueado por defecto. Esa es la política correcta de un firewall: **denegar todo y permitir solo lo necesario**.
+
+Para ver las reglas con sus números de puerto y un índice para poder borrarlas:
+
+```bash
+ufw status verbose
+ufw status numbered
+```
+
+El segundo da algo como `[1] OpenSSH ALLOW Anywhere`, y con ese número se puede eliminar una regla con `ufw delete 1`.
+
+### 6.3. 127.0.0.1 es "yo mismo"
+
+Toda computadora tiene una dirección especial que siempre apunta a sí misma: **127.0.0.1**, llamada *loopback*. Y **`localhost` es simplemente el apodo de 127.0.0.1**. Son exactamente lo mismo.
+
+Lo clave: **127.0.0.1 es distinto en cada computadora.** Es como decir "mi casa": cada quien se refiere a la suya.
+
+Una computadora tiene varias direcciones a la vez. El droplet, por ejemplo, tiene la loopback 127.0.0.1, la IP pública y una privada (10.x.x.x) visible en el panel.
+
+Y aquí entra el 0.0.0.0. Cuando un programa arranca, tiene que decidir en cuál de esas direcciones escucha:
+
+| Lo que pones | Quién puede llegar |
+|---|---|
+| `127.0.0.1` | Solo programas dentro de la misma máquina |
+| `192.168.1.X` | Solo quien esté en tu red local |
+| `0.0.0.0` | Cualquiera, por todas las direcciones a la vez |
+
+`0.0.0.0` no es una dirección real; es un comodín que significa "escucha por todas mis direcciones".
+
+Y ojo con la última capa: aunque escuches en 0.0.0.0, alguien de **internet** no puede entrar a tu laptop en casa, porque tu router hace de barrera. Ahí está la diferencia de fondo entre local y producción: **el droplet tiene una IP pública directa**, sin router que lo proteja. Por eso el firewall importa tanto ahí y no en casa.
+
+Entonces, lo que se hizo fue: la app dejó de escuchar al mundo entero (0.0.0.0) y ahora solo escucha por su dirección interna (127.0.0.1), donde únicamente Nginx puede encontrarla. Por eso sigue funcionando la web pero el puerto 3000 ya no responde desde afuera.

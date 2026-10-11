@@ -1,0 +1,91 @@
+---
+title: "Desplegar un proyecto en un VPS: droplet, SSH y configuración inicial"
+date: 2026-10-11
+tags: ["vps", "linux", "ssh", "devops"]
+summary: "Cómo crear un droplet, configurar autenticación SSH y hacer la primera conexión y actualización del sistema. Es el punto de partida para cualquier proyecto que termine corriendo en este VPS."
+draft: false
+---
+
+Esta es la base de un VPS listo para producción: cómo crear el servidor, la autenticación por SSH y la primera conexión. Los posts que instalan Node.js, Postgres, Nginx, el dominio o los ajustes finales de seguridad parten de aquí.
+
+## 1. Crear el droplet
+
+El cobro de un VPS suele ser por tiempo de uso, no un pago fijo mensual completo. Para este proyecto elegí la opción regular con el plan de **$6.00/mes**: 1 vCPU, 1 GB de RAM y 25 GB de SSD. Es suficiente para correr base de datos, frontend y backend sin que todo se caiga de golpe, al menos para un proyecto personal o de bajo tráfico.
+
+### 1.1. Autenticación con SSH key
+
+Antes de crear el droplet (o justo al crearlo), conviene tener lista una llave SSH para no depender de contraseñas.
+
+```bash
+ssh-keygen -t ed25519
+```
+
+Presiona `Enter` en todas las preguntas sin escribir nada (la ruta de guardado y la passphrase se pueden configurar más adelante, cuando entiendas mejor para qué sirven). Si ya tienes una llave `id_ed25519`, **no la sobrescribas**: esa llave es independiente de cada servicio, identifica a tu máquina y la usas igual para GitHub, DigitalOcean, etc. Lo que subes a cada proveedor es la clave pública, para darle permiso a tu dispositivo de conectarse.
+
+Esa llave por defecto es la que tu PC usa automáticamente al conectarte. Si prefieres mantener llaves separadas por servicio (con su propio comentario identificador), puedes crear una específica:
+
+```bash
+ssh-keygen -t ed25519 -f %USERPROFILE%\.ssh\id_digitalocean -C "digitalocean"
+```
+
+El detalle de usar una llave que no es la default es que luego tienes que indicarla explícitamente al conectarte:
+
+```bash
+ssh -i %USERPROFILE%\.ssh\id_digitalocean root@TU_IP
+```
+
+Para copiar tu llave pública y agregarla en el panel del proveedor (en "SSH Keys" al crear el droplet):
+
+```bash
+type %USERPROFILE%\.ssh\id_ed25519.pub
+```
+
+Copias el contenido completo y lo pegas ahí. Con eso el servidor va a aceptar conexiones desde tu PC sin pedir contraseña.
+
+## 2. Conectarse al servidor
+
+Con el droplet creado, te conectas desde la terminal:
+
+```bash
+ssh root@TU_IP
+```
+
+La primera vez vas a ver algo así:
+
+```
+The authenticity of host 'TU_IP' can't be established.
+ED25519 key fingerprint is SHA256:...
+Are you sure you want to continue connecting (yes/no/[fingerprint])?
+```
+
+Escribe `yes` y presiona `Enter`. Es normal: tu computadora nunca había visto este servidor y te pregunta si confías en él.
+
+Si todo va bien vas a ver un mensaje de bienvenida de Ubuntu y luego algo como:
+
+```
+root@mi-primer-servidor:~#
+```
+
+Eso significa que la conexión está lista. Para confirmar que todo está en orden, prueba estos comandos:
+
+```bash
+whoami       # dirá: root
+hostname     # dirá: mi-primer-servidor (según lo hayas configurado)
+free -h      # muestra la RAM disponible, ~1 GB en este plan
+```
+
+### 2.1. Actualizar el sistema
+
+Lo primero que hay que hacer en un servidor recién creado es actualizar los paquetes:
+
+```bash
+apt update && apt upgrade -y
+```
+
+`apt` es el instalador de programas de Ubuntu, como un App Store por terminal. `update` refresca la lista de programas disponibles y `upgrade` instala las versiones nuevas. El `-y` responde "sí" automáticamente a las confirmaciones.
+
+Va a tardar unos minutos y va a mostrar mucho texto; es normal. Si aparece una pantalla morada preguntando por servicios a reiniciar o sobre un archivo de configuración, presiona `Enter` para aceptar la opción marcada por defecto.
+
+---
+
+Con esto el servidor ya está creado, accesible por SSH y actualizado. Los siguientes posts instalan sobre esta base lo necesario para correr un proyecto real: runtime de Node.js, base de datos, reverse proxy, dominio y los ajustes finales de seguridad.

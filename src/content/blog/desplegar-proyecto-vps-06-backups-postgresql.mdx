@@ -1,0 +1,134 @@
+---
+title: "Backups automáticos de PostgreSQL con cron"
+date: 2026-10-20
+tags: ["vps", "postgresql", "backups", "cron"]
+summary: "Automatizar un respaldo nocturno de la base de datos con pg_dump, comprimirlo, borrar los backups viejos, programarlo con cron, y cómo restaurarlo cuando haga falta."
+draft: false
+dependsOn: ["desplegar-proyecto-vps-03-postgresql", "desplegar-proyecto-vps-05-usuario-no-root"]
+---
+
+Un backup de Postgres se hace con `pg_dump`, que genera un archivo de texto con todas las instrucciones SQL necesarias para reconstruir tu base tal como está. Vamos a automatizarlo para que corra solo cada noche.
+
+## 1. Crear el backup
+
+### Paso 1: crea la carpeta de backups
+
+```bash
+mkdir -p /home/abel/backups
+```
+
+### Paso 2: crea el script
+
+```bash
+nano /home/abel/backup-db.sh
+```
+
+Pega esto:
+
+```bash
+#!/bin/bash
+set -e
+
+FECHA=$(date +%Y-%m-%d_%H-%M)
+DESTINO="/home/abel/backups"
+export PGPASSWORD='TU_CLAVE_AQUI'
+
+pg_dump -U todouser -h 127.0.0.1 -d todoapp -f "$DESTINO/todoapp_$FECHA.sql"
+
+gzip "$DESTINO/todoapp_$FECHA.sql"
+
+find "$DESTINO" -name "todoapp_*.sql.gz" -mtime +7 -delete
+
+echo "Backup completado: todoapp_$FECHA.sql.gz"
+```
+
+Cambia `TU_CLAVE_AQUI` por la contraseña real de `todouser`. Guarda con Ctrl+O, Enter, Ctrl+X.
+
+Qué hace cada parte: `set -e` detiene el script si algo falla; `pg_dump` genera el respaldo; `gzip` lo comprime; y el `find` borra los backups de más de 7 días, para que no se llene el disco.
+
+### Paso 3: protégelo y pruébalo
+
+El script contiene tu contraseña, así que restringe quién puede leerlo:
+
+```bash
+chmod 700 /home/abel/backup-db.sh
+```
+
+Ahora ejecútalo:
+
+```bash
+/home/abel/backup-db.sh
+ls -lh /home/abel/backups
+```
+
+Deberías ver tu archivo `.sql.gz`.
+
+### Paso 4: automatízalo cada noche
+
+```bash
+crontab -e
+```
+
+Si es la primera vez, te preguntará qué editor usar: elige **nano**. Al final del archivo agrega esta línea:
+
+```
+0 3 * * * /home/abel/backup-db.sh >> /home/abel/backups/backup.log 2>&1
+```
+
+Guarda y sal. **cron** es el programador de tareas de Linux. Esa línea significa "a las 3:00 de la madrugada, todos los días". Los cinco campos son: minuto, hora, día del mes, mes y día de la semana; el asterisco significa "cualquiera". Y `>> ... 2>&1` guarda la salida y los errores en un archivo de log.
+
+Verifica que quedó registrada:
+
+```bash
+crontab -l
+```
+
+Ojo con la hora: tu servidor está en UTC, así que las 3:00 allá son horas distintas según tu zona local. Puedes verlo con `date`.
+
+### Un detalle de seguridad extra
+
+Los backups funcionan y están programados, pero esos archivos contienen todos los datos de tu base, y por defecto cualquier usuario del servidor podría leerlos. Ejecuta:
+
+```bash
+chmod 600 /home/abel/backups/*.sql.gz
+```
+
+Y en el script (`nano /home/abel/backup-db.sh`), agrega esta línea justo antes de la línea que empieza con `echo`:
+
+```bash
+chmod 600 "$DESTINO/todoapp_$FECHA.sql.gz"
+```
+
+Así cada backup nuevo queda protegido automáticamente, no solo los que ya existían.
+
+## 2. Restaurar un backup
+
+Tu archivo de backup es un texto con instrucciones SQL: crear la tabla e insertar las filas. Para verlo con tus propios ojos:
+
+```bash
+zcat /home/abel/backups/todoapp_2026-09-26_23-15.sql.gz | head -40
+```
+
+Para restaurarlo, el proceso es:
+
+### 1. Descomprimir el archivo
+
+```bash
+gunzip -k /home/abel/backups/todoapp_2026-09-26_23-15.sql.gz
+```
+
+La opción `-k` conserva el original comprimido.
+
+### 2. Cargarlo en la base de datos
+
+```bash
+psql -U todouser -h 127.0.0.1 -d todoapp -f /home/abel/backups/todoapp_2026-09-26_23-15.sql
+```
+
+Eso ejecuta todas esas instrucciones SQL sobre tu base.
+
+### Cuándo lo usarías
+
+En dos situaciones: si borraste datos por error y quieres volver al estado de anoche, o si creaste un servidor nuevo desde cero y quieres devolverle sus datos.
+
+Un detalle importante: restaurar **no borra lo que ya existe**. Si la tabla sigue ahí, podrías terminar con filas duplicadas o errores. En una restauración real, primero se borra la tabla y luego se carga el backup.

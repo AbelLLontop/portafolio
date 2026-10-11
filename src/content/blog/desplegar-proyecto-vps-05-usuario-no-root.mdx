@@ -1,0 +1,170 @@
+---
+title: "Crear un usuario no-root y desactivar el login de root por SSH"
+date: 2026-10-19
+tags: ["vps", "linux", "security", "ssh"]
+summary: "Crear un usuario normal con sudo, mover la app de PM2 de root a ese usuario, y desactivar el acceso directo de root por SSH para cerrar el blanco más atacado de cualquier servidor Linux."
+draft: false
+dependsOn: ["desplegar-proyecto-vps-02-nodejs-pm2-nginx"]
+---
+
+Hasta ahora todo se hizo conectado como `root`. Funciona, pero trabajar siempre como administrador significa que cualquier error o cualquier comando malicioso tiene poder total sobre el servidor. La práctica estándar es un usuario normal que pide permiso con `sudo` cuando hace falta.
+
+## 1. Crear el nuevo usuario
+
+Conéctate por SSH y ejecuta:
+
+```bash
+adduser abel
+```
+
+Te pedirá una contraseña (ponla y guárdala) y luego unos datos opcionales (nombre, teléfono); presiona **Enter** en todos y confirma con **Y**.
+
+Ahora dale permiso de administrador:
+
+```bash
+usermod -aG sudo abel
+```
+
+Eso lo agrega al grupo `sudo`, que es el que permite ejecutar comandos privilegiados.
+
+Copia tu llave SSH al nuevo usuario. Sin esto no podrías entrar con él:
+
+```bash
+rsync --archive --chown=abel:abel ~/.ssh /home/abel
+```
+
+Ese comando copia tu llave autorizada al nuevo usuario y le asigna la propiedad de los archivos.
+
+### 1.1. Pruébalo, sin cerrar la sesión actual
+
+**Importante:** abre una **segunda terminal** y déjala aparte, sin cerrar esta. Si algo sale mal, todavía tendrás la sesión de root abierta para arreglarlo.
+
+En la terminal nueva:
+
+```bash
+ssh abel@TU_IP
+```
+
+Deberías entrar y ver un prompt distinto: `abel@ubuntu...:~$`. Fíjate que termina en `$` y no en `#`. Ese símbolo significa que ya no eres root.
+
+Prueba que `sudo` funciona:
+
+```bash
+sudo whoami
+```
+
+Te pedirá **tu contraseña** (la del usuario abel, no la de root) y debe responder `root`.
+
+## 2. Desactivar el acceso directo de root por SSH
+
+El usuario `root` existe en todos los servidores Linux, y los atacantes lo saben. Hay robots que escanean internet las 24 horas probando conectarse por SSH como `root` con miles de contraseñas.
+
+Al desactivar ese acceso, todos esos intentos fallan antes de empezar, porque el servidor rechaza al usuario root sin importar qué credencial envíen. El atacante tendría que adivinar además el nombre del usuario (`abel`), que no es público.
+
+Esto no te deja fuera del servidor: sigues entrando como `abel` y usas `sudo` para tareas administrativas. Y si algo saliera mal, DigitalOcean tiene el botón **Web Console**, que entra como root sin pasar por SSH — es la puerta de emergencia.
+
+Conectado como `abel`:
+
+```bash
+sudo nano /etc/ssh/sshd_config
+```
+
+Busca la línea `PermitRootLogin` (puede decir `yes` o estar comentada con `#`) y déjala así:
+
+```
+PermitRootLogin no
+```
+
+Guarda (Ctrl+O, Enter, Ctrl+X) y aplica el cambio:
+
+```bash
+sudo systemctl restart ssh
+```
+
+### 2.1. Verificación
+
+**Importante:** no cierres la sesión actual. Abre otra terminal y prueba:
+
+```bash
+ssh root@TU_IP     # debe fallar: "Permission denied"
+ssh abel@TU_IP     # debe seguir funcionando
+```
+
+## 3. Mover la app al usuario abel
+
+Primero compruébalo tú mismo. Como **abel**:
+
+```bash
+ps aux | grep "node /root"
+```
+
+Verás que la primera columna dice `root`. Ese es el proceso expuesto a internet.
+
+Empieza quitando la app del PM2 de root:
+
+```bash
+sudo pm2 delete mi-app
+sudo pm2 save
+```
+
+Copia el código a la casa de abel y hazlo suyo:
+
+```bash
+sudo cp -r /root/app /home/abel/app
+sudo chown -R abel:abel /home/abel/app
+```
+
+Usamos `cp` en vez de `mv` para conservar el original por si algo falla. Y `chown -R` cambia el dueño de la carpeta y todo su contenido.
+
+Verifica que el archivo con la contraseña de la base viajó bien (los archivos que empiezan con punto no se ven con `ls` normal):
+
+```bash
+ls -la /home/abel/app
+```
+
+Debes ver `.env` en la lista.
+
+Arranca la app **como abel**, sin sudo:
+
+```bash
+cd /home/abel/app
+pm2 start server.js --name mi-app
+```
+
+Configura el arranque automático para este usuario:
+
+```bash
+pm2 startup
+```
+
+Ese comando imprimirá otro comando (esta vez llevará `sudo` y mencionará a abel). Cópialo, pégalo y ejecútalo. Luego guarda:
+
+```bash
+pm2 save
+```
+
+### 3.1. Comprueba
+
+```bash
+ps aux | grep "node /home/abel"
+```
+
+Ahora la primera columna debe decir **abel**. Entra a tu dominio y confirma que todo sigue funcionando.
+
+Ten en cuenta que ahora hay dos PM2 distintos: el de root (vacío) y el de abel (con la app). Por eso `pm2 list` como abel muestra la tuya, y `sudo pm2 list` mostraría la de root.
+
+## 4. El flujo correcto desde cero
+
+El orden ideal, si empezaras de nuevo, es crear el usuario **al principio**, no al final:
+
+1. Crear el droplet.
+2. Entrar como root **una sola vez**.
+3. Crear el usuario, darle sudo, copiarle la llave SSH.
+4. Desactivar el login de root.
+5. `exit`, y desde ahí en adelante todo como ese usuario, con sudo cuando haga falta.
+6. Instalar Node, Postgres, Nginx (con sudo, porque son del sistema).
+7. Poner el código en la carpeta del usuario y arrancarlo con PM2 **sin sudo**.
+
+Con ese orden nunca se tienen dos PM2 ni hay que mover nada.
+
+La regla que ordena todo esto es simple: **sudo para lo que es del sistema, sin sudo para lo que es tuyo.** Instalar paquetes, editar Nginx o reiniciar servicios son del sistema. Tu código y tu app son tuyos.
