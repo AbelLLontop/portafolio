@@ -1,0 +1,107 @@
+---
+title: "Límites de recursos en Docker Compose y subir el proyecto a GitHub"
+date: 2026-10-25
+tags: ["docker", "docker-compose", "github"]
+summary: "Fijar límites de memoria y de logs para cada contenedor antes de llegar a producción, fijar versiones de las imágenes, y subir el proyecto dockerizado a GitHub."
+draft: false
+dependsOn: ["desplegar-proyecto-docker-01-dockerizar-app"]
+---
+
+Con la app, la base de datos y Nginx corriendo en contenedores, antes de llevar esto a un servidor real quedan dos cosas: que ningún contenedor pueda consumir toda la memoria del servidor, y subir el proyecto a GitHub para poder desplegarlo desde ahí.
+
+## 1. Fijar los recursos y las versiones
+
+Docker no limita la memoria por defecto. Aísla procesos y red, pero no recursos: **un contenedor sin límite puede consumir toda la RAM del servidor y tumbar a los demás.**
+
+En un servidor manual se puede limitar una app con PM2 (`max_memory_restart`), pero para Postgres y Nginx haría falta un mecanismo distinto para cada uno. Con Docker se define igual para los tres, en el mismo archivo donde ya está descrito el sistema.
+
+**Cómo decidir los valores.** La suma debe dejar libre entre el 20% y el 25% de la RAM para el sistema operativo. El reparto: Postgres es el que más necesita porque cachea datos para acelerar consultas; Node necesita menos, salvo que procese archivos grandes; Nginx casi nada, porque solo reparte tráfico.
+
+| RAM del servidor | db | app | nginx |
+|---|---|---|---|
+| 1 GB | 384M | 256M | 128M |
+| 2 GB | 768M | 512M | 256M |
+| 4 GB | 1536M | 1024M | 256M |
+
+Ante la duda, sé generoso: un límite corto hace que Docker mate el contenedor y los usuarios vean errores intermitentes difíciles de diagnosticar.
+
+Para un servidor de 1 GB, usa la primera fila. En `docker-compose.yml`, agrega el bloque a cada servicio, al mismo nivel que `restart`:
+
+En **db**:
+
+```yaml
+    deploy:
+      resources:
+        limits:
+          memory: 384M
+```
+
+En **app**:
+
+```yaml
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+```
+
+En **nginx**:
+
+```yaml
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+```
+
+**Los logs tienen el mismo problema:** Docker guarda todo lo que imprimen los contenedores, y sin configuración crecen hasta llenar el disco. Es el equivalente a `pm2-logrotate` en un servidor manual. Agrega esto a los tres servicios, al mismo nivel que `deploy`:
+
+```yaml
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+```
+
+Docker escribe en un archivo todo lo que imprime el contenedor. Con esa configuración:
+
+- **`max-size: "10m"`**: cuando el archivo llega a 10 MB, Docker lo cierra y empieza uno nuevo.
+- **`max-file: "3"`**: guarda como máximo 3 de esos archivos. Cuando nace el cuarto, borra el más antiguo.
+
+En la práctica queda así: el archivo activo, más dos anteriores. Como máximo **30 MB de logs por contenedor**, para siempre. Con los tres servicios, unos 90 MB en el peor caso.
+
+**Sobre las versiones:** usar `postgres:16-alpine` y `node:22-alpine` en vez de `latest` es importante. En producción nunca se usa `latest`, porque al recrear los contenedores se levantaría una versión distinta y podría romper todo sin tocar nada.
+
+**Para ajustar con datos reales**, cuando ya haya unos días con tráfico, `docker stats` muestra el consumo de cada contenedor. Si alguno vive pegado a su límite, hay que subirlo.
+
+Aplica los cambios y levanta:
+
+```bash
+docker compose up -d
+docker compose ps
+```
+
+El `-d` lo deja en segundo plano y devuelve la terminal. Deberían verse los tres servicios como "running".
+
+## 2. Subir el proyecto a GitHub
+
+Antes de tocar el servidor, el código tiene que estar en GitHub, porque de ahí lo va a bajar.
+
+Primero verifica que no se vaya a subir ningún secreto:
+
+```bash
+git status
+```
+
+**Confirma que `.env` NO aparece en la lista.** Si aparece, no sigas hasta resolverlo.
+
+Deberían verse los archivos nuevos: `Dockerfile`, `.dockerignore`, `docker-compose.yml`, `.env.example`, la carpeta `nginx/` y la carpeta `db/`.
+
+```bash
+git add .
+git commit -m "Dockerizar la aplicacion"
+git push
+```
+
+La deploy key del servidor es de solo lectura, así que este push se hace desde tu PC con tu cuenta normal, que sí tiene permisos de escritura.

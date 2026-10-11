@@ -1,0 +1,274 @@
+---
+title: "Levantar un servidor Docker nuevo en producción"
+date: 2026-10-27
+tags: ["vps", "docker", "ufw", "digitalocean"]
+summary: "Crear un droplet nuevo, apuntar el dominio a su IP, instalar Docker y Docker Compose desde el repositorio oficial, y clonar el proyecto dockerizado para levantarlo con un .env de producción."
+draft: false
+dependsOn: ["desplegar-proyecto-docker-02-recursos-y-github"]
+---
+
+Con el proyecto dockerizado y en GitHub, toca el servidor. En vez de reutilizar el droplet de la serie manual, este post crea uno nuevo dedicado a correr todo por contenedores — así queda claro qué cambia entre un VPS configurado a mano y uno basado en Docker.
+
+## 1. Crear el droplet
+
+En DigitalOcean: **Create → Droplets**, con estas opciones:
+
+- **Region:** la más cercana a tus usuarios
+- **Image:** Ubuntu 24.04 (LTS)
+- **Plan:** Basic → CPU Option **Regular** → el de **1 GB RAM / $6 al mes**
+- **Authentication:** SSH Key → selecciona la tuya
+- **Nombre:** `servidor-docker`
+- No marques Backups ni ningún extra
+
+Verifica que el Summary diga ~$6.00/month y créalo. Copia la **IP** que te asignen.
+
+### 1.2. Entrar y crear tu usuario
+
+```bash
+ssh root@TU_IP
+```
+
+Escribe `yes` si pregunta. Ya dentro:
+
+```bash
+apt update && apt upgrade -y
+```
+
+Si aparece una pantalla morada, presiona Enter.
+
+```bash
+adduser abel
+```
+
+Pon una contraseña y guárdala. Enter en los datos opcionales y confirma con `Y`.
+
+```bash
+usermod -aG sudo abel
+rsync --archive --chown=abel:abel ~/.ssh /home/abel
+```
+
+El primero le da permisos de administrador; el segundo le copia tu llave SSH para que puedas entrar con él.
+
+**Antes de cerrar nada**, abre otra terminal y comprueba:
+
+```bash
+ssh abel@TU_IP
+sudo whoami
+```
+
+Debe responder `root` tras pedirte la contraseña de abel.
+
+### 1.3. Desactivar el login de root
+
+Ya como **abel**:
+
+```bash
+sudo nano /etc/ssh/sshd_config
+```
+
+Busca la línea `PermitRootLogin` y déjala así:
+
+```
+PermitRootLogin no
+```
+
+Guarda (Ctrl+O, Enter, Ctrl+X) y aplica:
+
+```bash
+sudo systemctl restart ssh
+```
+
+Sin cerrar tu sesión, comprueba en otra terminal que `ssh root@TU_IP` ahora falla y `ssh abel@TU_IP` sigue funcionando.
+
+### 1.4. Firewall
+
+```bash
+sudo ufw allow OpenSSH
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+sudo ufw enable
+```
+
+Escribe `y` cuando pregunte. El primer comando es crítico: sin él te quedarías fuera del servidor.
+
+Hay una diferencia con el servidor manual: ahí se usaba `sudo ufw allow 'Nginx Full'`, un perfil con nombre amigable que el paquete de Nginx crea al instalarse. En este servidor Nginx vive en un contenedor, así que ese perfil no existe y el comando fallaría. Se abren los puertos directamente, que es exactamente lo mismo.
+
+```bash
+sudo ufw status
+```
+
+Debe mostrar OpenSSH, 80/tcp y 443/tcp permitidos.
+
+### 1.5. Actualizaciones de seguridad automáticas
+
+```bash
+sudo apt install -y unattended-upgrades
+sudo dpkg-reconfigure --priority=low unattended-upgrades
+```
+
+**Yes** en la pantalla azul.
+
+## 2. Apuntar el dominio a la IP nueva
+
+En DigitalOcean: **Networking → Domains → tudominio.com**.
+
+Verás los dos registros A de un servidor anterior, apuntando a la IP vieja. En el menú de cada uno (los tres puntos), elige editar y pon la IP nueva. Son dos: el de hostname `@` y el de `www`.
+
+No toques nada en el registrador del dominio; los nameservers siguen igual.
+
+Fíjate en lo que **no** se instaló: ni Node, ni Postgres, ni Nginx, ni PM2, ni Certbot. Todo eso ahora viaja dentro de los contenedores.
+
+## 3. Instalar Docker en el servidor
+
+Ubuntu trae una versión de Docker en sus repositorios, pero está desactualizada y no incluye Compose. Se instala desde el repositorio oficial de Docker, que es la forma recomendada en producción.
+
+Como **abel**, ejecuta esto en bloque:
+
+```bash
+sudo apt install -y ca-certificates curl
+sudo install -m 0755 -d /etc/apt/keyrings
+sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+sudo chmod a+r /etc/apt/keyrings/docker.asc
+```
+
+Eso descarga la **llave GPG** de Docker. Sirve para que el sistema verifique que los paquetes vienen realmente de Docker y no de alguien que los suplantó por el camino.
+
+Ahora agrega el repositorio:
+
+```bash
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+```
+
+E instala:
+
+```bash
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+```
+
+Comprueba que funciona:
+
+```bash
+sudo docker run hello-world
+```
+
+Debe imprimir un mensaje de bienvenida.
+
+Para que no haga falta `sudo` en cada comando:
+
+```bash
+sudo usermod -aG docker abel
+```
+
+Eso agrega a abel al grupo `docker`. Para que surta efecto, **sal y vuelve a entrar**:
+
+```bash
+exit
+```
+
+Conéctate de nuevo y verifica:
+
+```bash
+docker run hello-world
+docker compose version
+```
+
+**Algo que debes saber:** pertenecer al grupo `docker` equivale prácticamente a ser root, porque desde un contenedor se puede montar cualquier carpeta del sistema. Es aceptable aquí porque abel ya tiene sudo, pero ten esto presente si algún día le das acceso a alguien más: agregarlo al grupo docker es darle control del servidor.
+
+## 4. Bajar el código al servidor
+
+El servidor necesita una identidad para hablar con GitHub, igual que en un despliegue manual. Como **abel**:
+
+```bash
+ssh-keygen -t ed25519 -C "servidor-docker"
+```
+
+Enter en todas las preguntas.
+
+```bash
+cat ~/.ssh/id_ed25519.pub
+```
+
+Copia esa línea completa.
+
+En GitHub, entra a **tu repositorio** → **Settings** → **Deploy keys** → **Add deploy key**. Pega la llave, ponle el título `servidor-docker` y **deja desmarcado** "Allow write access", porque el servidor solo necesita leer.
+
+Si todavía existe la deploy key de un servidor anterior, bórrala: ya no existe esa máquina.
+
+Comprueba la conexión:
+
+```bash
+ssh -T git@github.com
+```
+
+Escribe `yes` si pregunta.
+
+Ahora clona el proyecto:
+
+```bash
+cd ~
+git clone git@github.com:TU-USUARIO/todo-produccion.git app
+cd app
+ls -la
+```
+
+Deberías ver el `Dockerfile`, `docker-compose.yml`, las carpetas `nginx` y `db`, y el `.env.example`.
+
+**Fíjate en que no está el `.env`**, y eso es correcto: nunca subió a GitHub. El siguiente paso es crearlo aquí, con credenciales distintas a las de tu máquina local, porque esto es producción.
+
+```bash
+nano .env
+```
+
+Pega esto y pon una contraseña larga y nueva:
+
+```
+POSTGRES_DB=todoapp
+POSTGRES_USER=todouser
+POSTGRES_PASSWORD=una_clave_larga_y_distinta_de_la_local
+```
+
+Guarda y protégelo:
+
+```bash
+chmod 600 .env
+```
+
+Ese archivo es el único secreto del servidor, y con esos permisos solo abel puede leerlo.
+
+### 4.1. Levantar el sistema
+
+```bash
+cd ~/app
+docker compose up -d --build
+```
+
+La primera vez tardará unos minutos: descarga las imágenes base y construye la propia. El `-d` lo deja en segundo plano.
+
+Comprueba el estado:
+
+```bash
+docker compose ps
+```
+
+Los tres servicios deben aparecer como "running", y `db` además como "healthy".
+
+Ahora la prueba real. En el navegador entra a:
+
+```
+http://tudominio.com
+```
+
+Debería aparecer la app, funcionando desde contenedores (todavía sin HTTPS — eso es el siguiente post).
+
+Si algo falla, el comando que dice qué pasó es:
+
+```bash
+docker compose logs --tail=50
+```
+
+O para un servicio concreto:
+
+```bash
+docker compose logs app --tail=50
+```
