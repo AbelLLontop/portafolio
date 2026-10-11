@@ -22,6 +22,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F13 — SEO + Analytics
 - [x] F14 — Smoke tests E2E (Playwright)
 - [x] F15 — Deploy a Vercel + dominio
+- [x] F16 — Página "Sobre mí" + Hero/Terminal actualizados
 
 ---
 
@@ -120,3 +121,9 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 **Incluye:** configuración de proyecto en Vercel, conexión DNS de `abelitolll.com`.
 **Excluye:** CI formal.
 **Verificación:** el sitio responde en `abelitolll.com`; Lighthouse manual en producción (Performance/Accessibility/SEO ≥90).
+
+## F16 — Página "Sobre mí" + Hero/Terminal actualizados
+
+**Incluye:** `src/pages/sobre-mi.astro` (resumen profesional breve: desarrollador de software, 3 años de experiencia, stack, apoyo en IA, arquitectura limpia/ágil, con el SVG de marca a la derecha del texto), nav actualizado en `Header.astro` (Inicio → Sobre mí → Blog), párrafo del Hero reescrito (`Hero.astro`), `TerminalHero.tsx` con nuevas preguntas ("¿quién eres?", "¿cómo trabajas?"), color tipo CLI por línea de respuesta (clave/valor/árbol) y pausas extendidas en las respuestas largas.
+**Excluye:** foto personal, timeline de empleos (empresa/cargo/fechas), cálculo dinámico de años de experiencia.
+**Verificación:** `npm run check`; `npm run build`; visual consistente en ancho (`max-w-3xl`) con el resto de páginas; `npx playwright test` pasa.

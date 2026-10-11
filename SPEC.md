@@ -20,7 +20,8 @@ Es el primer proyecto del usuario construido con Claude Code, y una motivación 
 - **Blog:** contenido en Markdown/MDX dentro del repo (Astro Content Collections), sin CMS externo ni backend.
 - **Nivel de interactividad:** sutil y elegante — prioriza verse profesional sobre tener muchos efectos.
 - **Idioma:** español únicamente por ahora (usuario está aprendiendo inglés; no bilingüe todavía, pero no cerrar la puerta a i18n futuro).
-- **Contacto:** solo email + GitHub + LinkedIn, sin foto ni biografía extensa, sin formulario.
+- **Contacto:** solo email + GitHub + LinkedIn, sin foto adicional de perfil, sin formulario.
+- **Sobre mí:** página dedicada (`/sobre-mi`, enlazada en el nav entre "Inicio" y "Blog") con un resumen profesional breve: enfoque como desarrollador de software, años de experiencia (texto fijo, no calculado), stack principal, y mención de apoyo en herramientas de IA. Usa el mismo SVG de marca (cabeza + cohete) que el Hero, no una foto personal. Sin timeline de empleos (empresa/cargo/fechas).
 - **Tema visual:** dark mode por defecto, estética terminal/dev, un solo color de acento (azul tipo React o celeste tipo Go — decisión final del acento abierta, ver Open Questions), sin exagerar en estética "hacker" (el usuario es más frontend, nunca trabajó estética hacker/neón).
 - **Terminal del hero:** animación de escritura automática (typewriter en loop/secuencia), **no** interactiva — el visitante no escribe comandos reales. Esto evita los casos borde de inputs inválidos, falta de teclado en mobile y accesibilidad de un intérprete de comandos real.
 - **Blog — propósito real:** son notas personales del propio usuario, no para lectores externos. Por lo tanto tiempo de lectura, SEO de posts individuales y descubribilidad NO son prioridad funcional — sí lo es que cada post se vea visualmente excepcional (metadata con fecha/autor, badges de tecnología con logos, syntax highlighting, selección de texto coloreada con el color de acento).
@@ -97,6 +98,7 @@ Format:                 npm run format       # prettier --write .
 │   │   └── BlogPostLayout.astro
 │   ├── pages/
 │   │   ├── index.astro            → hero + proyectos + contacto
+│   │   ├── sobre-mi.astro         → resumen profesional breve, enlazado en el nav
 │   │   ├── blog/
 │   │   │   ├── index.astro        → listado de posts
 │   │   │   └── [slug].astro       → post individual
@@ -196,7 +198,7 @@ Dado que es un sitio estático personal sin lógica de negocio compleja, la estr
   - Añadir cualquier dato personal además de email/GitHub/LinkedIn.
   - Hacer la terminal del hero interactiva de verdad (cambiaría el alcance acordado).
 - **Nunca:**
-  - Incluir foto, biografía extensa o datos personales más allá de lo acordado (email, GitHub, LinkedIn).
+  - Incluir foto personal, timeline de empleos (empresa/cargo/fechas) o datos personales más allá de lo acordado (email, GitHub, LinkedIn).
   - Inventar proyectos falsos o demos presentados como reales.
   - Usar iconografía/logos de marcas de forma que viole su licencia de uso (verificar licencia de Simple Icons/Devicon, que son MIT/libres para este uso).
   - Comprometer performance (ej. librerías de animación pesadas cargadas globalmente) en nombre de una decoración menor.
@@ -206,6 +208,7 @@ Dado que es un sitio estático personal sin lógica de negocio compleja, la estr
 - `npm run build` compila sin errores y `astro check` no reporta errores de tipos.
 - Lighthouse (mobile): Performance ≥ 90, Accessibility ≥ 90, SEO ≥ 90 en la home.
 - La home muestra: hero con terminal animada + wordmark con tratamiento visual distintivo, sección de proyectos reales con tarjetas (nombre/descripción/stack/links), sección de contacto (email/GitHub/LinkedIn).
+- El nav incluye la página "Sobre mí" (Inicio → Sobre mí → Blog) con el resumen profesional breve.
 - El blog lista posts desde `src/content/blog/*.mdx` y cada post individual muestra fecha, badges de tecnología con logos, y código con syntax highlighting; seleccionar texto en un post lo resalta con el color de acento.
 - El sitio es completamente usable y visualmente correcto en viewport mobile (375px) y desktop.
 - El sitio responde en el dominio `abelitolll.com` desplegado (Vercel por defecto, según recomendación).

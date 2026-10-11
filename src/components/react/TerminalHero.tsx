@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 interface AgentExchange {
   prompt: string;
   response: string[];
+  extraPauseMs?: number;
 }
 
 interface TerminalHeroProps {
@@ -15,18 +16,22 @@ const DEFAULT_EXCHANGES: AgentExchange[] = [
     prompt: "¿quién eres?",
     response: [
       "abelitolll",
-      "├─ rol: frontend developer",
+      "├─ rol: desarrollador de software",
+      "├─ experiencia: 3 años",
       "├─ ubicación: Lima, Perú",
-      "└─ stack: react · astro · typescript",
+      "└─ stack: node · java · angular · react · aws",
     ],
+    extraPauseMs: 2000,
   },
   {
-    prompt: "¿qué te gusta hacer?",
+    prompt: "¿cómo trabajas?",
     response: [
-      "cuidar el detalle visual",
-      "escribir notas técnicas en el blog",
-      "iterar hasta que se sienta bien",
+      "arquitectura limpia y buenas prácticas",
+      "├─ metodología: ágil",
+      "├─ apoyo: herramientas de IA para iterar más rápido",
+      "└─ foco: sistemas de negocio robustos y mantenibles",
     ],
+    extraPauseMs: 2000,
   },
   {
     prompt: "¿en qué estás trabajando?",
@@ -41,6 +46,26 @@ const PAUSE_AFTER_ANSWER_MS = 1500;
 const PAUSE_AFTER_CYCLE_MS = 900;
 
 type Phase = "typing-prompt" | "thinking" | "answering" | "pausing" | "cycle-done";
+
+const TREE_LINE_PATTERN = /^([├└]─\s)([^:]+):\s(.+)$/;
+
+function ResponseLine({ line, isFirst }: { line: string; isFirst: boolean }) {
+  const match = line.match(TREE_LINE_PATTERN);
+  if (match) {
+    const [, prefix, key, value] = match;
+    return (
+      <>
+        <span className="text-zinc-600">{prefix}</span>
+        <span className="text-accent">{key}</span>
+        <span className="text-zinc-600">: </span>
+        <span className="text-zinc-300">{value}</span>
+      </>
+    );
+  }
+  return (
+    <span className={isFirst ? "font-semibold text-zinc-100" : "text-zinc-400"}>{line}</span>
+  );
+}
 
 export default function TerminalHero({ exchanges = DEFAULT_EXCHANGES }: TerminalHeroProps) {
   const [exchangeIndex, setExchangeIndex] = useState(0);
@@ -68,7 +93,10 @@ export default function TerminalHero({ exchanges = DEFAULT_EXCHANGES }: Terminal
           LINE_REVEAL_INTERVAL_MS,
         );
       } else {
-        timerRef.current = setTimeout(() => setPhase("pausing"), PAUSE_AFTER_ANSWER_MS);
+        timerRef.current = setTimeout(
+          () => setPhase("pausing"),
+          PAUSE_AFTER_ANSWER_MS + (current.extraPauseMs ?? 0),
+        );
       }
     } else if (phase === "pausing") {
       if (exchangeIndex < exchanges.length - 1) {
@@ -133,8 +161,8 @@ export default function TerminalHero({ exchanges = DEFAULT_EXCHANGES }: Terminal
             </p>
           )}
           {visibleResponse.map((line, index) => (
-            <p key={index} className={index === 0 ? "text-zinc-200" : "text-zinc-500"}>
-              {line}
+            <p key={index}>
+              <ResponseLine line={line} isFirst={index === 0} />
             </p>
           ))}
         </div>
