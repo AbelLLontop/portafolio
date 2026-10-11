@@ -1,7 +1,7 @@
 export const SITE_NAME = "abelitolll";
 export const SITE_URL = "https://abelitolll.com";
 export const SITE_DESCRIPTION =
-  "Portafolio de abelitolll — proyectos, notas técnicas y experimentos de desarrollo de software.";
+  "abelitolll — desarrollador de software peruano. Notas técnicas, proyectos y experimentos, con apoyo de herramientas de IA.";
 export const SITE_OG_IMAGE = "/og-image.png";
 export const SITE_LOCALE = "es_ES";
 

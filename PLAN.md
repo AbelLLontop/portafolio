@@ -23,6 +23,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F14 — Smoke tests E2E (Playwright)
 - [x] F15 — Deploy a Vercel + dominio
 - [x] F16 — Página "Sobre mí" + Hero/Terminal actualizados
+- [x] F17 — Rediseño de la imagen OG + descripciones
 
 ---
 
@@ -127,3 +128,9 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 **Incluye:** `src/pages/sobre-mi.astro` (resumen profesional breve: desarrollador de software, 3 años de experiencia, stack, apoyo en IA, arquitectura limpia/ágil, con el SVG de marca a la derecha del texto), nav actualizado en `Header.astro` (Inicio → Sobre mí → Blog), párrafo del Hero reescrito (`Hero.astro`), `TerminalHero.tsx` con nuevas preguntas ("¿quién eres?", "¿cómo trabajas?"), color tipo CLI por línea de respuesta (clave/valor/árbol) y pausas extendidas en las respuestas largas.
 **Excluye:** foto personal, timeline de empleos (empresa/cargo/fechas), cálculo dinámico de años de experiencia.
 **Verificación:** `npm run check`; `npm run build`; visual consistente en ancho (`max-w-3xl`) con el resto de páginas; `npx playwright test` pasa.
+
+## F17 — Rediseño de la imagen OG + descripciones
+
+**Incluye:** `scripts/generate-og-image.mjs` reescrito (wordmark con corrimiento cromático estático eco del glitch de `Wordmark.tsx`, subtítulo "Desarrollador de software" / "Blog personal y portafolio", SVG del cohete embebido, textura de puntos sutil, sin la barra de acento gruesa), `public/og-image.png` regenerado, `SITE_DESCRIPTION` en `src/lib/seo.ts` y el `title`/`description` de la home actualizados para reflejar el perfil real.
+**Excluye:** `og:image:width/height/alt`, `twitter:site/creator`, uso del logo "head" (se usó el rocket).
+**Verificación:** `npm run check`; `npm run build`; `npx playwright test`; revisión visual de `public/og-image.png`.
