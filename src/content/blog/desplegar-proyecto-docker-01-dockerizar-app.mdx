@@ -4,7 +4,6 @@ date: 2026-10-24
 tags: ["docker", "docker-compose", "node", "postgresql"]
 summary: "Empaquetar una app Node.js + PostgreSQL con Dockerfile, .dockerignore y Docker Compose: red interna, volúmenes para no perder datos, variables de entorno, y Nginx como reverse proxy dentro de un contenedor."
 draft: false
-dependsOn: ["desplegar-proyecto-vps-03-postgresql"]
 ---
 
 Configurar todo a mano en un VPS funciona, pero es tedioso repetirlo en cada servidor nuevo: instalar Node, Postgres, Nginx, PM2, ajustar cada uno por separado. Docker empaqueta todo eso en contenedores que se levantan igual en cualquier máquina. Este post dockeriza la misma app Node.js + PostgreSQL de la serie manual, para después subirla a un VPS en producción.

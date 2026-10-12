@@ -4,7 +4,6 @@ date: 2026-10-15
 tags: ["vps", "postgresql", "node", "express"]
 summary: "Instalar PostgreSQL, crear la base de datos y el usuario de la app, y conectar un backend Express + pg a esa base, con las credenciales fuera del código en un archivo .env."
 draft: false
-dependsOn: ["desplegar-proyecto-vps-02-nodejs-pm2-nginx"]
 ---
 
 Con la app Node.js corriendo detrás de Nginx, el siguiente paso natural es darle una base de datos real. Vamos a instalar PostgreSQL, crear una base y un usuario propios para la app, y reemplazar el server mínimo por un backend Express que lee y escribe en esa base.

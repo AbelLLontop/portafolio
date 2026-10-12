@@ -24,6 +24,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F15 — Deploy a Vercel + dominio
 - [x] F16 — Página "Sobre mí" + Hero/Terminal actualizados
 - [x] F17 — Rediseño de la imagen OG + descripciones
+- [x] F20 — Búsqueda, filtro por tag y paginación en el listado de blog
 
 ---
 
@@ -134,3 +135,9 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 **Incluye:** `scripts/generate-og-image.mjs` reescrito (wordmark con corrimiento cromático estático eco del glitch de `Wordmark.tsx`, subtítulo "Desarrollador de software" / "Blog personal y portafolio", SVG del cohete embebido, textura de puntos sutil, sin la barra de acento gruesa), `public/og-image.png` regenerado, `SITE_DESCRIPTION` en `src/lib/seo.ts` y el `title`/`description` de la home actualizados para reflejar el perfil real.
 **Excluye:** `og:image:width/height/alt`, `twitter:site/creator`, uso del logo "head" (se usó el rocket).
 **Verificación:** `npm run check`; `npm run build`; `npx playwright test`; revisión visual de `public/og-image.png`.
+
+## F20 — Búsqueda, filtro por tag y paginación en el listado de blog
+
+**Incluye:** `src/components/react/BlogList.tsx` (isla React `client:visible`: input de búsqueda por título/summary, pills de filtro por tag, paginación de 10 posts por página), `src/pages/blog/index.astro` actualizado para pasarle los posts ya serializados (slug/title/summary/tags/number/formattedDate). También se eliminó `src/components/astro/BlogPostCard.astro` (quedó sin uso) y la feature `dependsOn`/"Se basó en estos posts" (`src/content.config.ts`, `BlogPostLayout.astro`, `[slug].astro`, frontmatter de los posts de las series VPS/Docker) por generar relaciones contradictorias entre posts de técnicas distintas — cada post vuelve a ser independiente. Se agregó además un badge `#N` (numeración cronológica ascendente, calculada por fecha, no manual) al final del título de cada post, en `/blog` y en la página individual.
+**Excluye:** búsqueda/filtro por fecha, orden configurable, backend o índice de búsqueda externo (todo es client-side sobre el array ya cargado).
+**Verificación:** `npm run check`; `npm run build` (confirma que el listado completo sigue renderizado en el HTML estático para SEO/no-JS, con la búsqueda hidratando encima); revisión visual de búsqueda, filtro por tag y paginación en `/blog`.

@@ -1,22 +1,27 @@
 ---
-import { getCollection, getEntries, render } from "astro:content";
+import { getCollection, render } from "astro:content";
 import BlogPostLayout from "../../layouts/BlogPostLayout.astro";
 
 export async function getStaticPaths() {
   const posts = await getCollection("blog");
+
+  const chronological = posts
+    .filter((post) => !post.data.draft)
+    .sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());
+  const numbers = new Map(
+    chronological.map((post, index) => [post.id, index + 1]),
+  );
+
   return posts.map((post) => ({
     params: { slug: post.id },
-    props: { post },
+    props: { post, number: numbers.get(post.id) ?? 0 },
   }));
 }
 
-const { post } = Astro.props;
+const { post, number } = Astro.props;
 const { Content } = await render(post);
-
-const dependsOn =
-  post.data.dependsOn.length > 0 ? await getEntries(post.data.dependsOn) : [];
 ---
 
-<BlogPostLayout post={post} dependsOn={dependsOn}>
+<BlogPostLayout post={post} number={number}>
   <Content />
 </BlogPostLayout>

@@ -1,11 +1,33 @@
 ---
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import BlogPostCard from "../../components/astro/BlogPostCard.astro";
+import BlogList, {
+  type BlogListPost,
+} from "../../components/react/BlogList";
 
 const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
 );
+
+const chronological = [...posts].sort(
+  (a, b) => a.data.date.valueOf() - b.data.date.valueOf(),
+);
+const numbers = new Map(
+  chronological.map((post, index) => [post.id, index + 1]),
+);
+
+const listPosts: BlogListPost[] = posts.map((post) => ({
+  slug: post.id,
+  title: post.data.title,
+  summary: post.data.summary,
+  tags: post.data.tags,
+  number: numbers.get(post.id) ?? 0,
+  formattedDate: post.data.date.toLocaleDateString("es-PE", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  }),
+}));
 ---
 
 <BaseLayout
@@ -23,7 +45,7 @@ const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
       />
       <h1 class="text-3xl font-bold text-zinc-100">Blog</h1>
     </div>
-    {posts.length === 0 ? (
+    {listPosts.length === 0 ? (
       <div class="mt-8 rounded-lg border border-dashed border-zinc-800 p-8 text-center">
         <p class="text-zinc-300">Todavía no hay notas publicadas.</p>
         <p class="mt-2 text-sm text-zinc-400">
@@ -31,12 +53,8 @@ const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
         </p>
       </div>
     ) : (
-      <div class="mt-8 flex flex-col divide-y divide-zinc-800">
-        {posts.map((post) => (
-          <div class="py-6 first:pt-0">
-            <BlogPostCard post={post} />
-          </div>
-        ))}
+      <div class="mt-8">
+        <BlogList posts={listPosts} client:visible />
       </div>
     )}
   </main>

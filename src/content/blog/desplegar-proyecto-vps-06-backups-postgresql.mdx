@@ -4,7 +4,6 @@ date: 2026-10-20
 tags: ["vps", "postgresql", "backups", "cron"]
 summary: "Automatizar un respaldo nocturno de la base de datos con pg_dump, comprimirlo, borrar los backups viejos, programarlo con cron, y cómo restaurarlo cuando haga falta."
 draft: false
-dependsOn: ["desplegar-proyecto-vps-03-postgresql", "desplegar-proyecto-vps-05-usuario-no-root"]
 ---
 
 Un backup de Postgres se hace con `pg_dump`, que genera un archivo de texto con todas las instrucciones SQL necesarias para reconstruir tu base tal como está. Vamos a automatizarlo para que corra solo cada noche.

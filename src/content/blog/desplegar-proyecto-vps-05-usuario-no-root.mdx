@@ -4,7 +4,6 @@ date: 2026-10-19
 tags: ["vps", "linux", "security", "ssh"]
 summary: "Crear un usuario normal con sudo, mover la app de PM2 de root a ese usuario, y desactivar el acceso directo de root por SSH para cerrar el blanco más atacado de cualquier servidor Linux."
 draft: false
-dependsOn: ["desplegar-proyecto-vps-02-nodejs-pm2-nginx"]
 ---
 
 Hasta ahora todo se hizo conectado como `root`. Funciona, pero trabajar siempre como administrador significa que cualquier error o cualquier comando malicioso tiene poder total sobre el servidor. La práctica estándar es un usuario normal que pide permiso con `sudo` cuando hace falta.

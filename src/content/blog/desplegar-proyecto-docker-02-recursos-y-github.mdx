@@ -4,7 +4,6 @@ date: 2026-10-25
 tags: ["docker", "docker-compose", "github"]
 summary: "Fijar límites de memoria y de logs para cada contenedor antes de llegar a producción, fijar versiones de las imágenes, y subir el proyecto dockerizado a GitHub."
 draft: false
-dependsOn: ["desplegar-proyecto-docker-01-dockerizar-app"]
 ---
 
 Con la app, la base de datos y Nginx corriendo en contenedores, antes de llevar esto a un servidor real quedan dos cosas: que ningún contenedor pueda consumir toda la memoria del servidor, y subir el proyecto a GitHub para poder desplegarlo desde ahí.

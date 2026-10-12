@@ -24,7 +24,7 @@ Es el primer proyecto del usuario construido con Claude Code, y una motivación 
 - **Sobre mí:** página dedicada (`/sobre-mi`, enlazada en el nav entre "Inicio" y "Blog") con un resumen profesional breve: enfoque como desarrollador de software, años de experiencia (texto fijo, no calculado), stack principal, y mención de apoyo en herramientas de IA. Usa el mismo SVG de marca (cabeza + cohete) que el Hero, no una foto personal. Sin timeline de empleos (empresa/cargo/fechas).
 - **Tema visual:** dark mode por defecto, estética terminal/dev, un solo color de acento (azul tipo React o celeste tipo Go — decisión final del acento abierta, ver Open Questions), sin exagerar en estética "hacker" (el usuario es más frontend, nunca trabajó estética hacker/neón).
 - **Terminal del hero:** animación de escritura automática (typewriter en loop/secuencia), **no** interactiva — el visitante no escribe comandos reales. Esto evita los casos borde de inputs inválidos, falta de teclado en mobile y accesibilidad de un intérprete de comandos real.
-- **Blog — propósito real:** son notas personales del propio usuario, no para lectores externos. Por lo tanto tiempo de lectura, SEO de posts individuales y descubribilidad NO son prioridad funcional — sí lo es que cada post se vea visualmente excepcional (metadata con fecha/autor, badges de tecnología con logos, syntax highlighting, selección de texto coloreada con el color de acento).
+- **Blog — propósito real:** son notas personales del propio usuario, no para lectores externos. Por lo tanto tiempo de lectura y SEO de posts individuales NO son prioridad funcional — sí lo es que cada post se vea visualmente excepcional (metadata con fecha/autor, badges de tecnología con logos, syntax highlighting, selección de texto coloreada con el color de acento). La **navegabilidad del propio listado sí es prioridad** a medida que la cantidad de posts crece: el listado (`/blog`) tiene búsqueda por texto, filtro por tags y paginación, todo client-side (sin backend), para que encontrar un post viejo no dependa de hacer scroll infinito.
 - **Iconos de tecnología:** librería SVG de iconos reales (Simple Icons o Devicon), no iconografía abstracta.
 - **SEO/Analytics:** nivel básico — meta tags, Open Graph (para que se vea bien al compartir en LinkedIn), sitemap, analytics liviano (Vercel Analytics). Accesibilidad básica (contraste, navegación por teclado), no WCAG AA completo.
 - **Tarjetas de proyecto:** nombre + descripción corta + stack con logos + links (GitHub / demo si existe). Sin screenshots por ahora.
@@ -81,11 +81,11 @@ Format:                 npm run format       # prettier --write .
 │   │   ├── react/                → islas interactivas
 │   │   │   ├── TerminalHero.tsx  → terminal animada del hero (typewriter)
 │   │   │   ├── ScrollReveal.tsx  → wrapper de animación on-scroll reutilizable
-│   │   │   └── Wordmark.tsx      → tratamiento animado de "abelitolll"
+│   │   │   ├── Wordmark.tsx      → tratamiento animado de "abelitolll"
+│   │   │   └── BlogList.tsx      → listado de blog con búsqueda, filtro por tag y paginación
 │   │   ├── astro/                → componentes estáticos .astro
 │   │   │   ├── ProjectCard.astro
-│   │   │   ├── TechBadge.astro   → logo + nombre de tecnología
-│   │   │   └── BlogPostCard.astro
+│   │   │   └── TechBadge.astro   → logo + nombre de tecnología
 │   │   └── layout/
 │   │       ├── Header.astro
 │   │       └── Footer.astro
@@ -210,6 +210,7 @@ Dado que es un sitio estático personal sin lógica de negocio compleja, la estr
 - La home muestra: hero con terminal animada + wordmark con tratamiento visual distintivo, sección de proyectos reales con tarjetas (nombre/descripción/stack/links), sección de contacto (email/GitHub/LinkedIn).
 - El nav incluye la página "Sobre mí" (Inicio → Sobre mí → Blog) con el resumen profesional breve.
 - El blog lista posts desde `src/content/blog/*.mdx` y cada post individual muestra fecha, badges de tecnología con logos, y código con syntax highlighting; seleccionar texto en un post lo resalta con el color de acento.
+- El listado de blog permite buscar por texto y filtrar por tag, y pagina los resultados — todo sin backend (client-side), para que siga siendo navegable a medida que se agregan posts nuevos.
 - El sitio es completamente usable y visualmente correcto en viewport mobile (375px) y desktop.
 - El sitio responde en el dominio `abelitolll.com` desplegado (Vercel por defecto, según recomendación).
 - Open Graph image y meta tags generan una preview correcta al compartir el link en LinkedIn/Twitter.

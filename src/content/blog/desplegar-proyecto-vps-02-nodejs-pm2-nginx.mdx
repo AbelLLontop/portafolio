@@ -4,7 +4,6 @@ date: 2026-10-13
 tags: ["vps", "node", "pm2", "nginx"]
 summary: "Instalar Node.js en el servidor, correr un server mínimo, mantenerlo vivo en segundo plano con PM2, exponerlo por el puerto 80 con Nginx como reverse proxy, y cerrar el resto de puertos con el firewall."
 draft: false
-dependsOn: ["desplegar-proyecto-vps-01-configuracion-inicial"]
 ---
 
 Con el servidor creado y actualizado, el siguiente paso es tener una app Node.js corriendo de verdad: que sobreviva a cerrar la terminal, que se reinicie sola si se cae, y que se acceda por el puerto normal de la web (80) en vez de uno improvisado.

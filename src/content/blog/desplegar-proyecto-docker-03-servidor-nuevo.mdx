@@ -4,7 +4,6 @@ date: 2026-10-27
 tags: ["vps", "docker", "ufw", "digitalocean"]
 summary: "Crear un droplet nuevo, apuntar el dominio a su IP, instalar Docker y Docker Compose desde el repositorio oficial, y clonar el proyecto dockerizado para levantarlo con un .env de producción."
 draft: false
-dependsOn: ["desplegar-proyecto-docker-02-recursos-y-github"]
 ---
 
 Con el proyecto dockerizado y en GitHub, toca el servidor. En vez de reutilizar el droplet de la serie manual, este post crea uno nuevo dedicado a correr todo por contenedores — así queda claro qué cambia entre un VPS configurado a mano y uno basado en Docker.
