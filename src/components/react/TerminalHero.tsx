@@ -61,9 +61,7 @@ const DEFAULT_EXCHANGES: Exchange[] = [
       {
         kind: "rows",
         rows: [
-          ["rol", "desarrollador de software"],
           ["experiencia", "3 años"],
-          ["ubicación", "Lima, Perú"],
           ["stack", "node · java · angular · react · aws"],
         ],
       },
@@ -483,7 +481,7 @@ export default function TerminalHero({
         <div
           ref={bodyRef}
           aria-live="polite"
-          className="max-h-[46vh] min-h-[17rem] overflow-y-auto px-4 py-4 font-mono text-[0.84rem] leading-[1.75]"
+          className="h-[22rem] overflow-y-auto px-4 py-4 font-mono text-[0.84rem] leading-[1.75] sm:h-[26rem]"
         >
           {history.map((entry, index) => (
             <div key={index} className="mb-3">
