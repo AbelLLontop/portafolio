@@ -1,38 +1,32 @@
 ---
 import { monoIcon } from "../../lib/tech-icons";
-
-const TECHS = [
-  "node",
-  "go",
-  "java",
-  "python",
-  "dotnet",
-  "claude",
-  "react",
-  "astro",
-  "angular",
-  "tailwind",
-] as const;
+import { STACK } from "../../lib/profile.ts";
 
 // Lista repetida 4 veces para loop infinito sin salto: la animación recorre
 // -25% del ancho total (cuatro copias idénticas), de forma que siempre hay
 // contenido suficiente para llenar el contenedor aunque éste sea muy ancho
 // (con solo 2 copias, una copia por sí sola es más angosta que max-w-5xl y
 // el carrusel se queda sin contenido antes de completar el ciclo).
-const items = [...TECHS, ...TECHS, ...TECHS, ...TECHS];
+const items = [...STACK, ...STACK, ...STACK, ...STACK];
 ---
 
 <section class="mx-auto max-w-5xl px-4 py-6 md:py-8" aria-label="Tecnologías">
   <div class="group relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
     <ul class="marquee flex w-max items-center gap-8 pr-8 motion-reduce:animate-none group-hover:[animation-play-state:paused]">
       {items.map((tech, i) => {
-        const icon = monoIcon(tech);
+        const icon = tech.iconKey ? monoIcon(tech.iconKey) : undefined;
         return (
           <li
-            class="flex shrink-0 items-center gap-2 opacity-45 transition-all duration-300 hover:opacity-100 hover:text-accent"
-            aria-hidden={i >= TECHS.length ? "true" : undefined}
+            class="flex shrink-0 items-center gap-2 opacity-45 transition-all duration-300 hover:text-accent hover:opacity-100"
+            aria-hidden={i >= STACK.length ? "true" : undefined}
           >
-            {icon && <span class="[&>svg]:h-9 [&>svg]:w-9" set:html={icon} />}
+            {icon ? (
+              <span class="[&>svg]:h-9 [&>svg]:w-9" set:html={icon} />
+            ) : (
+              /* SQL Server y AWS no tienen logo en simple-icons: van como
+                 palabra para que no queden huecos invisibles en el carrusel. */
+              <span class="font-mono text-base tracking-[0.08em]">{tech.name}</span>
+            )}
           </li>
         );
       })}
@@ -42,7 +36,7 @@ const items = [...TECHS, ...TECHS, ...TECHS, ...TECHS];
 
 <style>
   .marquee {
-    animation: marquee-scroll 28s linear infinite;
+    animation: marquee-scroll 45s linear infinite;
   }
 
   @keyframes marquee-scroll {

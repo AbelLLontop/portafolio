@@ -11,6 +11,12 @@ import reactIcon from "simple-icons/icons/react.svg?raw";
 import angularIcon from "simple-icons/icons/angular.svg?raw";
 import nestjsIcon from "simple-icons/icons/nestjs.svg?raw";
 import springbootIcon from "simple-icons/icons/springboot.svg?raw";
+import expressIcon from "simple-icons/icons/express.svg?raw";
+import dockerIcon from "simple-icons/icons/docker.svg?raw";
+import postgresqlIcon from "simple-icons/icons/postgresql.svg?raw";
+import mongodbIcon from "simple-icons/icons/mongodb.svg?raw";
+import nginxIcon from "simple-icons/icons/nginx.svg?raw";
+import gitIcon from "simple-icons/icons/git.svg?raw";
 
 // Mapa estático: los iconos de simple-icons se importan explícitamente (sin
 // import() dinámico, que Vite no puede resolver de forma fiable en build SSG).
@@ -30,6 +36,12 @@ export const TECH_ICONS: Record<string, string> = {
   angular: angularIcon,
   nestjs: nestjsIcon,
   springboot: springbootIcon,
+  express: expressIcon,
+  docker: dockerIcon,
+  postgresql: postgresqlIcon,
+  mongodb: mongodbIcon,
+  nginx: nginxIcon,
+  git: gitIcon,
 };
 
 export function monoIcon(name: string): string | undefined {
