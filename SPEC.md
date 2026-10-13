@@ -18,12 +18,12 @@ Es el primer proyecto del usuario construido con Claude Code, y una motivación 
 - **Stack:** Astro + islas de React para la interactividad (terminal animada, animaciones on-scroll).
 - **Proyectos:** el usuario actualmente no tiene proyectos reales listos para mostrar. La sección de proyectos se construye como **"en construcción"**: un placeholder con la misma calidad visual que el resto del sitio (no un simple texto "coming soon"), diseñado para ser reemplazado fácilmente por tarjetas reales cuando existan. No se inventan proyectos falsos ni demos de relleno presentados como reales.
 - **Blog:** contenido en Markdown/MDX dentro del repo (Astro Content Collections), sin CMS externo ni backend.
-- **Nivel de interactividad:** sutil y elegante — prioriza verse profesional sobre tener muchos efectos.
+- **Nivel de interactividad:** la capa de ambiente (campo de estrellas reactivo, HUD de altitud, cohete que sigue al cursor) es ambiciosa y responde al visitante; la capa de contenido se mantiene legible y sin ruido. El criterio es “hecho a medida”, no “discreto”.
 - **Idioma:** español únicamente por ahora (usuario está aprendiendo inglés; no bilingüe todavía, pero no cerrar la puerta a i18n futuro).
 - **Contacto:** solo email + GitHub + LinkedIn, sin foto adicional de perfil, sin formulario.
 - **Sobre mí:** página dedicada (`/sobre-mi`, enlazada en el nav entre "Inicio" y "Blog") con un resumen profesional breve: enfoque como desarrollador de software, años de experiencia (texto fijo, no calculado), stack principal, y mención de apoyo en herramientas de IA. Usa el mismo SVG de marca (cabeza + cohete) que el Hero, no una foto personal. Sin timeline de empleos (empresa/cargo/fechas).
 - **Tema visual:** dark mode por defecto, estética terminal/dev, un solo color de acento (azul tipo React o celeste tipo Go — decisión final del acento abierta, ver Open Questions), sin exagerar en estética "hacker" (el usuario es más frontend, nunca trabajó estética hacker/neón).
-- **Terminal del hero:** animación de escritura automática (typewriter en loop/secuencia), **no** interactiva — el visitante no escribe comandos reales. Esto evita los casos borde de inputs inválidos, falta de teclado en mobile y accesibilidad de un intérprete de comandos real.
+- **Terminal del hero:** arranca sola con un diálogo escrito a máquina (el visitante ve una conversación con Claude sobre el autor) y después **acepta comandos reales**: `whoami`, `stack`, `proyectos`, `blog`, `contacto`, `help`, `clear`. Se opera por teclado o por pills de atajo, que cubren el caso mobile sin depender del teclado virtual. Un comando desconocido responde con una línea de aviso que sugiere `help`, nunca con un error crudo. Las respuestas se derivan de los mismos datos que ya renderiza el sitio (stack, colección de blog), no de un texto duplicado.
 - **Blog — propósito real:** son notas personales del propio usuario, no para lectores externos. Por lo tanto tiempo de lectura y SEO de posts individuales NO son prioridad funcional — sí lo es que cada post se vea visualmente excepcional (metadata con fecha/autor, badges de tecnología con logos, syntax highlighting, selección de texto coloreada con el color de acento). La **navegabilidad del propio listado sí es prioridad** a medida que la cantidad de posts crece: el listado (`/blog`) tiene búsqueda por texto, filtro por tags y paginación, todo client-side (sin backend), para que encontrar un post viejo no dependa de hacer scroll infinito.
 - **Iconos de tecnología:** librería SVG de iconos reales (Simple Icons o Devicon), no iconografía abstracta.
 - **SEO/Analytics:** nivel básico — meta tags, Open Graph (para que se vea bien al compartir en LinkedIn), sitemap, analytics liviano (Vercel Analytics). Accesibilidad básica (contraste, navegación por teclado), no WCAG AA completo.
@@ -79,12 +79,17 @@ Format:                 npm run format       # prettier --write .
 ├── src/
 │   ├── components/
 │   │   ├── react/                → islas interactivas
-│   │   │   ├── TerminalHero.tsx  → terminal animada del hero (typewriter)
+│   │   │   ├── TerminalHero.tsx  → terminal del hero: diálogo typewriter + intérprete de comandos
 │   │   │   ├── ScrollReveal.tsx  → wrapper de animación on-scroll reutilizable
 │   │   │   ├── Wordmark.tsx      → tratamiento animado de "abelitolll"
-│   │   │   └── BlogList.tsx      → listado de blog con búsqueda, filtro por tag y paginación
+│   │   │   ├── BlogList.tsx      → listado de blog con búsqueda, filtro por tag y paginación
+│   │   │   └── decor/
+│   │   │       ├── Starfield.tsx     → campo de estrellas en canvas con paralaje y warp por scroll
+│   │   │       └── CursorRocket.tsx  → cohete que persigue al cursor con física de vuelo
 │   │   ├── astro/                → componentes estáticos .astro
 │   │   │   ├── ProjectCard.astro
+│   │   │   ├── AscentHud.astro   → HUD fijo de altitud/fase por scroll (desktop)
+│   │   │   ├── StatsPanel.astro  → panel de instrumentos con datos reales del perfil
 │   │   │   └── TechBadge.astro   → logo + nombre de tecnología
 │   │   └── layout/
 │   │       ├── Header.astro
@@ -196,7 +201,6 @@ Dado que es un sitio estático personal sin lógica de negocio compleja, la estr
   - Agregar cualquier dependencia nueva no mencionada en este spec (especialmente librerías de animación adicionales, CMS, backend, base de datos).
   - Cambiar el dominio, la configuración DNS, o el proveedor de hosting elegido.
   - Añadir cualquier dato personal además de email/GitHub/LinkedIn.
-  - Hacer la terminal del hero interactiva de verdad (cambiaría el alcance acordado).
 - **Nunca:**
   - Incluir foto personal, timeline de empleos (empresa/cargo/fechas) o datos personales más allá de lo acordado (email, GitHub, LinkedIn).
   - Inventar proyectos falsos o demos presentados como reales.
@@ -207,7 +211,8 @@ Dado que es un sitio estático personal sin lógica de negocio compleja, la estr
 
 - `npm run build` compila sin errores y `astro check` no reporta errores de tipos.
 - Lighthouse (mobile): Performance ≥ 90, Accessibility ≥ 90, SEO ≥ 90 en la home.
-- La home muestra: hero con terminal animada + wordmark con tratamiento visual distintivo, sección de proyectos reales con tarjetas (nombre/descripción/stack/links), sección de contacto (email/GitHub/LinkedIn).
+- La home muestra: hero con wordmark de tratamiento distintivo + titular display + terminal que acepta comandos, panel de instrumentos con datos reales, sección de proyectos con tarjetas (nombre/descripción/stack/links), sección de contacto (email/GitHub/LinkedIn).
+- El fondo es un campo de estrellas que reacciona al puntero y al scroll (paralaje por profundidad y trazos de warp al acelerar), y en desktop un HUD fijo muestra la altitud y la fase alcanzada según el avance del scroll.
 - El nav incluye la página "Sobre mí" (Inicio → Sobre mí → Blog) con el resumen profesional breve.
 - El blog lista posts desde `src/content/blog/*.mdx` y cada post individual muestra fecha, badges de tecnología con logos, y código con syntax highlighting; seleccionar texto en un post lo resalta con el color de acento.
 - El listado de blog permite buscar por texto y filtrar por tag, y pagina los resultados — todo sin backend (client-side), para que siga siendo navegable a medida que se agregan posts nuevos.
