@@ -2,7 +2,6 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Hero from "../components/astro/Hero.astro";
 import TechMarquee from "../components/astro/TechMarquee.astro";
-import StatsPanel from "../components/astro/StatsPanel.astro";
 import ProjectsSection from "../components/astro/ProjectsSection.astro";
 import ContactSection from "../components/astro/ContactSection.astro";
 import ScrollReveal from "../components/react/ScrollReveal.tsx";
@@ -15,9 +14,6 @@ import ScrollReveal from "../components/react/ScrollReveal.tsx";
   <Hero />
   <ScrollReveal client:visible y={16}>
     <TechMarquee />
-  </ScrollReveal>
-  <ScrollReveal client:visible y={32}>
-    <StatsPanel />
   </ScrollReveal>
   <ScrollReveal client:visible y={32}>
     <ProjectsSection />

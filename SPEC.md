@@ -89,7 +89,6 @@ Format:                 npm run format       # prettier --write .
 │   │   ├── astro/                → componentes estáticos .astro
 │   │   │   ├── ProjectCard.astro
 │   │   │   ├── AscentHud.astro   → HUD fijo de altitud/fase por scroll (desktop)
-│   │   │   ├── StatsPanel.astro  → panel de instrumentos con datos reales del perfil
 │   │   │   └── TechBadge.astro   → logo + nombre de tecnología
 │   │   └── layout/
 │   │       ├── Header.astro
@@ -211,7 +210,7 @@ Dado que es un sitio estático personal sin lógica de negocio compleja, la estr
 
 - `npm run build` compila sin errores y `astro check` no reporta errores de tipos.
 - Lighthouse (mobile): Performance ≥ 90, Accessibility ≥ 90, SEO ≥ 90 en la home.
-- La home muestra: hero con wordmark de tratamiento distintivo + titular display + terminal que acepta comandos, panel de instrumentos con datos reales, sección de proyectos con tarjetas (nombre/descripción/stack/links), sección de contacto (email/GitHub/LinkedIn).
+- La home muestra: hero con wordmark de tratamiento distintivo + titular display + terminal que acepta comandos, sección de proyectos con tarjetas (nombre/descripción/stack/links), sección de contacto (email/GitHub/LinkedIn).
 - El fondo es un campo de estrellas que reacciona al puntero y al scroll (paralaje por profundidad y trazos de warp al acelerar), y en desktop un HUD fijo muestra la altitud y la fase alcanzada según el avance del scroll.
 - El nav incluye la página "Sobre mí" (Inicio → Sobre mí → Blog) con el resumen profesional breve.
 - El blog lista posts desde `src/content/blog/*.mdx` y cada post individual muestra su número, título, fecha y código con syntax highlighting; seleccionar texto en un post lo resalta con el color de acento. La cabecera del post no lleva badges de tecnología: recargan la entrada a la nota sin aportar navegación.
