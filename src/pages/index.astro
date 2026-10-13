@@ -11,12 +11,16 @@ import ScrollReveal from "../components/react/ScrollReveal.tsx";
   title="abelitolll — Desarrollador de software"
   description="abelitolll — desarrollador de software peruano. Notas técnicas, proyectos y experimentos, con apoyo de herramientas de IA."
 >
-  <Hero />
-  <TechMarquee />
   <ScrollReveal client:visible>
+    <Hero />
+  </ScrollReveal>
+  <ScrollReveal client:visible delay={0.05}>
+    <TechMarquee />
+  </ScrollReveal>
+  <ScrollReveal client:visible delay={0.1}>
     <ProjectsSection />
   </ScrollReveal>
-  <ScrollReveal client:visible>
+  <ScrollReveal client:visible delay={0.15}>
     <ContactSection />
   </ScrollReveal>
 </BaseLayout>

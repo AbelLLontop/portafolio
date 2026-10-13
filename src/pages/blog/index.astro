@@ -4,6 +4,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import BlogList, {
   type BlogListPost,
 } from "../../components/react/BlogList";
+import ScrollReveal from "../../components/react/ScrollReveal.tsx";
 
 const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
@@ -35,27 +36,29 @@ const listPosts: BlogListPost[] = posts.map((post) => ({
   description="Artículos y notas técnicas de abelitolll."
 >
   <main class="mx-auto max-w-5xl px-4 py-12">
-    <div class="flex items-center gap-3">
-      <img
-        src="/images/abelitolll-head.svg"
-        alt=""
-        width="32"
-        height="32"
-        class="h-8 w-8 shrink-0"
-      />
-      <h1 class="text-3xl font-bold text-zinc-100">Blog</h1>
-    </div>
+    <ScrollReveal client:visible>
+      <div class="flex items-center gap-3">
+        <img
+          src="/images/abelitolll-head.svg"
+          alt=""
+          width="32"
+          height="32"
+          class="h-8 w-8 shrink-0"
+        />
+        <h1 class="text-3xl font-bold text-zinc-100">Blog</h1>
+      </div>
+    </ScrollReveal>
     {listPosts.length === 0 ? (
-      <div class="mt-8 rounded-lg border border-dashed border-zinc-800 p-8 text-center">
+      <ScrollReveal client:visible delay={0.05} className="mt-8 rounded-lg border border-dashed border-zinc-800 p-8 text-center">
         <p class="text-zinc-300">Todavía no hay notas publicadas.</p>
         <p class="mt-2 text-sm text-zinc-400">
           Estoy escribiendo las primeras — vuelve pronto.
         </p>
-      </div>
+      </ScrollReveal>
     ) : (
-      <div class="mt-8">
+      <ScrollReveal client:visible delay={0.05} className="mt-8">
         <BlogList posts={listPosts} client:visible />
-      </div>
+      </ScrollReveal>
     )}
   </main>
 </BaseLayout>

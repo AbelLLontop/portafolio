@@ -2,6 +2,7 @@
 import type { CollectionEntry } from "astro:content";
 import BaseLayout from "./BaseLayout.astro";
 import TableOfContents from "../components/astro/TableOfContents.astro";
+import ScrollReveal from "../components/react/ScrollReveal.tsx";
 
 interface Heading {
   depth: number;
@@ -36,13 +37,17 @@ const formattedDate = date.toLocaleDateString("es-PE", {
           </h1>
           <p class="post-date mt-2 text-sm text-zinc-400">{formattedDate}</p>
         </header>
-        <div class="prose-post-body">
-          <slot />
-        </div>
+        <ScrollReveal client:visible y={0}>
+          <div class="prose-post-body">
+            <slot />
+          </div>
+        </ScrollReveal>
       </article>
       <aside class="hidden lg:block">
         <div class="sticky top-24">
-          <TableOfContents headings={headings} />
+          <ScrollReveal client:visible y={0} delay={0.1}>
+            <TableOfContents headings={headings} />
+          </ScrollReveal>
         </div>
       </aside>
     </div>
