@@ -17,3 +17,36 @@ export const STACK: Tech[] = [
 ];
 
 export const YEARS_OF_EXPERIENCE = 3;
+
+export interface Contact {
+  key: "email" | "github" | "linkedin";
+  label: string;
+  /** Como se muestra en la consola, donde el link es el destino y no un boton. */
+  display: string;
+  href: string;
+  external: boolean;
+}
+
+export const CONTACTS: Contact[] = [
+  {
+    key: "email",
+    label: "Email",
+    display: "a.llontopmeza@gmail.com",
+    href: "mailto:a.llontopmeza@gmail.com",
+    external: false,
+  },
+  {
+    key: "github",
+    label: "GitHub",
+    display: "github.com/AbelLLontop",
+    href: "https://github.com/AbelLLontop",
+    external: true,
+  },
+  {
+    key: "linkedin",
+    label: "LinkedIn",
+    display: "in/abelllontopmeza",
+    href: "https://www.linkedin.com/in/abelllontopmeza/",
+    external: true,
+  },
+];

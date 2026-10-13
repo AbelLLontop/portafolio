@@ -1,9 +1,12 @@
 import { motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+/** Un valor de fila puede ser texto suelto o un destino al que se puede ir. */
+export type RowValue = string | { text: string; href: string; external?: boolean };
+
 export type Block =
   | { kind: "prose"; text: string }
-  | { kind: "rows"; rows: [string, string][] }
+  | { kind: "rows"; rows: [string, RowValue][] }
   | { kind: "note"; text: string; tone: "ok" | "warn" | "system" };
 
 export interface Exchange {
@@ -102,6 +105,23 @@ function visibleBlocks(blocks: Block[], progress: Progress): Block[] {
   });
 }
 
+function RowValueView({ value }: { value: RowValue }) {
+  if (typeof value === "string") {
+    return <span className="break-words text-zinc-200">{value}</span>;
+  }
+
+  return (
+    <a
+      href={value.href}
+      target={value.external ? "_blank" : undefined}
+      rel={value.external ? "noreferrer" : undefined}
+      className="break-words text-zinc-100 underline decoration-[color-mix(in_srgb,var(--color-accent)_60%,transparent)] underline-offset-4 transition-colors hover:text-accent"
+    >
+      {value.text}
+    </a>
+  );
+}
+
 function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
   return (
     <div
@@ -126,7 +146,7 @@ function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
               {block.rows.map(([key, value]) => (
                 <div key={key} className="contents">
                   <span className="text-accent">{key}</span>
-                  <span className="break-words text-zinc-200">{value}</span>
+                  <RowValueView value={value} />
                 </div>
               ))}
             </div>

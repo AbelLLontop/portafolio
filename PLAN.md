@@ -28,6 +28,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F21 — Capa de ambiente global (starfield, HUD de altitud, tipografía display)
 - [x] F22 — Composición de la home (terminal con comandos, hero y secciones)
 - [x] F23 — La terminal se comporta como una conversación con Claude
+- [x] F24 — Las respuestas de la consola llevan links reales
 
 ---
 
@@ -162,3 +163,9 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 **Incluye:** `src/components/react/TerminalHero.tsx` reescrito sobre una **única cola de trabajos**: el diálogo de apertura deja de ser un camino aparte y pasa a ser dos `Job` encolados, igual que un comando, de modo que todo atraviesa las mismas fases (`idle → typing-prompt → thinking → streaming → pausing`). De ahí salen las tres correcciones: los comandos también muestran `pensando…`; `busy` (fase distinta de `idle` o cola no vacía) deshabilita y atenúa input y pills, con lo que ya no es posible intercalar un comando encima del diálogo; y las respuestas dejan de ser `string[]` para volverse `Block[]` (`prose` que se escribe carácter a carácter con caret, `rows` clave/valor que aparecen fila a fila, `note` para avisos), renderizadas dentro de un bloque con regla lateral en acento. La alineación de las dos columnas la hace un grid `max-content 1fr`, no espacios dentro del texto: se eliminan `TREE_LINE_PATTERN` y `toAnswerLines()`. `src/components/astro/Hero.astro` arma los comandos como `Block[]` desde `src/lib/profile.ts` y la colección de blog (cada post es una fila `#N → título`). `tests/e2e/home.spec.ts` suma dos aserciones: input y pill `disabled` durante el intro y habilitados cuando `data-cycle-count` llega a `1`; su timeout sube a 30s.
 **Excluye:** historial con flechas ↑/↓, autocompletado con Tab, comandos que naveguen o muten la página, y encolar comandos mientras la consola está ocupada (se bloquea, no se encola).
 **Verificación:** `npm run check`; `npm run build`; `npm run lint`; `npx playwright test` (3/3). Recorrido real en el navegador: input y pills bloqueados durante el intro y liberados al terminar (10.6s, dentro del timeout), `pensando…` confirmado al lanzar un comando, y `blog`/`stack`/comando inválido/`clear` devolviendo lo esperado con 0 errores de consola. Capturas a 1440px y 375px: en mobile los valores largos envuelven dentro de su columna, sin overflow de página ni del cuerpo de la terminal.
+
+## F24 — Las respuestas de la consola llevan links reales
+
+**Incluye:** el valor de una fila deja de ser solo texto y pasa a ser `RowValue` (`string` o `{ text, href, external }`), renderizado como un ancla de verdad en `TerminalHero.tsx`. Con eso, `contacto` entrega los tres destinos clickeables en vez de mandar a hacer scroll, `blog` convierte cada nota en un link a su post y suma una fila al listado completo, y `proyectos` ofrece el blog como siguiente paso. Los datos de contacto se mueven a `CONTACTS` en `src/lib/profile.ts`, de donde ahora leen tanto la consola como `ContactSection.astro` — antes las URLs estaban escritas dos veces.
+**Excluye:** links dentro de los bloques de prosa, y comandos que naveguen solos sin que el visitante haga click.
+**Verificación:** `npm run check`; `npm run build`; `npm run lint`; `npx playwright test` (3/3). En el navegador: lanzar `contacto`, `proyectos` y `blog` y volcar los 9 anclas con su `href` (mailto, GitHub, LinkedIn, cuatro posts y dos al listado), y hacer click en el primer post para confirmar que navega a su página real, con 0 errores de consola.

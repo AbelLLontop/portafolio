@@ -2,8 +2,8 @@
 import { getCollection } from "astro:content";
 import Wordmark from "../react/Wordmark.tsx";
 import TerminalHero from "../react/TerminalHero.tsx";
-import type { Block } from "../react/TerminalHero.tsx";
-import { STACK, YEARS_OF_EXPERIENCE } from "../../lib/profile.ts";
+import type { Block, RowValue } from "../react/TerminalHero.tsx";
+import { CONTACTS, STACK, YEARS_OF_EXPERIENCE } from "../../lib/profile.ts";
 
 const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
@@ -40,13 +40,14 @@ const commands: Record<string, Block[]> = {
   proyectos: [
     {
       kind: "prose",
-      text: "Todavía no hay proyectos publicados — el primero está en construcción. Mientras tanto, el blog es lo que vale la pena mirar.",
+      text: "Todavía no hay proyectos publicados — el primero está en construcción. Mientras tanto, lo que vale la pena mirar son las notas:",
     },
     {
       kind: "rows",
       rows: [
         ["publicados", "0"],
         ["en construcción", "1"],
+        ["mientras tanto", { text: "ir al blog →", href: "/blog" }],
       ],
     },
   ],
@@ -57,18 +58,23 @@ const commands: Record<string, Block[]> = {
     },
     {
       kind: "rows",
-      rows: posts
-        .slice(0, 4)
-        .map((post, index) => [
+      rows: [
+        ...posts.slice(0, 4).map((post, index) => [
           "#" + (posts.length - index),
-          post.data.title,
-        ]) as [string, string][],
+          { text: post.data.title, href: "/blog/" + post.id },
+        ]),
+        ["todas", { text: "ver el blog completo →", href: "/blog" }],
+      ] as [string, RowValue][],
     },
   ],
   contacto: [
+    { kind: "prose", text: "Tres sitios, y los tres van directo desde acá:" },
     {
-      kind: "prose",
-      text: "Email, GitHub y LinkedIn — los tres están al final de esta página, en la sección Contacto.",
+      kind: "rows",
+      rows: CONTACTS.map((contact) => [
+        contact.key,
+        { text: contact.display, href: contact.href, external: contact.external },
+      ]) as [string, RowValue][],
     },
   ],
 };
