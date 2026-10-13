@@ -10,7 +10,13 @@ html {
 }
 
 body {
-  @apply bg-zinc-950 text-zinc-100;
+  @apply text-zinc-100;
+  background-color: #09090b;
+  background-image:
+    radial-gradient(ellipse 80% 50% at 15% 0%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 20%, color-mix(in srgb, var(--color-accent) 6%, transparent), transparent),
+    linear-gradient(180deg, #0c0c10 0%, #09090b 40%, #0a0a0d 100%);
+  background-attachment: fixed;
 }
 
 ::selection {
@@ -64,4 +70,16 @@ body {
 
 .prose-post-body pre code {
   @apply bg-transparent p-0 text-inherit;
+}
+
+.toc-link {
+  @apply block border-l-2 border-transparent py-1 text-sm text-zinc-500 transition-colors duration-200 hover:text-zinc-300;
+}
+
+.toc-link[data-depth="3"] {
+  @apply pl-3 text-[0.8rem];
+}
+
+.toc-link.is-active {
+  @apply border-accent text-accent;
 }

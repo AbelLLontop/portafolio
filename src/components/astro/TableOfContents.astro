@@ -1,0 +1,102 @@
+---
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+---
+
+{
+  headings.length > 0 && (
+    <nav class="toc" aria-label="Índice del post">
+      <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">En este post</p>
+      <ul class="space-y-0.5">
+        {headings.map((heading) => (
+          <li>
+            <a href={`#${heading.slug}`} class="toc-link" data-depth={heading.depth} data-slug={heading.slug}>
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  )
+}
+
+<script>
+  const links = document.querySelectorAll<HTMLAnchorElement>(".toc-link");
+  if (links.length > 0) {
+    const linkBySlug = new Map<string, HTMLAnchorElement>();
+    links.forEach((link) => {
+      const slug = link.dataset.slug;
+      if (slug) linkBySlug.set(slug, link);
+    });
+
+    const headingEls = Array.from(linkBySlug.keys())
+      .map((slug) => document.getElementById(slug))
+      .filter((el): el is HTMLElement => el !== null);
+
+    const header = document.querySelector<HTMLElement>(".post-header");
+
+    links.forEach((link) => {
+      link.addEventListener("click", (event) => {
+        const slug = link.dataset.slug;
+        const target = slug ? document.getElementById(slug) : null;
+        if (!target) return;
+
+        event.preventDefault();
+
+        // Usamos la altura actual del header sticky (que cambia entre su
+        // estado normal y el encogido) para que el heading destino no
+        // quede tapado detrás de él.
+        const headerBottom = header?.getBoundingClientRect().bottom ?? 0;
+        const gap = 16;
+        const top = target.getBoundingClientRect().top + window.scrollY - headerBottom - gap;
+
+        window.scrollTo({ top, behavior: "smooth" });
+        history.pushState(null, "", `#${slug}`);
+      });
+    });
+
+    let activeSlug: string | null = null;
+
+    const setActive = (slug: string | null) => {
+      if (slug === activeSlug) return;
+      if (activeSlug) linkBySlug.get(activeSlug)?.classList.remove("is-active");
+      if (slug) linkBySlug.get(slug)?.classList.add("is-active");
+      activeSlug = slug;
+    };
+
+    const visible = new Set<string>();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const slug = entry.target.id;
+          if (entry.isIntersecting) {
+            visible.add(slug);
+          } else {
+            visible.delete(slug);
+          }
+        }
+
+        if (visible.size > 0) {
+          const first = headingEls.find((el) => visible.has(el.id));
+          if (first) setActive(first.id);
+        }
+      },
+      {
+        rootMargin: "-120px 0px -70% 0px",
+        threshold: 0,
+      },
+    );
+
+    headingEls.forEach((el) => observer.observe(el));
+  }
+</script>

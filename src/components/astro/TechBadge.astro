@@ -3,10 +3,11 @@ import { monoIcon } from "../../lib/tech-icons";
 
 interface Props {
   name: string;
+  iconKey?: string;
 }
 
-const { name } = Astro.props;
-const icon = monoIcon(name);
+const { name, iconKey } = Astro.props;
+const icon = monoIcon(iconKey ?? name);
 ---
 
 <li class="inline-flex items-center gap-1.5 rounded-full border border-zinc-800 px-3 py-1 text-xs text-zinc-400">

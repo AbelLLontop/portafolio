@@ -47,11 +47,13 @@ const seo = buildSeoMeta({ title, url: Astro.url, description, image });
     <meta name="twitter:description" content={seo.description} />
     <meta name="twitter:image" content={seo.image} />
   </head>
-  <body>
+  <body class="flex min-h-screen flex-col">
     <FloatingParticles client:visible />
     <CursorRocket client:visible />
     <Header />
-    <slot />
+    <div class="flex-1">
+      <slot />
+    </div>
     <Footer />
     <script>
       import { inject } from "@vercel/analytics";

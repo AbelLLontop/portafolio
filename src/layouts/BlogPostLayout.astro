@@ -1,13 +1,21 @@
 ---
 import type { CollectionEntry } from "astro:content";
 import BaseLayout from "./BaseLayout.astro";
+import TableOfContents from "../components/astro/TableOfContents.astro";
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
 
 interface Props {
   post: CollectionEntry<"blog">;
   number: number;
+  headings?: Heading[];
 }
 
-const { post, number } = Astro.props;
+const { post, number, headings = [] } = Astro.props;
 const { title, date, summary } = post.data;
 
 const formattedDate = date.toLocaleDateString("es-PE", {
@@ -18,28 +26,26 @@ const formattedDate = date.toLocaleDateString("es-PE", {
 ---
 
 <BaseLayout title={`${title} — abelitolll`} description={summary}>
-  <main class="mx-auto max-w-3xl px-4 py-12">
-    <article>
-      <div id="post-header-sentinel"></div>
-      <header class="post-header sticky top-16 z-40 mb-8 border-b border-zinc-800 bg-zinc-950 pb-6 pt-4">
-        <div class="flex items-center gap-3">
-          <img
-            src="/images/abelitolll-head.svg"
-            alt=""
-            width="32"
-            height="32"
-            class="h-8 w-8 shrink-0"
-          />
+  <main class="mx-auto max-w-5xl px-4 py-12">
+    <div class="lg:grid lg:grid-cols-[1fr_12rem] lg:gap-10">
+      <article class="max-w-3xl">
+        <div id="post-header-sentinel"></div>
+        <header class="post-header sticky top-16 z-40 mb-8 border-b border-transparent pb-6 pt-4">
           <h1 class="text-3xl font-bold text-zinc-100">
             {title} <span class="font-mono text-accent">#{number}</span>
           </h1>
+          <p class="post-date mt-2 text-sm text-zinc-400">{formattedDate}</p>
+        </header>
+        <div class="prose-post-body">
+          <slot />
         </div>
-        <p class="post-date mt-2 text-sm text-zinc-400">{formattedDate}</p>
-      </header>
-      <div class="prose-post-body">
-        <slot />
-      </div>
-    </article>
+      </article>
+      <aside class="hidden lg:block">
+        <div class="sticky top-24">
+          <TableOfContents headings={headings} />
+        </div>
+      </aside>
+    </div>
   </main>
 </BaseLayout>
 
@@ -53,7 +59,6 @@ const formattedDate = date.toLocaleDateString("es-PE", {
 
   .post-header,
   .post-header h1,
-  .post-header img,
   .post-header .post-date {
     transition:
       padding 0.2s ease,
@@ -62,22 +67,22 @@ const formattedDate = date.toLocaleDateString("es-PE", {
       height 0.2s ease,
       opacity 0.15s ease,
       max-height 0.2s ease,
-      margin 0.2s ease;
+      margin 0.2s ease,
+      background-color 0.2s ease,
+      border-color 0.2s ease;
   }
 
   .post-header.is-stuck {
     padding-top: 0.75rem;
     padding-bottom: 0.75rem;
+    background-color: color-mix(in srgb, var(--color-accent) 6%, #0c0c10 94%);
+    border-color: rgb(39 39 42);
     box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.4);
+    backdrop-filter: blur(8px);
   }
 
   .post-header.is-stuck h1 {
     font-size: 1.125rem;
-  }
-
-  .post-header.is-stuck img {
-    width: 1.5rem;
-    height: 1.5rem;
   }
 
   .post-header.is-stuck .post-date {

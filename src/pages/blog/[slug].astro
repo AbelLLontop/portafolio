@@ -19,9 +19,10 @@ export async function getStaticPaths() {
 }
 
 const { post, number } = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
+const tocHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 ---
 
-<BlogPostLayout post={post} number={number}>
+<BlogPostLayout post={post} number={number} headings={tocHeadings}>
   <Content />
 </BlogPostLayout>

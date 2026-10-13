@@ -1,38 +1,72 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import TechBadge from "../components/astro/TechBadge.astro";
+import ScrollReveal from "../components/react/ScrollReveal.tsx";
+
+const stack: { name: string; iconKey?: string }[] = [
+  { name: "Node.js", iconKey: "node" },
+  { name: "NestJS", iconKey: "nestjs" },
+  { name: "Java", iconKey: "java" },
+  { name: "Spring Boot", iconKey: "springboot" },
+  { name: "SQL Server" },
+  { name: "AWS" },
+  { name: "Angular", iconKey: "angular" },
+  { name: "React", iconKey: "react" },
+];
+
 ---
 
 <BaseLayout
   title="Sobre mí — abelitolll"
   description="Sobre abelitolll: desarrollador de software peruano, su enfoque y stack principal."
 >
-  <main class="mx-auto max-w-3xl px-4 py-12">
-    <div class="flex flex-col items-start gap-8 md:flex-row md:justify-between">
-      <div>
-        <h1 class="text-3xl font-bold text-zinc-100">Sobre mí</h1>
-        <p class="mt-6 max-w-prose text-zinc-300">
-          Soy desarrollador de software peruano, con 3 años de experiencia construyendo
-          aplicaciones escalables, automatizando procesos y optimizando sistemas críticos de
-          negocio — microservicios, APIs REST, integración de sistemas y manejo de grandes
-          volúmenes de datos.
-        </p>
-        <p class="mt-4 max-w-prose text-zinc-300">
-          Trabajo con Node.js, NestJS, Java, Spring Boot, SQL Server, AWS, Angular y React,
-          aplicando arquitectura limpia, buenas prácticas y metodologías ágiles, apoyándome en
-          herramientas de IA para iterar más rápido sin perder calidad.
-        </p>
-        <p class="mt-4 max-w-prose text-zinc-300">
-          Hoy sigo construyendo software eficiente y mantenible, mientras exploro nuevas
-          oportunidades en entornos de alta exigencia técnica.
-        </p>
+  <section class="mx-auto max-w-5xl px-4 py-16 md:py-20">
+    <ScrollReveal client:visible>
+      <div class="flex flex-col items-center gap-10 md:flex-row md:gap-14">
+        <img
+          src="/images/abelitolll-head.svg"
+          alt=""
+          width="192"
+          height="192"
+          class="h-36 w-36 shrink-0 md:h-48 md:w-48"
+        />
+        <div>
+          <h1 class="text-3xl font-bold text-zinc-100">Sobre mí</h1>
+          <p class="mt-6 max-w-prose text-zinc-300">
+            Soy desarrollador de software peruano, con 3 años de experiencia construyendo
+            aplicaciones escalables, automatizando procesos y optimizando sistemas críticos de
+            negocio — microservicios, APIs REST, integración de sistemas y manejo de grandes
+            volúmenes de datos.
+          </p>
+        </div>
       </div>
-      <img
-        src="/images/abelitolll-rocket.svg"
-        alt=""
-        width="144"
-        height="144"
-        class="hidden shrink-0 md:block md:h-32 md:w-32"
-      />
-    </div>
-  </main>
+    </ScrollReveal>
+  </section>
+
+  <section class="mx-auto max-w-5xl px-4 pb-16 md:pb-24">
+    <ScrollReveal client:visible delay={0.05}>
+      <h2 class="text-2xl font-semibold text-zinc-100">Stack principal</h2>
+      <p class="mt-2 max-w-prose text-zinc-400">Las tecnologías que uso en el día a día.</p>
+      <ul class="mt-6 flex flex-wrap gap-2">
+        {stack.map((tech) => (
+          <TechBadge name={tech.name} iconKey={tech.iconKey} />
+        ))}
+      </ul>
+    </ScrollReveal>
+
+    <ScrollReveal
+      client:visible
+      delay={0.1}
+      className="mt-12 flex flex-col items-start gap-4 border-t border-zinc-800 pt-8 sm:flex-row sm:items-center sm:justify-between"
+    >
+      <p class="max-w-prose text-zinc-300">
+        Hoy sigo construyendo software eficiente y mantenible, mientras exploro nuevas
+        oportunidades en entornos de alta exigencia técnica.
+      </p>
+      <span class="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-accent/40 px-3 py-1 text-xs text-accent">
+        <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-accent"></span>
+        construyendo cosas nuevas
+      </span>
+    </ScrollReveal>
+  </section>
 </BaseLayout>

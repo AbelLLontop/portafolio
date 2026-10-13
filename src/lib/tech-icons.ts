@@ -9,6 +9,8 @@ import dotnetIcon from "simple-icons/icons/dotnet.svg?raw";
 import claudeIcon from "simple-icons/icons/claude.svg?raw";
 import reactIcon from "simple-icons/icons/react.svg?raw";
 import angularIcon from "simple-icons/icons/angular.svg?raw";
+import nestjsIcon from "simple-icons/icons/nestjs.svg?raw";
+import springbootIcon from "simple-icons/icons/springboot.svg?raw";
 
 // Mapa estático: los iconos de simple-icons se importan explícitamente (sin
 // import() dinámico, que Vite no puede resolver de forma fiable en build SSG).
@@ -26,6 +28,8 @@ export const TECH_ICONS: Record<string, string> = {
   claude: claudeIcon,
   react: reactIcon,
   angular: angularIcon,
+  nestjs: nestjsIcon,
+  springboot: springbootIcon,
 };
 
 export function monoIcon(name: string): string | undefined {
