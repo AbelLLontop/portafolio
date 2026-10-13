@@ -5,6 +5,7 @@ import BlogList, {
   type BlogListPost,
 } from "../../components/react/BlogList";
 import ScrollReveal from "../../components/react/ScrollReveal.tsx";
+import { formatPostDate } from "../../lib/dates.ts";
 
 const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
@@ -23,11 +24,7 @@ const listPosts: BlogListPost[] = posts.map((post) => ({
   summary: post.data.summary,
   tags: post.data.tags,
   number: numbers.get(post.id) ?? 0,
-  formattedDate: post.data.date.toLocaleDateString("es-PE", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  }),
+  formattedDate: formatPostDate(post.data.date),
 }));
 ---
 

@@ -3,6 +3,7 @@ import type { CollectionEntry } from "astro:content";
 import BaseLayout from "./BaseLayout.astro";
 import TableOfContents from "../components/astro/TableOfContents.astro";
 import ScrollReveal from "../components/react/ScrollReveal.tsx";
+import { formatPostDate } from "../lib/dates.ts";
 
 interface Heading {
   depth: number;
@@ -19,11 +20,7 @@ interface Props {
 const { post, number, headings = [] } = Astro.props;
 const { title, date, summary } = post.data;
 
-const formattedDate = date.toLocaleDateString("es-PE", {
-  year: "numeric",
-  month: "long",
-  day: "numeric",
-});
+const formattedDate = formatPostDate(date);
 ---
 
 <BaseLayout title={`${title} — abelitolll`} description={summary}>
