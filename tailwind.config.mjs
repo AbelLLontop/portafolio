@@ -6,8 +6,14 @@ export default {
     extend: {
       colors: {
         accent: "var(--color-accent)",
+        line: "var(--line)",
+        hull: "var(--hull)",
+        dim: "var(--dim)",
+        faint: "var(--faint)",
+        go: "var(--go)",
       },
       fontFamily: {
+        display: ["Saira", "system-ui", "sans-serif"],
         mono: ['"JetBrains Mono"', "ui-monospace", "SFMono-Regular", "monospace"],
       },
     },

@@ -1,0 +1,97 @@
+---
+// Astro y no React a propósito: el markup es estático y solo un script corto
+// muta `style.top` y `textContent`. Cero peso extra en el bundle de islas.
+---
+
+<div
+  class="ascent-hud pointer-events-none fixed left-[18px] top-1/2 z-40 hidden -translate-y-1/2 flex-col items-start gap-3 xl:flex"
+  aria-hidden="true"
+>
+  <div class="relative w-[2px] rounded-sm" style={`height: min(46vh, 340px); background: var(--line);`}>
+    <i
+      id="ascent-pip"
+      class="absolute -left-1 block h-2.5 w-2.5 rounded-full"
+      style="top: 0; background: var(--color-accent); box-shadow: 0 0 12px var(--color-accent); transition: top 0.12s linear;"
+    ></i>
+  </div>
+  <div class="flex flex-col gap-1 font-mono uppercase">
+    <span
+      id="ascent-km"
+      class="text-[1.05rem] tracking-[0.02em] text-zinc-100 [font-variant-numeric:tabular-nums]"
+      >0.0 km</span
+    >
+    <span id="ascent-phase" class="max-w-[5.5rem] text-[0.6rem] leading-tight tracking-[0.14em] text-accent"
+      >en plataforma</span
+    >
+  </div>
+</div>
+
+<div
+  class="pointer-events-none fixed right-[18px] top-[84px] z-40 hidden flex-col items-end gap-0.5 font-mono text-[0.6rem] uppercase leading-[1.9] tracking-[0.14em] xl:flex"
+  style="color: var(--faint);"
+  aria-hidden="true"
+>
+  <span>sistemas <b class="font-normal" style="color: var(--go);">nominal</b></span>
+  <span>enlace <b class="font-normal" style="color: var(--go);">estable</b></span>
+  <span id="ascent-clock">--:--:--</span>
+</div>
+
+<script>
+  const PHASES: [number, string][] = [
+    [0, "en plataforma"],
+    [0.08, "troposfera"],
+    [0.26, "estratosfera"],
+    [0.46, "mesosfera"],
+    [0.64, "línea de Kármán"],
+    [0.8, "órbita baja"],
+    [0.93, "espacio profundo"],
+  ];
+
+  const MAX_ALTITUDE_KM = 408; // altitud orbital de la ISS
+
+  // Único dueño del progreso de scroll del sitio: escribe `--ascent` en
+  // documentElement y el resto (el veil) lo consume en CSS puro.
+  const pip = document.getElementById("ascent-pip");
+  const kmLabel = document.getElementById("ascent-km");
+  const phaseLabel = document.getElementById("ascent-phase");
+  const clock = document.getElementById("ascent-clock");
+
+  let ticking = false;
+
+  const update = () => {
+    ticking = false;
+    const max = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+    const progress = Math.min(1, Math.max(0, window.scrollY / max));
+
+    document.documentElement.style.setProperty("--ascent", String(progress));
+
+    if (!pip || !kmLabel || !phaseLabel) return;
+
+    pip.style.top = `calc(${progress * 100}% - 5px)`;
+    kmLabel.textContent = `${(progress * MAX_ALTITUDE_KM).toFixed(1)} km`;
+
+    let phase = PHASES[0][1];
+    for (const [threshold, name] of PHASES) {
+      if (progress >= threshold) phase = name;
+    }
+    phaseLabel.textContent = phase;
+  };
+
+  const request = () => {
+    if (ticking) return;
+    ticking = true;
+    requestAnimationFrame(update);
+  };
+
+  update();
+  window.addEventListener("scroll", request, { passive: true });
+  window.addEventListener("resize", request);
+
+  if (clock) {
+    const tick = () => {
+      clock.textContent = new Date().toLocaleTimeString("es-PE", { hour12: false });
+    };
+    tick();
+    setInterval(tick, 1000);
+  }
+</script>
