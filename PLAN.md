@@ -29,6 +29,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F22 — Composición de la home (terminal con comandos, hero y secciones)
 - [x] F23 — La terminal se comporta como una conversación con Claude
 - [x] F24 — Las respuestas de la consola llevan links reales
+- [x] F25 — Entradas de blog en la consola, voz en primera persona y fechas en UTC
 
 ---
 
@@ -169,3 +170,10 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 **Incluye:** el valor de una fila deja de ser solo texto y pasa a ser `RowValue` (`string` o `{ text, href, external }`), renderizado como un ancla de verdad en `TerminalHero.tsx`. Con eso, `contacto` entrega los tres destinos clickeables en vez de mandar a hacer scroll, `blog` convierte cada nota en un link a su post y suma una fila al listado completo, y `proyectos` ofrece el blog como siguiente paso. Los datos de contacto se mueven a `CONTACTS` en `src/lib/profile.ts`, de donde ahora leen tanto la consola como `ContactSection.astro` — antes las URLs estaban escritas dos veces.
 **Excluye:** links dentro de los bloques de prosa, y comandos que naveguen solos sin que el visitante haga click.
 **Verificación:** `npm run check`; `npm run build`; `npm run lint`; `npx playwright test` (3/3). En el navegador: lanzar `contacto`, `proyectos` y `blog` y volcar los 9 anclas con su `href` (mailto, GitHub, LinkedIn, cuatro posts y dos al listado), y hacer click en el primer post para confirmar que navega a su página real, con 0 errores de consola.
+
+## F25 — Entradas de blog en la consola, voz en primera persona y fechas en UTC
+
+**Incluye:** un bloque `entries` nuevo en `TerminalHero.tsx`: el comando `blog` deja de devolver títulos linkeados sueltos y pasa a mostrar entradas con número en acento, título, resumen recortado a dos líneas (`line-clamp-2`, porque los `summary` reales miden ~200 caracteres) y fecha, con toda la fila clickeable y un hover que enciende el borde izquierdo. El diálogo automático y las respuestas pasan a **primera persona**: la pregunta estaba en segunda ("¿quién eres?") y la respuesta en tercera ("Es Abel… Lleva 3 años"), y ese choque era lo que hacía ambiguo quién hablaba; el rótulo de la barra superior pasa de "claude · sesión con abelitolll" a "abel llontop · consola" para que sea coherente. Además `src/lib/dates.ts` (nuevo) centraliza el formato de fechas.
+**Corrige:** **todas las fechas del sitio se mostraban un día antes.** El frontmatter (`date: 2026-10-12`) se parsea como medianoche UTC y `toLocaleDateString` lo renderizaba en la zona local; en Perú (UTC-5) caía al día anterior. Afectaba a `/blog`, a cada página de post y a la consola. `formatPostDate` y `formatPostDateShort` fijan `timeZone: "UTC"` y los tres lugares pasan a usarlas.
+**Excluye:** tags dentro de las entradas de la consola, y cambiar el orden o la numeración de los posts (el `#N` cronológico no se toca; depende de `valueOf()`, que la zona horaria no alteraba).
+**Verificación:** `npm run check`; `npm run build`; `npm run lint`; `npx playwright test` (3/3). En el navegador: volcado del diálogo de apertura confirmando la primera persona, las tres entradas del comando `blog` con su resumen y fecha, y el contraste antes/después de la fecha del post #13 (`2026-10-12` renderizaba "11 oct", ahora "12 oct 2026" en la consola y "12 de octubre de 2026" en la página del post).

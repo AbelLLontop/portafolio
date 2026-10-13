@@ -4,9 +4,19 @@ import { useCallback, useEffect, useRef, useState } from "react";
 /** Un valor de fila puede ser texto suelto o un destino al que se puede ir. */
 export type RowValue = string | { text: string; href: string; external?: boolean };
 
+/** Una nota del blog, tal como la muestra el listado: numero, titulo y resumen. */
+export interface PostEntry {
+  number: number;
+  title: string;
+  summary?: string;
+  date: string;
+  href: string;
+}
+
 export type Block =
   | { kind: "prose"; text: string }
   | { kind: "rows"; rows: [string, RowValue][] }
+  | { kind: "entries"; entries: PostEntry[] }
   | { kind: "note"; text: string; tone: "ok" | "warn" | "system" };
 
 export interface Exchange {
@@ -34,7 +44,7 @@ const DEFAULT_EXCHANGES: Exchange[] = [
     blocks: [
       {
         kind: "prose",
-        text: "Es Abel — desarrollador de software peruano. Lleva 3 años construyendo sistemas que tienen que seguir en pie cuando nadie los mira.",
+        text: "Soy Abel Llontop, desarrollador de software peruano. Llevo 3 años construyendo sistemas que tienen que seguir en pie cuando nadie los mira.",
       },
       {
         kind: "rows",
@@ -52,14 +62,14 @@ const DEFAULT_EXCHANGES: Exchange[] = [
     blocks: [
       {
         kind: "prose",
-        text: "Arquitectura limpia, apoyado en herramientas de IA para iterar rápido sin perder el control de lo que entrega.",
+        text: "Con arquitectura limpia y apoyado en herramientas de IA, para iterar rápido sin perder el control de lo que entrego.",
       },
       {
         kind: "rows",
         rows: [
           ["metodología", "ágil"],
           ["foco", "sistemas robustos y mantenibles"],
-          ["entrega", "lo que se rompió también se escribe"],
+          ["escribo", "también lo que se rompió"],
         ],
       },
     ],
@@ -67,12 +77,13 @@ const DEFAULT_EXCHANGES: Exchange[] = [
 ];
 
 const DEFAULT_COMMANDS: Record<string, Block[]> = {
-  whoami: [{ kind: "prose", text: "abel — desarrollador de software peruano, 3 años." }],
+  whoami: [{ kind: "prose", text: "Soy Abel — desarrollador de software peruano, 3 años." }],
 };
 
 const PROMPT_CHAR_MS = 45;
 const PROSE_CHAR_MS = 9;
 const ROW_MS = 90;
+const ENTRY_MS = 140;
 const BLOCK_GAP_MS = 220;
 const THINKING_INTRO_MS = 700;
 const THINKING_COMMAND_MS = 450;
@@ -101,6 +112,9 @@ function visibleBlocks(blocks: Block[], progress: Progress): Block[] {
     if (index < progress.block) return block;
     if (block.kind === "prose") return { ...block, text: block.text.slice(0, progress.char) };
     if (block.kind === "rows") return { ...block, rows: block.rows.slice(0, progress.rows) };
+    if (block.kind === "entries") {
+      return { ...block, entries: block.entries.slice(0, progress.rows) };
+    }
     return block;
   });
 }
@@ -148,6 +162,40 @@ function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
                   <span className="text-accent">{key}</span>
                   <RowValueView value={value} />
                 </div>
+              ))}
+            </div>
+          );
+        }
+
+        if (block.kind === "entries") {
+          return (
+            <div key={index} className="flex flex-col">
+              {block.entries.map((entry) => (
+                <a
+                  key={entry.href}
+                  href={entry.href}
+                  className="group -ml-2 grid grid-cols-[3.1rem_1fr] gap-x-2 rounded-md border-l-2 border-transparent py-2 pl-2 transition-all hover:border-accent hover:bg-[color-mix(in_srgb,var(--color-accent)_6%,transparent)] hover:pl-3"
+                >
+                  <span className="pt-px transition-colors group-hover:text-accent" style={{ color: "var(--faint)" }}>
+                    #{entry.number}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block font-semibold text-zinc-100 transition-colors group-hover:text-accent">
+                      {entry.title}
+                    </span>
+                    {entry.summary && (
+                      <span
+                        className="mt-1 block line-clamp-2 text-[0.78rem] leading-[1.6]"
+                        style={{ color: "var(--dim)" }}
+                      >
+                        {entry.summary}
+                      </span>
+                    )}
+                    <span className="mt-1 block text-[0.7rem]" style={{ color: "var(--faint)" }}>
+                      {entry.date}
+                    </span>
+                  </span>
+                </a>
               ))}
             </div>
           );
@@ -253,9 +301,12 @@ export default function TerminalHero({
         } else {
           wait(BLOCK_GAP_MS, () => setProgress((p) => ({ block: p.block + 1, char: 0, rows: 0 })));
         }
-      } else if (block.kind === "rows") {
-        if (progress.rows < block.rows.length) {
-          wait(ROW_MS, () => setProgress((p) => ({ ...p, rows: p.rows + 1 })));
+      } else if (block.kind === "rows" || block.kind === "entries") {
+        const total = block.kind === "rows" ? block.rows.length : block.entries.length;
+        if (progress.rows < total) {
+          wait(block.kind === "rows" ? ROW_MS : ENTRY_MS, () =>
+            setProgress((p) => ({ ...p, rows: p.rows + 1 })),
+          );
         } else {
           wait(BLOCK_GAP_MS, () => setProgress((p) => ({ block: p.block + 1, char: 0, rows: 0 })));
         }
@@ -313,11 +364,11 @@ export default function TerminalHero({
           {
             kind: "rows",
             rows: [
-              ["whoami", "quién es Abel, en corto"],
-              ["stack", "las tecnologías que usa"],
-              ["proyectos", "estado de lo que está construyendo"],
-              ["blog", "las últimas notas publicadas"],
-              ["contacto", "dónde encontrarlo"],
+              ["whoami", "quién soy, en corto"],
+              ["stack", "las tecnologías que uso"],
+              ["proyectos", "en qué estoy trabajando"],
+              ["blog", "mis últimas notas publicadas"],
+              ["contacto", "dónde encontrarme"],
               ["clear", "limpia la consola"],
             ],
           },
@@ -374,7 +425,7 @@ export default function TerminalHero({
           />
           <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--line)" }} />
           <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--line)" }} />
-          <span className="ml-1.5">claude · sesión con abelitolll</span>
+          <span className="ml-1.5">abel llontop · consola</span>
           <span className="ml-auto hidden sm:inline">{busy ? "escribiendo…" : "en espera"}</span>
         </div>
 

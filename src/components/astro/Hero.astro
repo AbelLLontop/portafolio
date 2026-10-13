@@ -4,6 +4,7 @@ import Wordmark from "../react/Wordmark.tsx";
 import TerminalHero from "../react/TerminalHero.tsx";
 import type { Block, RowValue } from "../react/TerminalHero.tsx";
 import { CONTACTS, STACK, YEARS_OF_EXPERIENCE } from "../../lib/profile.ts";
+import { formatPostDateShort } from "../../lib/dates.ts";
 
 const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
@@ -15,19 +16,19 @@ const commands: Record<string, Block[]> = {
   whoami: [
     {
       kind: "prose",
-      text: `Abel Llontop. Desarrollador de software peruano con ${YEARS_OF_EXPERIENCE} años construyendo aplicaciones escalables, automatizando procesos y optimizando sistemas críticos de negocio.`,
+      text: `Soy Abel Llontop, desarrollador de software peruano. Llevo ${YEARS_OF_EXPERIENCE} años construyendo aplicaciones escalables, automatizando procesos y optimizando sistemas críticos de negocio.`,
     },
     {
       kind: "rows",
       rows: [
-        ["hace", "microservicios, APIs REST, integración de sistemas"],
-        ["se le da bien", "grandes volúmenes de datos"],
-        ["escribe", "cada despliegue, incluyendo lo que se rompió"],
+        ["hago", "microservicios, APIs REST, integración de sistemas"],
+        ["se me da bien", "grandes volúmenes de datos"],
+        ["escribo", "cada despliegue, incluyendo lo que se rompió"],
       ],
     },
   ],
   stack: [
-    { kind: "prose", text: "Esto es lo que usa en el día a día:" },
+    { kind: "prose", text: "Esto es lo que uso en el día a día:" },
     {
       kind: "rows",
       rows: [
@@ -40,7 +41,7 @@ const commands: Record<string, Block[]> = {
   proyectos: [
     {
       kind: "prose",
-      text: "Todavía no hay proyectos publicados — el primero está en construcción. Mientras tanto, lo que vale la pena mirar son las notas:",
+      text: "Todavía no tengo proyectos publicados — el primero está en construcción. Mientras tanto, lo que vale la pena mirar son mis notas:",
     },
     {
       kind: "rows",
@@ -54,21 +55,25 @@ const commands: Record<string, Block[]> = {
   blog: [
     {
       kind: "prose",
-      text: `Hay ${posts.length} notas publicadas, escritas el mismo día que pasaron. Las últimas:`,
+      text: `Tengo ${posts.length} notas publicadas, escritas el mismo día que pasaron. Las últimas:`,
+    },
+    {
+      kind: "entries",
+      entries: posts.slice(0, 3).map((post, index) => ({
+        number: posts.length - index,
+        title: post.data.title,
+        summary: post.data.summary,
+        date: formatPostDateShort(post.data.date),
+        href: "/blog/" + post.id,
+      })),
     },
     {
       kind: "rows",
-      rows: [
-        ...posts.slice(0, 4).map((post, index) => [
-          "#" + (posts.length - index),
-          { text: post.data.title, href: "/blog/" + post.id },
-        ]),
-        ["todas", { text: "ver el blog completo →", href: "/blog" }],
-      ] as [string, RowValue][],
+      rows: [["todas", { text: "ver el blog completo →", href: "/blog" }]] as [string, RowValue][],
     },
   ],
   contacto: [
-    { kind: "prose", text: "Tres sitios, y los tres van directo desde acá:" },
+    { kind: "prose", text: "Por acá me encuentras — los tres van directo desde esta consola:" },
     {
       kind: "rows",
       rows: CONTACTS.map((contact) => [
