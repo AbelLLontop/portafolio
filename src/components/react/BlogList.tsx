@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 
 export interface BlogListPost {
   slug: string;
@@ -23,10 +23,21 @@ const CONTROL_STYLE = {
 export default function BlogList({ posts }: BlogListProps) {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
+  const topRef = useRef<HTMLDivElement>(null);
 
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     if (normalizedQuery.length === 0) return posts;
+
+    // Solo digitos (con o sin el # que se ve en la fila): se busca la nota con
+    // ese numero y nada mas. Si cayera al filtro de texto, "2" devolveria todo
+    // lo que menciona PM2 en vez de la nota #2.
+    const numericQuery = normalizedQuery.replace(/^#/, "");
+    if (/^\d+$/.test(numericQuery)) {
+      const wanted = Number(numericQuery);
+      return posts.filter((post) => post.number === wanted);
+    }
+
     return posts.filter(
       (post) =>
         post.title.toLowerCase().includes(normalizedQuery) ||
@@ -41,26 +52,41 @@ export default function BlogList({ posts }: BlogListProps) {
     currentPage * POSTS_PER_PAGE,
   );
 
-  const isFiltered = query.trim().length > 0;
-
   function updateQuery(value: string) {
     setQuery(value);
     setPage(1);
   }
 
+  // Al cambiar de pagina el scroll se queda abajo y la pagina nueva aparece
+  // fuera de vista, asi que se vuelve al inicio del listado.
+  function goToPage(next: number) {
+    setPage(next);
+    topRef.current?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "auto"
+        : "smooth",
+      block: "start",
+    });
+  }
+
   return (
-    <div>
+    // scroll-mt-24: el header es sticky, sin margen taparia la primera nota.
+    <div ref={topRef} className="scroll-mt-24">
       {/* text-base en mobile: por debajo de 16px iOS hace zoom al enfocar */}
       <input
         type="search"
+        aria-label="Buscar notas por título o número"
         value={query}
         onChange={(e) => updateQuery(e.target.value)}
-        placeholder="buscar en las notas…"
+        placeholder="buscar por título o número…"
         style={CONTROL_STYLE}
         className="w-full rounded-lg border px-4 py-2.5 font-mono text-base text-zinc-100 caret-accent outline-none transition-colors placeholder:text-zinc-600 focus:border-accent sm:text-sm"
       />
 
+      {/* aria-live aqui y no en un bloque aparte: asi tambien se anuncia la
+          busqueda sin resultados, no solo cuando quedan notas. */}
       <p
+        aria-live="polite"
         className="mt-5 font-mono text-[0.68rem] uppercase tracking-[0.16em]"
         style={{ color: "var(--faint)" }}
       >
@@ -127,7 +153,7 @@ export default function BlogList({ posts }: BlogListProps) {
         <div className="mt-8 flex items-center justify-between gap-4">
           <button
             type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            onClick={() => goToPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
             style={CONTROL_STYLE}
             className="rounded-lg border px-3.5 py-2 font-mono text-xs tracking-[0.06em] text-zinc-300 transition-colors disabled:opacity-35 enabled:hover:border-accent enabled:hover:text-accent"
@@ -136,7 +162,7 @@ export default function BlogList({ posts }: BlogListProps) {
           </button>
           <button
             type="button"
-            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
             style={CONTROL_STYLE}
             className="rounded-lg border px-3.5 py-2 font-mono text-xs tracking-[0.06em] text-zinc-300 transition-colors disabled:opacity-35 enabled:hover:border-accent enabled:hover:text-accent"
@@ -144,12 +170,6 @@ export default function BlogList({ posts }: BlogListProps) {
             siguiente →
           </button>
         </div>
-      )}
-
-      {isFiltered && filtered.length > 0 && (
-        <p className="sr-only" aria-live="polite">
-          {filtered.length} notas encontradas
-        </p>
       )}
     </div>
   );
