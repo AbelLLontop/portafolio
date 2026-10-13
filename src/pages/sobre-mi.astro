@@ -2,17 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import TechBadge from "../components/astro/TechBadge.astro";
 import ScrollReveal from "../components/react/ScrollReveal.tsx";
-
-const stack: { name: string; iconKey?: string }[] = [
-  { name: "Node.js", iconKey: "node" },
-  { name: "NestJS", iconKey: "nestjs" },
-  { name: "Java", iconKey: "java" },
-  { name: "Spring Boot", iconKey: "springboot" },
-  { name: "SQL Server" },
-  { name: "AWS" },
-  { name: "Angular", iconKey: "angular" },
-  { name: "React", iconKey: "react" },
-];
+import { STACK as stack } from "../lib/profile.ts";
 
 ---
 
@@ -31,7 +21,9 @@ const stack: { name: string; iconKey?: string }[] = [
           class="h-36 w-36 shrink-0 md:h-48 md:w-48"
         />
         <div>
-          <h1 class="text-3xl font-bold text-zinc-100">Sobre mí</h1>
+          <h1 class="font-display text-4xl font-bold tracking-[-0.02em] text-zinc-100 md:text-5xl">
+            Sobre mí
+          </h1>
           <p class="mt-6 max-w-prose text-zinc-300">
             Soy desarrollador de software peruano, con 3 años de experiencia construyendo
             aplicaciones escalables, automatizando procesos y optimizando sistemas críticos de
@@ -45,7 +37,7 @@ const stack: { name: string; iconKey?: string }[] = [
 
   <section class="mx-auto max-w-5xl px-4 pb-16 md:pb-24">
     <ScrollReveal client:visible delay={0.05}>
-      <h2 class="text-2xl font-semibold text-zinc-100">Stack principal</h2>
+      <h2 class="font-display text-2xl font-semibold tracking-[-0.01em] text-zinc-100">Stack principal</h2>
       <p class="mt-2 max-w-prose text-zinc-400">Las tecnologías que uso en el día a día.</p>
       <ul class="mt-6 flex flex-wrap gap-2">
         {stack.map((tech) => (

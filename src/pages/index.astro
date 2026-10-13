@@ -2,6 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Hero from "../components/astro/Hero.astro";
 import TechMarquee from "../components/astro/TechMarquee.astro";
+import StatsPanel from "../components/astro/StatsPanel.astro";
 import ProjectsSection from "../components/astro/ProjectsSection.astro";
 import ContactSection from "../components/astro/ContactSection.astro";
 import ScrollReveal from "../components/react/ScrollReveal.tsx";
@@ -11,16 +12,17 @@ import ScrollReveal from "../components/react/ScrollReveal.tsx";
   title="abelitolll — Desarrollador de software"
   description="abelitolll — desarrollador de software peruano. Notas técnicas, proyectos y experimentos, con apoyo de herramientas de IA."
 >
-  <ScrollReveal client:visible>
-    <Hero />
-  </ScrollReveal>
-  <ScrollReveal client:visible delay={0.05}>
+  <Hero />
+  <ScrollReveal client:visible y={16}>
     <TechMarquee />
   </ScrollReveal>
-  <ScrollReveal client:visible delay={0.1}>
+  <ScrollReveal client:visible y={32}>
+    <StatsPanel />
+  </ScrollReveal>
+  <ScrollReveal client:visible y={32}>
     <ProjectsSection />
   </ScrollReveal>
-  <ScrollReveal client:visible delay={0.15}>
+  <ScrollReveal client:visible y={32}>
     <ContactSection />
   </ScrollReveal>
 </BaseLayout>

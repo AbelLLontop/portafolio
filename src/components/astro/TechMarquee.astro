@@ -23,13 +23,14 @@ const items = [...TECHS, ...TECHS, ...TECHS, ...TECHS];
 ---
 
 <section class="mx-auto max-w-5xl px-4 py-6 md:py-8" aria-label="Tecnologías">
+  <p class="section-label mb-6">En el día a día</p>
   <div class="group relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
     <ul class="marquee flex w-max items-center gap-8 pr-8 motion-reduce:animate-none group-hover:[animation-play-state:paused]">
       {items.map((tech, i) => {
         const icon = monoIcon(tech);
         return (
           <li
-            class="flex shrink-0 items-center gap-2 text-zinc-500 transition-colors hover:text-accent"
+            class="flex shrink-0 items-center gap-2 opacity-45 transition-all duration-300 hover:opacity-100 hover:text-accent"
             aria-hidden={i >= TECHS.length ? "true" : undefined}
           >
             {icon && <span class="[&>svg]:h-9 [&>svg]:w-9" set:html={icon} />}
