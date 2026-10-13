@@ -35,6 +35,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F28 — Rediseño de la página de post (tags, bloques de código e índice)
 - [x] F29 — Rediseño de Sobre mí
 - [x] F30 — Fuera el titular de la home y decoración orbital en Sobre mí
+- [x] F31 — Fuera el filtro por tags del listado y los badges de los posts
 
 ---
 
@@ -215,3 +216,10 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 El tratamiento display se reubica en `src/pages/sobre-mi.astro`, donde una declaración personal sí corresponde: titular a ancho completo ("Escribo lo que construyo. / Y también lo que se rompe.") y, al lado de la bio, una **decoración orbital** — dos anillos girando en sentidos opuestos (el interior punteado) con un cuerpo luminoso cada uno, un resplandor que respira detrás del SVG de marca y el propio SVG flotando. Todo CSS, sin assets nuevos ni JavaScript, y anulado bajo `prefers-reduced-motion`.
 **Excluye:** tocar el texto de la consola, el starfield, el HUD y el cohete del cursor.
 **Verificación:** `npm run check`; `npm run build`; `npm run lint`; `npx playwright test` (4/4). En el navegador: el `h1` de la home es `abelitolll`, la consola entra completa en 950px de alto, y Sobre mí se revisa a 1440px y 375px sin overflow horizontal ni errores de consola.
+
+## F31 — Fuera el filtro por tags del listado y los badges de los posts
+
+**Incluye:** `BlogList.tsx` pierde las pills de tag y todo su estado (`activeTag`, `allTags`, `toggleTag`): con 21 tags ya ocupaban dos filas bajo el buscador y crecían con cada post publicado. Queda el buscador por título y resumen, el contador y la paginación. `BlogPostLayout.astro` pierde los badges de tecnología de la cabecera y su import de `TechBadge` (que sigue usándose en `/sobre-mi`). Los `tags` del frontmatter se siguen mostrando como metadata en las filas del listado, que pasa a ser su único uso visible.
+**SPEC.md:** las dos cosas estaban escritas en el spec, así que se reescribieron con aprobación explícita — la línea 27 y los dos Success Criteria que prometían "filtro por tag" y "badges de tecnología con logos", más la descripción de `BlogList.tsx` en Project Structure. Se eliminó también el test que verificaba los badges, agregado en F28.
+**Excluye:** quitar los `tags` del schema de `content.config.ts` o del frontmatter de los posts.
+**Verificación:** `npm run check`; `npm run build`; `npm run lint`; `npx playwright test` (3/3). En el navegador: en `/blog` no queda ninguna pill de tag, buscar "droplet" deja 2 de 13 notas y una búsqueda sin resultados muestra el estado vacío; en un post no hay badges y los 20 bloques de código con su barra siguen intactos, con 0 errores de consola.

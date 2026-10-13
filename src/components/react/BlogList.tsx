@@ -22,28 +22,17 @@ const CONTROL_STYLE = {
 
 export default function BlogList({ posts }: BlogListProps) {
   const [query, setQuery] = useState("");
-  const [activeTag, setActiveTag] = useState<string | null>(null);
   const [page, setPage] = useState(1);
-
-  const allTags = useMemo(() => {
-    const set = new Set<string>();
-    for (const post of posts) {
-      for (const tag of post.tags) set.add(tag);
-    }
-    return [...set].sort();
-  }, [posts]);
 
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return posts.filter((post) => {
-      const matchesQuery =
-        normalizedQuery.length === 0 ||
+    if (normalizedQuery.length === 0) return posts;
+    return posts.filter(
+      (post) =>
         post.title.toLowerCase().includes(normalizedQuery) ||
-        (post.summary?.toLowerCase().includes(normalizedQuery) ?? false);
-      const matchesTag = activeTag === null || post.tags.includes(activeTag);
-      return matchesQuery && matchesTag;
-    });
-  }, [posts, query, activeTag]);
+        (post.summary?.toLowerCase().includes(normalizedQuery) ?? false),
+    );
+  }, [posts, query]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / POSTS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
@@ -52,53 +41,24 @@ export default function BlogList({ posts }: BlogListProps) {
     currentPage * POSTS_PER_PAGE,
   );
 
-  const isFiltered = query.trim().length > 0 || activeTag !== null;
+  const isFiltered = query.trim().length > 0;
 
   function updateQuery(value: string) {
     setQuery(value);
     setPage(1);
   }
 
-  function toggleTag(tag: string) {
-    setActiveTag((current) => (current === tag ? null : tag));
-    setPage(1);
-  }
-
   return (
     <div>
-      <div className="flex flex-col gap-3">
-        {/* text-base en mobile: por debajo de 16px iOS hace zoom al enfocar */}
-        <input
-          type="search"
-          value={query}
-          onChange={(e) => updateQuery(e.target.value)}
-          placeholder="buscar en las notas…"
-          style={CONTROL_STYLE}
-          className="w-full rounded-lg border px-4 py-2.5 font-mono text-base text-zinc-100 caret-accent outline-none transition-colors placeholder:text-zinc-600 focus:border-accent sm:text-sm"
-        />
-        {allTags.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
-            {allTags.map((tag) => {
-              const isActive = tag === activeTag;
-              return (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => toggleTag(tag)}
-                  style={CONTROL_STYLE}
-                  className={`rounded-full border px-2.5 py-1 font-mono text-[0.68rem] tracking-[0.06em] transition-colors ${
-                    isActive
-                      ? "!border-accent text-accent"
-                      : "hover:border-accent hover:text-accent"
-                  }`}
-                >
-                  {tag}
-                </button>
-              );
-            })}
-          </div>
-        )}
-      </div>
+      {/* text-base en mobile: por debajo de 16px iOS hace zoom al enfocar */}
+      <input
+        type="search"
+        value={query}
+        onChange={(e) => updateQuery(e.target.value)}
+        placeholder="buscar en las notas…"
+        style={CONTROL_STYLE}
+        className="w-full rounded-lg border px-4 py-2.5 font-mono text-base text-zinc-100 caret-accent outline-none transition-colors placeholder:text-zinc-600 focus:border-accent sm:text-sm"
+      />
 
       <p
         className="mt-5 font-mono text-[0.68rem] uppercase tracking-[0.16em]"
@@ -115,9 +75,9 @@ export default function BlogList({ posts }: BlogListProps) {
           className="mt-6 rounded-xl border border-dashed p-8 text-center"
           style={{ borderColor: "var(--line)" }}
         >
-          <p className="text-zinc-300">No se encontraron notas con esos filtros.</p>
+          <p className="text-zinc-300">No se encontraron notas con esa búsqueda.</p>
           <p className="mt-2 text-sm" style={{ color: "var(--faint)" }}>
-            Prueba con otro texto o quita el tag.
+            Prueba con otras palabras.
           </p>
         </div>
       ) : (

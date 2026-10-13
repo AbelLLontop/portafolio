@@ -2,7 +2,6 @@
 import type { CollectionEntry } from "astro:content";
 import BaseLayout from "./BaseLayout.astro";
 import TableOfContents from "../components/astro/TableOfContents.astro";
-import TechBadge from "../components/astro/TechBadge.astro";
 import ScrollReveal from "../components/react/ScrollReveal.tsx";
 import { formatPostDate } from "../lib/dates.ts";
 
@@ -19,7 +18,7 @@ interface Props {
 }
 
 const { post, number, headings = [] } = Astro.props;
-const { title, date, summary, tags } = post.data;
+const { title, date, summary } = post.data;
 
 const formattedDate = formatPostDate(date);
 ---
@@ -39,13 +38,6 @@ const formattedDate = formatPostDate(date);
           </p>
         </header>
 
-        {tags.length > 0 && (
-          <ul class="mb-8 flex flex-wrap gap-1.5">
-            {tags.map((tag) => (
-              <TechBadge name={tag} />
-            ))}
-          </ul>
-        )}
 
         <ScrollReveal client:visible y={0}>
           <div class="prose-post-body">
