@@ -15,6 +15,11 @@ interface BlogListProps {
 
 const POSTS_PER_PAGE = 10;
 
+const CONTROL_STYLE = {
+  borderColor: "var(--line)",
+  background: "rgb(255 255 255 / 0.02)",
+};
+
 export default function BlogList({ posts }: BlogListProps) {
   const [query, setQuery] = useState("");
   const [activeTag, setActiveTag] = useState<string | null>(null);
@@ -47,6 +52,8 @@ export default function BlogList({ posts }: BlogListProps) {
     currentPage * POSTS_PER_PAGE,
   );
 
+  const isFiltered = query.trim().length > 0 || activeTag !== null;
+
   function updateQuery(value: string) {
     setQuery(value);
     setPage(1);
@@ -60,15 +67,17 @@ export default function BlogList({ posts }: BlogListProps) {
   return (
     <div>
       <div className="flex flex-col gap-3">
+        {/* text-base en mobile: por debajo de 16px iOS hace zoom al enfocar */}
         <input
           type="search"
           value={query}
           onChange={(e) => updateQuery(e.target.value)}
-          placeholder="Buscar posts..."
-          className="w-full rounded-lg border border-zinc-800 bg-zinc-900/40 px-4 py-2 text-sm text-zinc-100 placeholder:text-zinc-500 outline-none focus:border-accent"
+          placeholder="buscar en las notas…"
+          style={CONTROL_STYLE}
+          className="w-full rounded-lg border px-4 py-2.5 font-mono text-base text-zinc-100 caret-accent outline-none transition-colors placeholder:text-zinc-600 focus:border-accent sm:text-sm"
         />
         {allTags.length > 0 && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {allTags.map((tag) => {
               const isActive = tag === activeTag;
               return (
@@ -76,10 +85,11 @@ export default function BlogList({ posts }: BlogListProps) {
                   key={tag}
                   type="button"
                   onClick={() => toggleTag(tag)}
-                  className={`rounded-full border px-3 py-1 text-xs transition-colors ${
+                  style={CONTROL_STYLE}
+                  className={`rounded-full border px-2.5 py-1 font-mono text-[0.68rem] tracking-[0.06em] transition-colors ${
                     isActive
-                      ? "border-accent/40 text-accent"
-                      : "border-zinc-800 text-zinc-400 hover:border-zinc-700 hover:text-zinc-300"
+                      ? "!border-accent text-accent"
+                      : "hover:border-accent hover:text-accent"
                   }`}
                 >
                   {tag}
@@ -90,51 +100,96 @@ export default function BlogList({ posts }: BlogListProps) {
         )}
       </div>
 
+      <p
+        className="mt-5 font-mono text-[0.68rem] uppercase tracking-[0.16em]"
+        style={{ color: "var(--faint)" }}
+      >
+        {filtered.length === posts.length
+          ? `${posts.length} notas`
+          : `${filtered.length} de ${posts.length} notas`}
+        {totalPages > 1 && ` · página ${currentPage} de ${totalPages}`}
+      </p>
+
       {filtered.length === 0 ? (
-        <div className="mt-8 rounded-lg border border-dashed border-zinc-800 p-8 text-center">
-          <p className="text-zinc-300">No se encontraron posts con esos filtros.</p>
+        <div
+          className="mt-6 rounded-xl border border-dashed p-8 text-center"
+          style={{ borderColor: "var(--line)" }}
+        >
+          <p className="text-zinc-300">No se encontraron notas con esos filtros.</p>
+          <p className="mt-2 text-sm" style={{ color: "var(--faint)" }}>
+            Prueba con otro texto o quita el tag.
+          </p>
         </div>
       ) : (
-        <div className="mt-8 flex flex-col divide-y divide-zinc-800">
+        <div className="mt-3 flex flex-col">
           {paged.map((post) => (
-            <div key={post.slug} className="py-6 first:pt-0">
-              <a href={`/blog/${post.slug}`} className="group block">
-                <h2 className="text-lg font-semibold text-zinc-100 transition-colors group-hover:text-accent">
-                  {post.title}{" "}
-                  <span className="font-mono text-accent">#{post.number}</span>
-                </h2>
-                <p className="mt-1 text-sm text-zinc-500">{post.formattedDate}</p>
+            // Misma gramatica que las entradas de la consola del hero: el
+            // numero manda, el borde izquierdo se enciende y la fila se corre.
+            <a
+              key={post.slug}
+              href={`/blog/${post.slug}`}
+              className="group -ml-3 grid grid-cols-[3.4rem_1fr] gap-x-3 rounded-lg border-l-2 border-transparent py-5 pl-3 transition-all hover:border-accent hover:bg-[color-mix(in_srgb,var(--color-accent)_5%,transparent)] hover:pl-4 sm:grid-cols-[4.2rem_1fr]"
+              style={{ borderBottom: "1px solid var(--line)" }}
+            >
+              <span
+                className="pt-1 font-mono text-sm transition-colors group-hover:text-accent"
+                style={{ color: "var(--faint)" }}
+              >
+                #{post.number}
+              </span>
+              <span className="min-w-0">
+                <span className="block font-display text-xl font-semibold leading-tight tracking-[-0.01em] text-zinc-100 transition-colors group-hover:text-accent">
+                  {post.title}
+                </span>
                 {post.summary && (
-                  <p className="mt-2 text-sm text-zinc-400">{post.summary}</p>
+                  <span
+                    className="mt-2 line-clamp-2 block text-sm leading-relaxed"
+                    style={{ color: "var(--dim)" }}
+                  >
+                    {post.summary}
+                  </span>
                 )}
-              </a>
-            </div>
+                <span
+                  className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[0.68rem]"
+                  style={{ color: "var(--faint)" }}
+                >
+                  <span>{post.formattedDate}</span>
+                  {post.tags.length > 0 && <span aria-hidden="true">·</span>}
+                  <span>{post.tags.join(" · ")}</span>
+                </span>
+              </span>
+            </a>
           ))}
         </div>
       )}
 
       {totalPages > 1 && (
-        <div className="mt-8 flex items-center justify-between">
+        <div className="mt-8 flex items-center justify-between gap-4">
           <button
             type="button"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={currentPage === 1}
-            className="rounded-lg border border-zinc-800 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-700 disabled:opacity-40 disabled:hover:border-zinc-800"
+            style={CONTROL_STYLE}
+            className="rounded-lg border px-3.5 py-2 font-mono text-xs tracking-[0.06em] text-zinc-300 transition-colors disabled:opacity-35 enabled:hover:border-accent enabled:hover:text-accent"
           >
-            ← Anterior
+            ← anterior
           </button>
-          <p className="text-sm text-zinc-500">
-            Página {currentPage} de {totalPages}
-          </p>
           <button
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
-            className="rounded-lg border border-zinc-800 px-3 py-1.5 text-sm text-zinc-300 transition-colors hover:border-zinc-700 disabled:opacity-40 disabled:hover:border-zinc-800"
+            style={CONTROL_STYLE}
+            className="rounded-lg border px-3.5 py-2 font-mono text-xs tracking-[0.06em] text-zinc-300 transition-colors disabled:opacity-35 enabled:hover:border-accent enabled:hover:text-accent"
           >
-            Siguiente →
+            siguiente →
           </button>
         </div>
+      )}
+
+      {isFiltered && filtered.length > 0 && (
+        <p className="sr-only" aria-live="polite">
+          {filtered.length} notas encontradas
+        </p>
       )}
     </div>
   );

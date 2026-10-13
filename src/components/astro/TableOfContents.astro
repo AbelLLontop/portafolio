@@ -15,7 +15,7 @@ const { headings } = Astro.props;
 {
   headings.length > 0 && (
     <nav class="toc" aria-label="Índice del post">
-      <p class="mb-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">En este post</p>
+      <p class="section-label mb-3 -ml-3">En este post</p>
       <ul class="space-y-0.5">
         {headings.map((heading) => (
           <li>
@@ -73,30 +73,32 @@ const { headings } = Astro.props;
       activeSlug = slug;
     };
 
-    const visible = new Set<string>();
+    // Se calcula el heading activo directamente en vez de observar
+    // intersecciones: con secciones largas ningun heading cae dentro de la
+    // banda del observer y el indice se quedaba pegado al anterior durante
+    // miles de pixeles.
+    let ticking = false;
 
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const slug = entry.target.id;
-          if (entry.isIntersecting) {
-            visible.add(slug);
-          } else {
-            visible.delete(slug);
-          }
-        }
+    const update = () => {
+      ticking = false;
+      const offset = (header?.getBoundingClientRect().bottom ?? 0) + 24;
 
-        if (visible.size > 0) {
-          const first = headingEls.find((el) => visible.has(el.id));
-          if (first) setActive(first.id);
-        }
-      },
-      {
-        rootMargin: "-120px 0px -70% 0px",
-        threshold: 0,
-      },
-    );
+      let current: string | null = null;
+      for (const el of headingEls) {
+        if (el.getBoundingClientRect().top > offset) break;
+        current = el.id;
+      }
+      setActive(current);
+    };
 
-    headingEls.forEach((el) => observer.observe(el));
+    const request = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", request, { passive: true });
+    window.addEventListener("resize", request);
   }
 </script>

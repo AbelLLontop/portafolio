@@ -18,6 +18,13 @@ export const STACK: Tech[] = [
 
 export const YEARS_OF_EXPERIENCE = 3;
 
+/** Lo leen la consola del hero y la pagina Sobre mi, para no mantener dos listas. */
+export const WORK_APPROACH: [string, string][] = [
+  ["metodología", "ágil"],
+  ["foco", "sistemas robustos y mantenibles"],
+  ["escribo", "también lo que se rompió"],
+];
+
 export interface Contact {
   key: "email" | "github" | "linkedin";
   label: string;

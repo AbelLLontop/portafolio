@@ -31,6 +31,9 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F24 — Las respuestas de la consola llevan links reales
 - [x] F25 — Entradas de blog en la consola, voz en primera persona y fechas en UTC
 - [x] F26 — Tarjetas de contacto con logo y respuesta de proyectos enfocada
+- [x] F27 — Rediseño del listado de notas
+- [x] F28 — Rediseño de la página de post (tags, bloques de código e índice)
+- [x] F29 — Rediseño de Sobre mí
 
 ---
 
@@ -184,3 +187,22 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 **Incluye:** un bloque `channels` nuevo en `TerminalHero.tsx`: `contacto` deja de devolver URLs linkeadas y pasa a mostrar tres tarjetas con el logo de marca, el nombre del canal y el handle debajo, con borde que se enciende en acento al pasar el mouse (una columna en mobile, tres desde `sm`). Los SVG se mueven a `src/lib/contact-icons.ts`, de donde ahora leen tanto la consola como `ContactSection.astro` — si no, el markup de los iconos quedaba escrito dos veces. La respuesta de `proyectos` deja de terminar derivando al blog: si preguntan por proyectos, se responde por proyectos, así que la prosa describe el vehiculo en construcción y las filas quedan en publicados / en construcción / estado.
 **Excluye:** iconos de marca en otros bloques de la consola, y agregar canales de contacto nuevos (siguen siendo email, GitHub y LinkedIn, como fija `SPEC.md`).
 **Verificación:** `npm run check`; `npm run build`; `npm run lint`; `npx playwright test` (3/3). En el navegador: lanzar `proyectos` y `contacto`, confirmar que la respuesta de proyectos ya no menciona el blog y que se renderizan los 3 SVG dentro de las tarjetas, con 0 errores de consola. A 375px las tarjetas se apilan sin overflow de página ni del cuerpo de la terminal.
+
+## F27 — Rediseño del listado de notas
+
+**Incluye:** `src/components/react/BlogList.tsx` conserva toda su lógica (filtro por texto y tag, paginación de 10) y cambia la presentación: buscador y pills con la misma forma que la consola del hero, cada post como una **entrada** (`#N` en acento, título en display, resumen a dos líneas, fecha y tags en mono) con el mismo gesto de hover que el bloque `entries` de la terminal — borde izquierdo encendido, tinte y corrimiento —, un contador de resultados que antes no existía, y paginación con botones de casco. `src/pages/blog/index.astro` suma `.section-label` y un lede.
+**Excluye:** orden configurable, filtros por fecha, y cualquier indicio de relación entre notas.
+**Verificación:** `npm run check`; `npm run build`; `npm run lint`; `npx playwright test` (4/4). En el navegador: buscar "docker" deja 4 entradas, filtrar por el tag `certbot` deja 1, y la paginación avanza a la página 2 de 2.
+
+## F28 — Rediseño de la página de post (tags, bloques de código e índice)
+
+**Incluye:** `src/layouts/BlogPostLayout.astro` gana la etiqueta `Nota #N`, **los badges de tecnología que faltaban** (hueco real contra Success Criteria de `SPEC.md`: pedía badges con logos en cada post y nunca se habían agregado) y un cierre con un único link `← volver a las notas`, sin anterior/siguiente ni notas relacionadas, respetando la regla de `CLAUDE.md` de que los posts son independientes. Un script envuelve cada `pre.astro-code` en un `.code-block` con barra superior: el lenguaje sale de `data-language` (que Shiki ya emite) y un botón **copiar** usa `navigator.clipboard`. `src/styles/global.css` adapta `.prose-post-body` a la paleta (h2/h3 en display, `pre`, `blockquote`, `hr`, links) y el índice lateral. `TechBadge.astro` gana una variante de tamaño.
+**Corrige:** el índice lateral se quedaba pegado en un heading durante miles de píxeles. El `IntersectionObserver` con `rootMargin: "-120px 0px -70% 0px"` deja zonas muertas: en secciones largas ningún heading cae en la banda y el activo nunca se actualizaba. Se reemplaza por el cálculo directo del último heading por encima del borde inferior del header sticky, con guard de `requestAnimationFrame`. El scroll suave al hacer click no se toca.
+**Excluye:** el contenido de los `.mdx`, el schema de `content.config.ts` y el tema de Shiki.
+**Verificación:** `npm run check`; `npm run build`; `npm run lint`; `npx playwright test` (4/4, con una aserción nueva en `blog.spec.ts` para los tags del post). En el navegador: los 4 tags aparecen en la cabecera, las barras de código muestran el lenguaje correcto (`JS`, `DOCKERFILE`, `YAML`…), el botón deja el código en el portapapeles (leído de vuelta con permiso `clipboard-read`) y el índice sigue el heading correcto a lo largo de siete posiciones de scroll.
+
+## F29 — Rediseño de Sobre mí
+
+**Incluye:** `src/pages/sobre-mi.astro` pasa a etiquetas de sección, suma un panel **"Cómo trabajo"** en `.hull-grid` y muestra el stack en badges con logo (variante `md`). Los datos de "cómo trabajo" estaban escritos a mano dentro de `DEFAULT_EXCHANGES` en `TerminalHero.tsx`; se mueven a `WORK_APPROACH` en `src/lib/profile.ts`, de donde ahora leen la página y la consola — mismo patrón que `STACK`, `CONTACTS` y `CONTACT_ICONS`.
+**Excluye:** foto personal y timeline de empleos, que `SPEC.md` prohíbe explícitamente.
+**Verificación:** `npm run check`; `npm run build`; `npm run lint`; `npx playwright test` (4/4); capturas a 1440px y 375px de las tres páginas, sin overflow horizontal y con el HUD lateral oculto en mobile.

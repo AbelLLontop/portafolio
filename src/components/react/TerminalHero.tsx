@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { WORK_APPROACH } from "../../lib/profile.ts";
 
 /** Un valor de fila puede ser texto suelto o un destino al que se puede ir. */
 export type RowValue = string | { text: string; href: string; external?: boolean };
@@ -75,14 +76,7 @@ const DEFAULT_EXCHANGES: Exchange[] = [
         kind: "prose",
         text: "Con arquitectura limpia y apoyado en herramientas de IA, para iterar rápido sin perder el control de lo que entrego.",
       },
-      {
-        kind: "rows",
-        rows: [
-          ["metodología", "ágil"],
-          ["foco", "sistemas robustos y mantenibles"],
-          ["escribo", "también lo que se rompió"],
-        ],
-      },
+      { kind: "rows", rows: WORK_APPROACH },
     ],
   },
 ];

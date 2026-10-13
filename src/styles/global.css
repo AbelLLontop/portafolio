@@ -94,11 +94,11 @@ body {
 }
 
 .prose-post-body h2 {
-  @apply mt-10 text-2xl font-semibold text-zinc-100;
+  @apply mt-12 font-display text-2xl font-semibold tracking-[-0.01em] text-zinc-100 md:text-3xl;
 }
 
 .prose-post-body h3 {
-  @apply mt-8 text-xl font-semibold text-zinc-100;
+  @apply mt-8 font-display text-xl font-semibold tracking-[-0.01em] text-zinc-100;
 }
 
 .prose-post-body p {
@@ -106,7 +106,8 @@ body {
 }
 
 .prose-post-body a {
-  @apply text-accent underline underline-offset-2 hover:opacity-80;
+  @apply text-accent underline underline-offset-4 transition-opacity hover:opacity-80;
+  text-decoration-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
 }
 
 .prose-post-body ul {
@@ -118,27 +119,80 @@ body {
 }
 
 .prose-post-body blockquote {
-  @apply border-l-2 border-accent/50 pl-4 italic text-zinc-400;
+  @apply border-l-2 border-accent/50 py-1 pl-4 italic;
+  color: var(--dim);
+}
+
+.prose-post-body hr {
+  @apply my-10 border-0;
+  border-top: 1px solid var(--line);
+}
+
+.prose-post-body strong {
+  @apply font-semibold text-zinc-100;
 }
 
 .prose-post-body code {
   @apply rounded bg-zinc-900 px-1.5 py-0.5 text-sm text-accent;
 }
 
+/* El <pre> de Shiki queda envuelto en .code-block por el script del layout
+   del post; el borde y el radio los pone el contenedor para que la barra
+   superior y el codigo se lean como una sola pieza. */
 .prose-post-body pre {
-  @apply overflow-x-auto rounded-lg border border-zinc-800 p-4 text-sm;
+  @apply overflow-x-auto p-4 text-sm;
+}
+
+.code-block {
+  @apply my-4 overflow-hidden rounded-lg;
+  border: 1px solid var(--line);
+}
+
+.code-block-bar {
+  @apply flex items-center justify-between gap-3 px-3 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.16em];
+  border-bottom: 1px solid var(--line);
+  background: var(--hull-2);
+  color: var(--faint);
+}
+
+.code-block pre {
+  @apply my-0 rounded-none border-0;
+}
+
+.code-copy {
+  @apply cursor-pointer rounded px-2 py-0.5 font-mono text-[0.66rem] uppercase tracking-[0.16em] transition-colors;
+  color: var(--faint);
+}
+
+.code-copy:hover,
+.code-copy:focus-visible {
+  color: var(--color-accent);
+}
+
+.code-copy.is-copied {
+  color: var(--go);
 }
 
 .prose-post-body pre code {
   @apply bg-transparent p-0 text-inherit;
 }
 
+.toc {
+  border-left: 1px solid var(--line);
+  @apply pl-3;
+}
+
 .toc-link {
-  @apply block border-l-2 border-transparent py-1 text-sm text-zinc-500 transition-colors duration-200 hover:text-zinc-300;
+  @apply -ml-3 block border-l-2 border-transparent py-1 pl-3 text-[0.82rem] leading-snug transition-colors duration-200;
+  color: var(--faint);
+}
+
+.toc-link:hover {
+  @apply text-zinc-300;
 }
 
 .toc-link[data-depth="3"] {
-  @apply pl-3 text-[0.8rem];
+  @apply pl-6 text-[0.76rem];
 }
 
 .toc-link.is-active {

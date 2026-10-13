@@ -2,17 +2,17 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import TechBadge from "../components/astro/TechBadge.astro";
 import ScrollReveal from "../components/react/ScrollReveal.tsx";
-import { STACK as stack } from "../lib/profile.ts";
-
+import { STACK as stack, WORK_APPROACH, YEARS_OF_EXPERIENCE } from "../lib/profile.ts";
 ---
 
 <BaseLayout
   title="Sobre mí — abelitolll"
   description="Sobre abelitolll: desarrollador de software peruano, su enfoque y stack principal."
 >
-  <section class="mx-auto max-w-5xl px-4 py-16 md:py-20">
+  <section class="mx-auto max-w-5xl px-4 py-14 md:py-20">
     <ScrollReveal client:visible>
-      <div class="flex flex-col items-center gap-10 md:flex-row md:gap-14">
+      <p class="section-label">Quién está detrás</p>
+      <div class="mt-8 flex flex-col items-center gap-10 md:flex-row md:gap-14">
         <img
           src="/images/abelitolll-head.svg"
           alt=""
@@ -24,38 +24,59 @@ import { STACK as stack } from "../lib/profile.ts";
           <h1 class="font-display text-4xl font-bold tracking-[-0.02em] text-zinc-100 md:text-5xl">
             Sobre mí
           </h1>
-          <p class="mt-6 max-w-prose text-zinc-300">
-            Soy desarrollador de software peruano, con 3 años de experiencia construyendo
-            aplicaciones escalables, automatizando procesos y optimizando sistemas críticos de
-            negocio — microservicios, APIs REST, integración de sistemas y manejo de grandes
-            volúmenes de datos.
+          <p class="mt-5 max-w-prose leading-relaxed" style="color: var(--dim);">
+            Soy desarrollador de software peruano, con {YEARS_OF_EXPERIENCE} años de experiencia
+            construyendo aplicaciones escalables, automatizando procesos y optimizando sistemas
+            críticos de negocio — microservicios, APIs REST, integración de sistemas y manejo de
+            grandes volúmenes de datos.
           </p>
         </div>
       </div>
     </ScrollReveal>
   </section>
 
+  <section class="mx-auto max-w-5xl px-4 pb-14">
+    <ScrollReveal client:visible y={32}>
+      <p class="section-label">Cómo trabajo</p>
+      <div class="hull-grid mt-6 [grid-template-columns:repeat(auto-fit,minmax(14rem,1fr))]">
+        {WORK_APPROACH.map(([key, value]) => (
+          <div class="hull-cell">
+            <p
+              class="font-mono text-[0.63rem] uppercase tracking-[0.16em]"
+              style="color: var(--faint);"
+            >
+              {key}
+            </p>
+            <p class="mt-2 leading-snug text-zinc-100">{value}</p>
+          </div>
+        ))}
+      </div>
+    </ScrollReveal>
+  </section>
+
   <section class="mx-auto max-w-5xl px-4 pb-16 md:pb-24">
-    <ScrollReveal client:visible delay={0.05}>
-      <h2 class="font-display text-2xl font-semibold tracking-[-0.01em] text-zinc-100">Stack principal</h2>
-      <p class="mt-2 max-w-prose text-zinc-400">Las tecnologías que uso en el día a día.</p>
+    <ScrollReveal client:visible y={32}>
+      <p class="section-label">Stack principal</p>
+      <h2 class="mt-3 font-display text-2xl font-semibold tracking-[-0.01em] text-zinc-100">
+        Las tecnologías que uso en el día a día
+      </h2>
       <ul class="mt-6 flex flex-wrap gap-2">
         {stack.map((tech) => (
-          <TechBadge name={tech.name} iconKey={tech.iconKey} />
+          <TechBadge name={tech.name} iconKey={tech.iconKey} size="md" />
         ))}
       </ul>
     </ScrollReveal>
 
     <ScrollReveal
       client:visible
-      delay={0.1}
-      className="mt-12 flex flex-col items-start gap-4 border-t border-zinc-800 pt-8 sm:flex-row sm:items-center sm:justify-between"
+      y={24}
+      className="mt-12 flex flex-col items-start gap-4 border-t border-[var(--line)] pt-8 sm:flex-row sm:items-center sm:justify-between"
     >
-      <p class="max-w-prose text-zinc-300">
+      <p class="max-w-prose" style="color: var(--dim);">
         Hoy sigo construyendo software eficiente y mantenible, mientras exploro nuevas
         oportunidades en entornos de alta exigencia técnica.
       </p>
-      <span class="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-accent/40 px-3 py-1 text-xs text-accent">
+      <span class="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-accent/40 px-3 py-1 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-accent">
         <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-accent"></span>
         construyendo cosas nuevas
       </span>
