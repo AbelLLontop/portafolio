@@ -14,10 +14,12 @@ const TECHS = [
   "tailwind",
 ] as const;
 
-// Lista duplicada para loop infinito sin salto: la animación recorre -50%
-// del ancho total (dos copias idénticas), así el segundo set reemplaza
-// exactamente al primero cuando termina el ciclo.
-const items = [...TECHS, ...TECHS];
+// Lista repetida 4 veces para loop infinito sin salto: la animación recorre
+// -25% del ancho total (cuatro copias idénticas), de forma que siempre hay
+// contenido suficiente para llenar el contenedor aunque éste sea muy ancho
+// (con solo 2 copias, una copia por sí sola es más angosta que max-w-5xl y
+// el carrusel se queda sin contenido antes de completar el ciclo).
+const items = [...TECHS, ...TECHS, ...TECHS, ...TECHS];
 ---
 
 <section class="mx-auto max-w-5xl px-4 py-6 md:py-8" aria-label="Tecnologías">
@@ -48,7 +50,7 @@ const items = [...TECHS, ...TECHS];
       transform: translateX(0);
     }
     to {
-      transform: translateX(-50%);
+      transform: translateX(-25%);
     }
   }
 
