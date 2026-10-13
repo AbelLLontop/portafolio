@@ -34,6 +34,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F27 — Rediseño del listado de notas
 - [x] F28 — Rediseño de la página de post (tags, bloques de código e índice)
 - [x] F29 — Rediseño de Sobre mí
+- [x] F30 — Fuera el titular de la home y decoración orbital en Sobre mí
 
 ---
 
@@ -206,3 +207,11 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 **Incluye:** `src/pages/sobre-mi.astro` pasa a etiquetas de sección, suma un panel **"Cómo trabajo"** en `.hull-grid` y muestra el stack en badges con logo (variante `md`). Los datos de "cómo trabajo" estaban escritos a mano dentro de `DEFAULT_EXCHANGES` en `TerminalHero.tsx`; se mueven a `WORK_APPROACH` en `src/lib/profile.ts`, de donde ahora leen la página y la consola — mismo patrón que `STACK`, `CONTACTS` y `CONTACT_ICONS`.
 **Excluye:** foto personal y timeline de empleos, que `SPEC.md` prohíbe explícitamente.
 **Verificación:** `npm run check`; `npm run build`; `npm run lint`; `npx playwright test` (4/4); capturas a 1440px y 375px de las tres páginas, sin overflow horizontal y con el HUD lateral oculto en mobile.
+
+## F30 — Fuera el titular de la home y decoración orbital en Sobre mí
+
+**Incluye:** se elimina el titular display de `Hero.astro` ("Software que aguanta producción / Y las notas de cómo llegó ahí"): decía lo mismo que el párrafo de abajo y que la primera respuesta de la consola, y su registro era el de una propuesta de valor, que no corresponde a una página personal que no ofrece un servicio. El párrafo se mantiene tal cual. **El `<h1>` pasa a ser el wordmark**, que era el único encabezado que quedaba y además es lo semánticamente correcto en una página personal. Con eso la consola sube y entra completa en un viewport de 950px (de `y 375` a `y 935`), cuando antes empezaba recién cerca de los 600px.
+
+El tratamiento display se reubica en `src/pages/sobre-mi.astro`, donde una declaración personal sí corresponde: titular a ancho completo ("Escribo lo que construyo. / Y también lo que se rompe.") y, al lado de la bio, una **decoración orbital** — dos anillos girando en sentidos opuestos (el interior punteado) con un cuerpo luminoso cada uno, un resplandor que respira detrás del SVG de marca y el propio SVG flotando. Todo CSS, sin assets nuevos ni JavaScript, y anulado bajo `prefers-reduced-motion`.
+**Excluye:** tocar el texto de la consola, el starfield, el HUD y el cohete del cursor.
+**Verificación:** `npm run check`; `npm run build`; `npm run lint`; `npx playwright test` (4/4). En el navegador: el `h1` de la home es `abelitolll`, la consola entra completa en 950px de alto, y Sobre mí se revisa a 1440px y 375px sin overflow horizontal ni errores de consola.

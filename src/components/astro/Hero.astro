@@ -95,7 +95,7 @@ const commands: Record<string, Block[]> = {
       Lima · Perú · desarrollador de software
     </p>
 
-    <div class="flex items-center gap-4">
+    <h1 class="flex items-center gap-4">
       <Wordmark size="lg" client:visible />
       <img
         src="/images/abelitolll-rocket.svg"
@@ -104,11 +104,6 @@ const commands: Record<string, Block[]> = {
         height="96"
         class="hidden h-16 w-16 shrink-0 sm:block md:h-20 md:w-20"
       />
-    </div>
-
-    <h1 class="hero-headline font-display font-extrabold text-zinc-100">
-      Software que aguanta producción.<br />
-      <span style="color: var(--dim);">Y las notas de cómo llegó ahí.</span>
     </h1>
 
     <p class="max-w-[46ch] leading-relaxed" style="color: var(--dim);">
@@ -120,12 +115,3 @@ const commands: Record<string, Block[]> = {
   <!-- client:load: above-the-fold, único caso justificado fuera de client:visible -->
   <TerminalHero commands={commands} client:load />
 </section>
-
-<style>
-  .hero-headline {
-    font-size: clamp(1.9rem, 5.2vw, 3.5rem);
-    line-height: 0.95;
-    letter-spacing: -0.02em;
-    text-wrap: balance;
-  }
-</style>
