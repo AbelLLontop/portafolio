@@ -18,7 +18,7 @@ export const STACK: Tech[] = [
 
 export const YEARS_OF_EXPERIENCE = 3;
 
-/** Lo leen la consola del hero y la pagina Sobre mi, para no mantener dos listas. */
+/** Lo usa el dialogo de apertura de la consola del hero. */
 export const WORK_APPROACH: [string, string][] = [
   ["metodología", "ágil"],
   ["foco", "sistemas robustos y mantenibles"],

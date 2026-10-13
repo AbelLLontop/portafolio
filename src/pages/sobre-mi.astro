@@ -2,7 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import TechBadge from "../components/astro/TechBadge.astro";
 import ScrollReveal from "../components/react/ScrollReveal.tsx";
-import { STACK as stack, WORK_APPROACH, YEARS_OF_EXPERIENCE } from "../lib/profile.ts";
+import { STACK as stack, YEARS_OF_EXPERIENCE } from "../lib/profile.ts";
 ---
 
 <BaseLayout
@@ -39,25 +39,6 @@ import { STACK as stack, WORK_APPROACH, YEARS_OF_EXPERIENCE } from "../lib/profi
             class="orbit-core h-32 w-32 md:h-40 md:w-40"
           />
         </div>
-      </div>
-    </ScrollReveal>
-  </section>
-
-  <section class="mx-auto max-w-5xl px-4 pb-14">
-    <ScrollReveal client:visible y={32}>
-      <p class="section-label">Cómo trabajo</p>
-      <div class="hull-grid mt-6 [grid-template-columns:repeat(auto-fit,minmax(14rem,1fr))]">
-        {WORK_APPROACH.map(([key, value]) => (
-          <div class="hull-cell">
-            <p
-              class="font-mono text-[0.63rem] uppercase tracking-[0.16em]"
-              style="color: var(--faint);"
-            >
-              {key}
-            </p>
-            <p class="mt-2 leading-snug text-zinc-100">{value}</p>
-          </div>
-        ))}
       </div>
     </ScrollReveal>
   </section>
