@@ -1,10 +1,85 @@
 ---
+import { getCollection } from "astro:content";
 import Wordmark from "../react/Wordmark.tsx";
 import TerminalHero from "../react/TerminalHero.tsx";
+import type { Block } from "../react/TerminalHero.tsx";
+import { STACK, YEARS_OF_EXPERIENCE } from "../../lib/profile.ts";
+
+const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
+  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
+);
+
+// Las respuestas de la consola salen de los mismos datos que renderiza el
+// sitio (stack compartido y colección de blog), nunca de un texto duplicado.
+const commands: Record<string, Block[]> = {
+  whoami: [
+    {
+      kind: "prose",
+      text: `Abel Llontop. Desarrollador de software peruano con ${YEARS_OF_EXPERIENCE} años construyendo aplicaciones escalables, automatizando procesos y optimizando sistemas críticos de negocio.`,
+    },
+    {
+      kind: "rows",
+      rows: [
+        ["hace", "microservicios, APIs REST, integración de sistemas"],
+        ["se le da bien", "grandes volúmenes de datos"],
+        ["escribe", "cada despliegue, incluyendo lo que se rompió"],
+      ],
+    },
+  ],
+  stack: [
+    { kind: "prose", text: "Esto es lo que usa en el día a día:" },
+    {
+      kind: "rows",
+      rows: [
+        ["día a día", STACK.map((tech) => tech.name).join(" · ")],
+        ["infra", "docker · nginx · pm2 · postgres · certbot"],
+        ["despliegue", "vercel · digitalocean"],
+      ],
+    },
+  ],
+  proyectos: [
+    {
+      kind: "prose",
+      text: "Todavía no hay proyectos publicados — el primero está en construcción. Mientras tanto, el blog es lo que vale la pena mirar.",
+    },
+    {
+      kind: "rows",
+      rows: [
+        ["publicados", "0"],
+        ["en construcción", "1"],
+      ],
+    },
+  ],
+  blog: [
+    {
+      kind: "prose",
+      text: `Hay ${posts.length} notas publicadas, escritas el mismo día que pasaron. Las últimas:`,
+    },
+    {
+      kind: "rows",
+      rows: posts
+        .slice(0, 4)
+        .map((post, index) => [
+          "#" + (posts.length - index),
+          post.data.title,
+        ]) as [string, string][],
+    },
+  ],
+  contacto: [
+    {
+      kind: "prose",
+      text: "Email, GitHub y LinkedIn — los tres están al final de esta página, en la sección Contacto.",
+    },
+  ],
+};
 ---
 
-<section class="mx-auto flex max-w-5xl flex-col gap-10 px-4 py-16 md:py-24">
-  <div class="flex flex-col gap-4">
+<section class="mx-auto flex max-w-5xl flex-col gap-8 px-4 pb-12 pt-12 md:pb-14 md:pt-16">
+  <div class="flex flex-col gap-5">
+    <p class="font-mono text-[0.68rem] uppercase tracking-[0.3em]" style="color: var(--faint);">
+      Lima · Perú · desarrollador de software
+    </p>
+
     <div class="flex items-center gap-4">
       <Wordmark size="lg" client:visible />
       <img
@@ -15,11 +90,27 @@ import TerminalHero from "../react/TerminalHero.tsx";
         class="hidden h-16 w-16 shrink-0 sm:block md:h-20 md:w-20"
       />
     </div>
-    <p class="max-w-prose text-zinc-400">
-      Desarrollador de software peruano. Construyo con apoyo de herramientas de IA y dejo
-      notas técnicas en el camino.
+
+    <h1 class="hero-headline font-display font-extrabold text-zinc-100">
+      Software que aguanta producción.<br />
+      <span style="color: var(--dim);">Y las notas de cómo llegó ahí.</span>
+    </h1>
+
+    <p class="max-w-[46ch] leading-relaxed" style="color: var(--dim);">
+      Construyo con apoyo de herramientas de IA y dejo notas técnicas en el camino — cada
+      paso, incluyendo lo que se rompió.
     </p>
   </div>
+
   <!-- client:load: above-the-fold, único caso justificado fuera de client:visible -->
-  <TerminalHero client:load />
+  <TerminalHero commands={commands} client:load />
 </section>
+
+<style>
+  .hero-headline {
+    font-size: clamp(1.9rem, 5.2vw, 3.5rem);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-wrap: balance;
+  }
+</style>

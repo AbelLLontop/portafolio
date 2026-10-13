@@ -1,169 +1,459 @@
 import { motion } from "motion/react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
-interface AgentExchange {
+export type Block =
+  | { kind: "prose"; text: string }
+  | { kind: "rows"; rows: [string, string][] }
+  | { kind: "note"; text: string; tone: "ok" | "warn" | "system" };
+
+export interface Exchange {
   prompt: string;
-  response: string[];
-  extraPauseMs?: number;
+  blocks: Block[];
 }
 
 interface TerminalHeroProps {
-  exchanges?: AgentExchange[];
+  exchanges?: Exchange[];
+  /** Respuestas de los comandos; las arma la página desde sus propios datos. */
+  commands?: Record<string, Block[]>;
 }
 
-const DEFAULT_EXCHANGES: AgentExchange[] = [
+interface Job extends Exchange {
+  /** El diálogo de apertura se escribe solo; lo que teclea el visitante ya está escrito. */
+  typePrompt: boolean;
+  thinkingMs: number;
+  pauseMs: number;
+  endsIntro?: boolean;
+}
+
+const DEFAULT_EXCHANGES: Exchange[] = [
   {
     prompt: "¿quién eres?",
-    response: [
-      "abelitolll",
-      "├─ rol: desarrollador de software",
-      "├─ experiencia: 3 años",
-      "├─ ubicación: Lima, Perú",
-      "└─ stack: node · java · angular · react · aws",
+    blocks: [
+      {
+        kind: "prose",
+        text: "Es Abel — desarrollador de software peruano. Lleva 3 años construyendo sistemas que tienen que seguir en pie cuando nadie los mira.",
+      },
+      {
+        kind: "rows",
+        rows: [
+          ["rol", "desarrollador de software"],
+          ["experiencia", "3 años"],
+          ["ubicación", "Lima, Perú"],
+          ["stack", "node · java · angular · react · aws"],
+        ],
+      },
     ],
-    extraPauseMs: 2000,
   },
   {
     prompt: "¿cómo trabajas?",
-    response: [
-      "arquitectura limpia y buenas prácticas",
-      "├─ metodología: ágil",
-      "├─ apoyo: herramientas de IA para iterar más rápido",
-      "└─ foco: sistemas de negocio robustos y mantenibles",
+    blocks: [
+      {
+        kind: "prose",
+        text: "Arquitectura limpia, apoyado en herramientas de IA para iterar rápido sin perder el control de lo que entrega.",
+      },
+      {
+        kind: "rows",
+        rows: [
+          ["metodología", "ágil"],
+          ["foco", "sistemas robustos y mantenibles"],
+          ["entrega", "lo que se rompió también se escribe"],
+        ],
+      },
     ],
-    extraPauseMs: 2000,
-  },
-  {
-    prompt: "¿en qué estás trabajando?",
-    response: ["este portafolio, en construcción", "próximamente: proyectos reales"],
   },
 ];
 
-const CHAR_INTERVAL_MS = 45;
-const THINKING_MS = 1000;
-const LINE_REVEAL_INTERVAL_MS = 320;
-const PAUSE_AFTER_ANSWER_MS = 1500;
-const PAUSE_AFTER_CYCLE_MS = 900;
+const DEFAULT_COMMANDS: Record<string, Block[]> = {
+  whoami: [{ kind: "prose", text: "abel — desarrollador de software peruano, 3 años." }],
+};
 
-type Phase = "typing-prompt" | "thinking" | "answering" | "pausing" | "cycle-done";
+const PROMPT_CHAR_MS = 45;
+const PROSE_CHAR_MS = 9;
+const ROW_MS = 90;
+const BLOCK_GAP_MS = 220;
+const THINKING_INTRO_MS = 700;
+const THINKING_COMMAND_MS = 450;
+const PAUSE_INTRO_MS = 700;
+const PAUSE_COMMAND_MS = 200;
 
-const TREE_LINE_PATTERN = /^([├└]─\s)([^:]+):\s(.+)$/;
+type Phase = "idle" | "typing-prompt" | "thinking" | "streaming" | "pausing";
 
-function ResponseLine({ line, isFirst }: { line: string; isFirst: boolean }) {
-  const match = line.match(TREE_LINE_PATTERN);
-  if (match) {
-    const [, prefix, key, value] = match;
-    return (
-      <>
-        <span className="text-zinc-600">{prefix}</span>
-        <span className="text-accent">{key}</span>
-        <span className="text-zinc-600">: </span>
-        <span className="text-zinc-300">{value}</span>
-      </>
-    );
-  }
+interface Progress {
+  block: number;
+  char: number;
+  rows: number;
+}
+
+const START: Progress = { block: 0, char: 0, rows: 0 };
+
+const NOTE_COLOR: Record<"ok" | "warn" | "system", string> = {
+  ok: "var(--go)",
+  warn: "#f0a868",
+  system: "var(--faint)",
+};
+
+/** Recorta los bloques a lo que ya se "escribió" según el progreso actual. */
+function visibleBlocks(blocks: Block[], progress: Progress): Block[] {
+  return blocks.slice(0, progress.block + 1).map((block, index) => {
+    if (index < progress.block) return block;
+    if (block.kind === "prose") return { ...block, text: block.text.slice(0, progress.char) };
+    if (block.kind === "rows") return { ...block, rows: block.rows.slice(0, progress.rows) };
+    return block;
+  });
+}
+
+function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
   return (
-    <span className={isFirst ? "font-semibold text-zinc-100" : "text-zinc-400"}>{line}</span>
+    <div
+      className="my-2 flex flex-col gap-2.5 pl-4"
+      style={{ borderLeft: "2px solid color-mix(in srgb, var(--color-accent) 45%, transparent)" }}
+    >
+      {blocks.map((block, index) => {
+        const isLast = index === blocks.length - 1;
+
+        if (block.kind === "prose") {
+          return (
+            <p key={index} className="max-w-[62ch] text-zinc-300">
+              {block.text}
+              {caret && isLast && <span className="ml-0.5 animate-pulse text-accent">▌</span>}
+            </p>
+          );
+        }
+
+        if (block.kind === "rows") {
+          return (
+            <div key={index} className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-1">
+              {block.rows.map(([key, value]) => (
+                <div key={key} className="contents">
+                  <span className="text-accent">{key}</span>
+                  <span className="break-words text-zinc-200">{value}</span>
+                </div>
+              ))}
+            </div>
+          );
+        }
+
+        return (
+          <p key={index} className="max-w-[62ch]" style={{ color: NOTE_COLOR[block.tone] }}>
+            {block.text}
+          </p>
+        );
+      })}
+    </div>
   );
 }
 
-export default function TerminalHero({ exchanges = DEFAULT_EXCHANGES }: TerminalHeroProps) {
-  const [exchangeIndex, setExchangeIndex] = useState(0);
-  const [charIndex, setCharIndex] = useState(0);
-  const [responseLineCount, setResponseLineCount] = useState(0);
-  const [phase, setPhase] = useState<Phase>("typing-prompt");
+export default function TerminalHero({
+  exchanges = DEFAULT_EXCHANGES,
+  commands = DEFAULT_COMMANDS,
+}: TerminalHeroProps) {
+  const [history, setHistory] = useState<Exchange[]>([]);
+  const [queue, setQueue] = useState<Job[]>([]);
+  const [active, setActive] = useState<Job | null>(null);
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [promptChars, setPromptChars] = useState(0);
+  const [progress, setProgress] = useState<Progress>(START);
   const [cycleCount, setCycleCount] = useState(0);
-  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const [input, setInput] = useState("");
+  const [usedConsole, setUsedConsole] = useState(false);
+  const [ready, setReady] = useState(false);
 
-  const current = exchanges[exchangeIndex];
+  const timerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const bodyRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  const busy = phase !== "idle" || queue.length > 0 || !ready;
+
+  // El diálogo de apertura no es un caso especial: son dos trabajos encolados.
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setHistory(exchanges);
+      setCycleCount(1);
+      setReady(true);
+      return;
+    }
+
+    setQueue(
+      exchanges.map((exchange, index) => ({
+        ...exchange,
+        typePrompt: true,
+        thinkingMs: THINKING_INTRO_MS,
+        pauseMs: PAUSE_INTRO_MS,
+        endsIntro: index === exchanges.length - 1,
+      })),
+    );
+    setReady(true);
+  }, [exchanges]);
 
   useEffect(() => {
+    if (busy || !usedConsole) return;
+    inputRef.current?.focus({ preventScroll: true });
+  }, [busy, usedConsole]);
+
+  // El cuerpo tiene scroll propio: cada avance arrastra la vista al final.
+  useEffect(() => {
+    const body = bodyRef.current;
+    if (body) body.scrollTop = body.scrollHeight;
+  }, [history, promptChars, progress, phase]);
+
+  // Toma el siguiente trabajo de la cola.
+  useEffect(() => {
+    if (phase !== "idle" || active || queue.length === 0) return;
+    const [next, ...rest] = queue;
+    setQueue(rest);
+    setActive(next);
+    setPromptChars(0);
+    setProgress(START);
+    setPhase(next.typePrompt ? "typing-prompt" : "thinking");
+  }, [phase, active, queue]);
+
+  // Una sola máquina para todo: teclea el prompt, piensa, escribe la respuesta.
+  useEffect(() => {
+    if (!active) return;
+    const wait = (ms: number, fn: () => void) => {
+      timerRef.current = setTimeout(fn, ms);
+    };
+
     if (phase === "typing-prompt") {
-      if (charIndex < current.prompt.length) {
-        timerRef.current = setTimeout(() => setCharIndex((c) => c + 1), CHAR_INTERVAL_MS);
+      if (promptChars < active.prompt.length) {
+        wait(PROMPT_CHAR_MS, () => setPromptChars((c) => c + 1));
       } else {
-        timerRef.current = setTimeout(() => setPhase("thinking"), 300);
+        wait(300, () => setPhase("thinking"));
       }
     } else if (phase === "thinking") {
-      timerRef.current = setTimeout(() => setPhase("answering"), THINKING_MS);
-    } else if (phase === "answering") {
-      if (responseLineCount < current.response.length) {
-        timerRef.current = setTimeout(
-          () => setResponseLineCount((c) => c + 1),
-          LINE_REVEAL_INTERVAL_MS,
-        );
+      wait(active.thinkingMs, () => setPhase("streaming"));
+    } else if (phase === "streaming") {
+      const block = active.blocks[progress.block];
+
+      if (!block) {
+        setPhase("pausing");
+      } else if (block.kind === "prose") {
+        if (progress.char < block.text.length) {
+          wait(PROSE_CHAR_MS, () => setProgress((p) => ({ ...p, char: p.char + 1 })));
+        } else {
+          wait(BLOCK_GAP_MS, () => setProgress((p) => ({ block: p.block + 1, char: 0, rows: 0 })));
+        }
+      } else if (block.kind === "rows") {
+        if (progress.rows < block.rows.length) {
+          wait(ROW_MS, () => setProgress((p) => ({ ...p, rows: p.rows + 1 })));
+        } else {
+          wait(BLOCK_GAP_MS, () => setProgress((p) => ({ block: p.block + 1, char: 0, rows: 0 })));
+        }
       } else {
-        timerRef.current = setTimeout(
-          () => setPhase("pausing"),
-          PAUSE_AFTER_ANSWER_MS + (current.extraPauseMs ?? 0),
-        );
+        wait(BLOCK_GAP_MS, () => setProgress((p) => ({ block: p.block + 1, char: 0, rows: 0 })));
       }
     } else if (phase === "pausing") {
-      if (exchangeIndex < exchanges.length - 1) {
-        setExchangeIndex((i) => i + 1);
-        setCharIndex(0);
-        setResponseLineCount(0);
-        setPhase("typing-prompt");
-      } else {
-        setPhase("cycle-done");
-      }
-    } else {
-      setCycleCount((c) => c + 1);
-      timerRef.current = setTimeout(() => {
-        setExchangeIndex(0);
-        setCharIndex(0);
-        setResponseLineCount(0);
-        setPhase("typing-prompt");
-      }, PAUSE_AFTER_CYCLE_MS);
+      wait(active.pauseMs, () => {
+        setHistory((prev) => [...prev, { prompt: active.prompt, blocks: active.blocks }]);
+        if (active.endsIntro) setCycleCount((c) => c + 1);
+        setActive(null);
+        setPhase("idle");
+      });
     }
 
     return () => clearTimeout(timerRef.current);
-  }, [phase, charIndex, responseLineCount, exchangeIndex, current, exchanges]);
+  }, [phase, promptChars, progress, active]);
 
-  const isTypingPrompt = phase === "typing-prompt";
-  const isThinking = phase === "thinking";
-  const typedPrompt = isTypingPrompt ? current.prompt.slice(0, charIndex) : current.prompt;
-  const visibleResponse = current.response.slice(0, responseLineCount);
+  const commandNames = useCallback(
+    () => [...Object.keys(commands), "help", "clear"],
+    [commands],
+  );
+
+  const enqueue = useCallback((prompt: string, blocks: Block[]) => {
+    setQueue((prev) => [
+      ...prev,
+      {
+        prompt,
+        blocks,
+        typePrompt: false,
+        thinkingMs: THINKING_COMMAND_MS,
+        pauseMs: PAUSE_COMMAND_MS,
+      },
+    ]);
+  }, []);
+
+  const run = useCallback(
+    (raw: string) => {
+      const command = raw.trim().toLowerCase();
+      if (!command || busy) return;
+
+      setUsedConsole(true);
+
+      if (command === "clear") {
+        setHistory([]);
+        enqueue(raw.trim(), [
+          { kind: "note", tone: "system", text: "consola limpia · escribe help para ver los comandos" },
+        ]);
+        return;
+      }
+
+      if (command === "help") {
+        enqueue(raw.trim(), [
+          { kind: "prose", text: "Estos son los comandos que entiende esta consola:" },
+          {
+            kind: "rows",
+            rows: [
+              ["whoami", "quién es Abel, en corto"],
+              ["stack", "las tecnologías que usa"],
+              ["proyectos", "estado de lo que está construyendo"],
+              ["blog", "las últimas notas publicadas"],
+              ["contacto", "dónde encontrarlo"],
+              ["clear", "limpia la consola"],
+            ],
+          },
+        ]);
+        return;
+      }
+
+      const blocks = commands[command];
+      if (!blocks) {
+        enqueue(raw.trim(), [
+          {
+            kind: "note",
+            tone: "warn",
+            text: `No conozco el comando "${command}". Escribe help para ver la lista.`,
+          },
+        ]);
+        return;
+      }
+
+      enqueue(raw.trim(), blocks);
+    },
+    [busy, commands, enqueue],
+  );
+
+  const typedPrompt =
+    active && phase === "typing-prompt" ? active.prompt.slice(0, promptChars) : active?.prompt;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, ease: "easeOut" }}
       className="relative w-full"
     >
       <div
         data-cycle-count={cycleCount}
-        className="w-full overflow-hidden rounded-lg border border-zinc-800 bg-zinc-900/50"
+        className="w-full overflow-hidden rounded-xl backdrop-blur-md"
+        style={{
+          border: "1px solid var(--line)",
+          background: "rgb(8 12 19 / 0.82)",
+          // la sombra interior de 1px es lo que hace que el panel se lea como
+          // una pieza física y no como un div con borde
+          boxShadow:
+            "0 30px 80px -40px rgb(0 0 0 / 0.95), inset 0 1px 0 rgb(255 255 255 / 0.04)",
+        }}
       >
-        <div className="flex items-center gap-1.5 border-b border-zinc-800 px-4 py-3">
-          <span className="h-3 w-3 rounded-full bg-red-500/70" />
-          <span className="h-3 w-3 rounded-full bg-yellow-500/70" />
-          <span className="h-3 w-3 rounded-full bg-green-500/70" />
+        <div
+          className="flex items-center gap-2.5 px-3.5 py-2.5 font-mono text-[0.63rem] uppercase tracking-[0.16em]"
+          style={{ borderBottom: "1px solid var(--line)", color: "var(--faint)" }}
+        >
+          <span
+            className="h-2.5 w-2.5 animate-pulse rounded-full"
+            style={{ background: "var(--go)" }}
+          />
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--line)" }} />
+          <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--line)" }} />
+          <span className="ml-1.5">claude · sesión con abelitolll</span>
+          <span className="ml-auto hidden sm:inline">{busy ? "escribiendo…" : "en espera"}</span>
         </div>
-        <div className="h-60 space-y-2 overflow-hidden p-4 font-mono text-sm">
-          <p>
-            <span className="text-accent">&gt;</span>{" "}
-            <span className="text-zinc-300">{typedPrompt}</span>
-            {isTypingPrompt && (
-              <span className="ml-0.5 inline-block w-[1ch] animate-pulse bg-zinc-300">
-                &nbsp;
-              </span>
-            )}
-          </p>
-          {isThinking && (
-            <p className="flex items-center gap-1 text-zinc-500">
-              pensando
-              <span className="inline-flex gap-0.5">
-                <span className="animate-bounce">.</span>
-                <span className="animate-bounce [animation-delay:150ms]">.</span>
-                <span className="animate-bounce [animation-delay:300ms]">.</span>
-              </span>
+
+        <div
+          ref={bodyRef}
+          aria-live="polite"
+          className="max-h-[46vh] min-h-[17rem] overflow-y-auto px-4 py-4 font-mono text-[0.84rem] leading-[1.75]"
+        >
+          {history.map((entry, index) => (
+            <div key={index} className="mb-3">
+              <p className="break-words">
+                <span className="text-accent">&gt;</span>{" "}
+                <span className="text-zinc-100">{entry.prompt}</span>
+              </p>
+              <AnswerBlocks blocks={entry.blocks} caret={false} />
+            </div>
+          ))}
+
+          {active && (
+            <div className="mb-3">
+              <p className="break-words">
+                <span className="text-accent">&gt;</span>{" "}
+                <span className="text-zinc-100">{typedPrompt}</span>
+                {phase === "typing-prompt" && (
+                  <span className="ml-0.5 inline-block w-[1ch] animate-pulse bg-zinc-300">
+                    &nbsp;
+                  </span>
+                )}
+              </p>
+
+              {phase === "thinking" && (
+                <p className="mt-1 flex items-center gap-1" style={{ color: "var(--faint)" }}>
+                  pensando
+                  <span className="inline-flex gap-0.5">
+                    <span className="animate-bounce">.</span>
+                    <span className="animate-bounce [animation-delay:150ms]">.</span>
+                    <span className="animate-bounce [animation-delay:300ms]">.</span>
+                  </span>
+                </p>
+              )}
+
+              {(phase === "streaming" || phase === "pausing") && (
+                <AnswerBlocks
+                  blocks={visibleBlocks(active.blocks, progress)}
+                  caret={phase === "streaming"}
+                />
+              )}
+            </div>
+          )}
+
+          {!busy && !usedConsole && history.length > 0 && (
+            <p style={{ color: "var(--go)" }}>
+              la consola acepta comandos — escribe help o toca uno de los botones.
             </p>
           )}
-          {visibleResponse.map((line, index) => (
-            <p key={index}>
-              <ResponseLine line={line} isFirst={index === 0} />
-            </p>
+        </div>
+
+        <form
+          className="flex items-baseline gap-2 px-4 pb-3 pt-2 font-mono"
+          onSubmit={(event) => {
+            event.preventDefault();
+            run(input);
+            setInput("");
+          }}
+        >
+          <span className="text-accent">&gt;</span>
+          {/* text-base en mobile: por debajo de 16px iOS hace zoom al enfocar */}
+          <input
+            ref={inputRef}
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            disabled={busy}
+            autoComplete="off"
+            spellCheck={false}
+            aria-label="Consola"
+            placeholder={busy ? "escribiendo…" : "escribe un comando…"}
+            className="min-w-0 flex-1 bg-transparent p-0 text-base text-zinc-100 caret-accent outline-none transition-opacity placeholder:text-zinc-600 disabled:opacity-40 sm:text-[0.84rem]"
+          />
+        </form>
+
+        <div className="flex flex-wrap gap-1.5 px-4 pb-3.5">
+          {commandNames().map((name) => (
+            <button
+              key={name}
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                run(name);
+                inputRef.current?.focus();
+              }}
+              className="rounded-full border px-2.5 py-1 font-mono text-[0.68rem] tracking-[0.06em] transition-all disabled:cursor-not-allowed disabled:opacity-35 enabled:hover:border-accent enabled:hover:text-accent"
+              style={{
+                borderColor: "var(--line)",
+                color: "var(--dim)",
+                background: "rgb(255 255 255 / 0.03)",
+              }}
+            >
+              {name}
+            </button>
           ))}
         </div>
       </div>
