@@ -13,10 +13,21 @@ export interface PostEntry {
   href: string;
 }
 
+/** Un canal de contacto, con su logo de marca. */
+export interface Channel {
+  label: string;
+  display: string;
+  href: string;
+  external: boolean;
+  /** SVG inline, construido en build desde simple-icons. */
+  icon: string;
+}
+
 export type Block =
   | { kind: "prose"; text: string }
   | { kind: "rows"; rows: [string, RowValue][] }
   | { kind: "entries"; entries: PostEntry[] }
+  | { kind: "channels"; channels: Channel[] }
   | { kind: "note"; text: string; tone: "ok" | "warn" | "system" };
 
 export interface Exchange {
@@ -115,6 +126,9 @@ function visibleBlocks(blocks: Block[], progress: Progress): Block[] {
     if (block.kind === "entries") {
       return { ...block, entries: block.entries.slice(0, progress.rows) };
     }
+    if (block.kind === "channels") {
+      return { ...block, channels: block.channels.slice(0, progress.rows) };
+    }
     return block;
   });
 }
@@ -162,6 +176,40 @@ function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
                   <span className="text-accent">{key}</span>
                   <RowValueView value={value} />
                 </div>
+              ))}
+            </div>
+          );
+        }
+
+        if (block.kind === "channels") {
+          return (
+            <div key={index} className="grid gap-2 sm:grid-cols-3">
+              {block.channels.map((channel) => (
+                <a
+                  key={channel.href}
+                  href={channel.href}
+                  target={channel.external ? "_blank" : undefined}
+                  rel={channel.external ? "noreferrer" : undefined}
+                  className="group flex items-center gap-3 rounded-lg border p-3 transition-colors hover:border-accent"
+                  style={{ borderColor: "var(--line)", background: "rgb(255 255 255 / 0.02)" }}
+                >
+                  <span
+                    className="shrink-0 text-zinc-400 transition-colors group-hover:text-accent [&>svg]:h-5 [&>svg]:w-5"
+                    dangerouslySetInnerHTML={{ __html: channel.icon }}
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-zinc-100 transition-colors group-hover:text-accent">
+                      {channel.label}
+                    </span>
+                    <span
+                      className="block truncate text-[0.7rem]"
+                      style={{ color: "var(--faint)" }}
+                      title={channel.display}
+                    >
+                      {channel.display}
+                    </span>
+                  </span>
+                </a>
               ))}
             </div>
           );
@@ -301,8 +349,17 @@ export default function TerminalHero({
         } else {
           wait(BLOCK_GAP_MS, () => setProgress((p) => ({ block: p.block + 1, char: 0, rows: 0 })));
         }
-      } else if (block.kind === "rows" || block.kind === "entries") {
-        const total = block.kind === "rows" ? block.rows.length : block.entries.length;
+      } else if (
+        block.kind === "rows" ||
+        block.kind === "entries" ||
+        block.kind === "channels"
+      ) {
+        const total =
+          block.kind === "rows"
+            ? block.rows.length
+            : block.kind === "entries"
+              ? block.entries.length
+              : block.channels.length;
         if (progress.rows < total) {
           wait(block.kind === "rows" ? ROW_MS : ENTRY_MS, () =>
             setProgress((p) => ({ ...p, rows: p.rows + 1 })),

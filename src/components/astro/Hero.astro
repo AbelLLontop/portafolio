@@ -5,6 +5,7 @@ import TerminalHero from "../react/TerminalHero.tsx";
 import type { Block, RowValue } from "../react/TerminalHero.tsx";
 import { CONTACTS, STACK, YEARS_OF_EXPERIENCE } from "../../lib/profile.ts";
 import { formatPostDateShort } from "../../lib/dates.ts";
+import { CONTACT_ICONS } from "../../lib/contact-icons.ts";
 
 const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
   (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
@@ -41,14 +42,14 @@ const commands: Record<string, Block[]> = {
   proyectos: [
     {
       kind: "prose",
-      text: "Todavía no tengo proyectos publicados — el primero está en construcción. Mientras tanto, lo que vale la pena mirar son mis notas:",
+      text: "Todavía no tengo proyectos publicados. El primero está en construcción: una app Node + PostgreSQL dockerizada, detrás de Nginx y con HTTPS que se renueva solo.",
     },
     {
       kind: "rows",
       rows: [
         ["publicados", "0"],
         ["en construcción", "1"],
-        ["mientras tanto", { text: "ir al blog →", href: "/blog" }],
+        ["estado", "en integración"],
       ],
     },
   ],
@@ -75,11 +76,14 @@ const commands: Record<string, Block[]> = {
   contacto: [
     { kind: "prose", text: "Por acá me encuentras — los tres van directo desde esta consola:" },
     {
-      kind: "rows",
-      rows: CONTACTS.map((contact) => [
-        contact.key,
-        { text: contact.display, href: contact.href, external: contact.external },
-      ]) as [string, RowValue][],
+      kind: "channels",
+      channels: CONTACTS.map((contact) => ({
+        label: contact.label,
+        display: contact.display,
+        href: contact.href,
+        external: contact.external,
+        icon: CONTACT_ICONS[contact.key],
+      })),
     },
   ],
 };

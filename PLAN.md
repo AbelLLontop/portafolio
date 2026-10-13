@@ -30,6 +30,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F23 — La terminal se comporta como una conversación con Claude
 - [x] F24 — Las respuestas de la consola llevan links reales
 - [x] F25 — Entradas de blog en la consola, voz en primera persona y fechas en UTC
+- [x] F26 — Tarjetas de contacto con logo y respuesta de proyectos enfocada
 
 ---
 
@@ -177,3 +178,9 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 **Corrige:** **todas las fechas del sitio se mostraban un día antes.** El frontmatter (`date: 2026-10-12`) se parsea como medianoche UTC y `toLocaleDateString` lo renderizaba en la zona local; en Perú (UTC-5) caía al día anterior. Afectaba a `/blog`, a cada página de post y a la consola. `formatPostDate` y `formatPostDateShort` fijan `timeZone: "UTC"` y los tres lugares pasan a usarlas.
 **Excluye:** tags dentro de las entradas de la consola, y cambiar el orden o la numeración de los posts (el `#N` cronológico no se toca; depende de `valueOf()`, que la zona horaria no alteraba).
 **Verificación:** `npm run check`; `npm run build`; `npm run lint`; `npx playwright test` (3/3). En el navegador: volcado del diálogo de apertura confirmando la primera persona, las tres entradas del comando `blog` con su resumen y fecha, y el contraste antes/después de la fecha del post #13 (`2026-10-12` renderizaba "11 oct", ahora "12 oct 2026" en la consola y "12 de octubre de 2026" en la página del post).
+
+## F26 — Tarjetas de contacto con logo y respuesta de proyectos enfocada
+
+**Incluye:** un bloque `channels` nuevo en `TerminalHero.tsx`: `contacto` deja de devolver URLs linkeadas y pasa a mostrar tres tarjetas con el logo de marca, el nombre del canal y el handle debajo, con borde que se enciende en acento al pasar el mouse (una columna en mobile, tres desde `sm`). Los SVG se mueven a `src/lib/contact-icons.ts`, de donde ahora leen tanto la consola como `ContactSection.astro` — si no, el markup de los iconos quedaba escrito dos veces. La respuesta de `proyectos` deja de terminar derivando al blog: si preguntan por proyectos, se responde por proyectos, así que la prosa describe el vehiculo en construcción y las filas quedan en publicados / en construcción / estado.
+**Excluye:** iconos de marca en otros bloques de la consola, y agregar canales de contacto nuevos (siguen siendo email, GitHub y LinkedIn, como fija `SPEC.md`).
+**Verificación:** `npm run check`; `npm run build`; `npm run lint`; `npx playwright test` (3/3). En el navegador: lanzar `proyectos` y `contacto`, confirmar que la respuesta de proyectos ya no menciona el blog y que se renderizan los 3 SVG dentro de las tarjetas, con 0 errores de consola. A 375px las tarjetas se apilan sin overflow de página ni del cuerpo de la terminal.
