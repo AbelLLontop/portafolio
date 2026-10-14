@@ -15,7 +15,9 @@ const { headings } = Astro.props;
 {
   headings.length > 0 && (
     <nav class="toc" aria-label="Índice del post">
-      <p class="section-label mb-3 -ml-3">En este post</p>
+      {/* Sin -ml-3 (que anulaba el pl-3 del indice) el titulo deja de pegarse
+          a la linea; el pl-0.5 lo cuadra con el borde de 2px de los items. */}
+      <p class="section-label mb-3 pl-0.5">En este post</p>
       <ul class="space-y-0.5">
         {headings.map((heading) => (
           <li>
@@ -64,13 +66,25 @@ const { headings } = Astro.props;
       });
     });
 
+    const toc = document.querySelector<HTMLElement>(".toc");
+
     let activeSlug: string | null = null;
+
+    // El espinazo crece hasta el centro del item activo, no segun el scroll de
+    // la pagina: midiendo cosas distintas, la punta y el pip se separaban
+    // hasta 50px y parecia que uno de los dos fallaba.
+    const paintSpine = () => {
+      const link = activeSlug ? linkBySlug.get(activeSlug) : null;
+      const fill = link ? link.offsetTop + link.offsetHeight / 2 : 0;
+      toc?.style.setProperty("--toc-fill", `${fill}px`);
+    };
 
     const setActive = (slug: string | null) => {
       if (slug === activeSlug) return;
       if (activeSlug) linkBySlug.get(activeSlug)?.classList.remove("is-active");
       if (slug) linkBySlug.get(slug)?.classList.add("is-active");
       activeSlug = slug;
+      paintSpine();
     };
 
     // Se calcula el heading activo directamente en vez de observar
@@ -88,6 +102,16 @@ const { headings } = Astro.props;
         if (el.getBoundingClientRect().top > offset) break;
         current = el.id;
       }
+
+      // Al final de la pagina el ultimo heading sigue por debajo del umbral
+      // (abajo no queda una pantalla entera de contenido), asi que la ultima
+      // seccion no se marcaba nunca en ningun post.
+      const fondo =
+        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+      if (fondo && headingEls.length > 0) {
+        current = headingEls[headingEls.length - 1].id;
+      }
+
       setActive(current);
     };
 
@@ -99,6 +123,11 @@ const { headings } = Astro.props;
 
     update();
     window.addEventListener("scroll", request, { passive: true });
-    window.addEventListener("resize", request);
+    window.addEventListener("resize", () => {
+      // Al cambiar de ancho los items se reacomodan (los titulos largos pasan
+      // de una linea a dos), asi que el relleno hay que recalcularlo.
+      paintSpine();
+      request();
+    });
   }
 </script>

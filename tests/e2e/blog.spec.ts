@@ -65,3 +65,41 @@ test("el post arma la barra de codigo con boton de icono y enmarca las tablas", 
   expect(tablas).toBeGreaterThan(0);
   await expect(page.locator(".table-wrap > table")).toHaveCount(tablas);
 });
+
+test("el indice marca la ultima seccion y su linea termina en el item activo", async ({
+  page,
+}) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/blog/desplegar-proyecto-docker-01-dockerizar-app");
+  await page.waitForTimeout(500);
+
+  const items = page.locator(".toc-link");
+  const ultimo = items.last();
+
+  // Al fondo de la pagina la ultima seccion queda marcada: su heading nunca
+  // llega al umbral porque abajo no hay una pantalla entera de contenido.
+  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.waitForTimeout(500);
+  await expect(ultimo).toHaveClass(/is-active/);
+
+  // La linea del indice mide lo mismo que el pip, asi que llega justo hasta el.
+  for (const fraccion of [0.3, 0.6, 1]) {
+    await page.evaluate((f) => {
+      const alto = document.documentElement.scrollHeight - window.innerHeight;
+      window.scrollTo(0, Math.round(alto * f));
+    }, fraccion);
+    await page.waitForTimeout(400);
+
+    const desfase = await page.evaluate(() => {
+      const toc = document.querySelector(".toc")!;
+      const activo = document.querySelector(".toc-link.is-active");
+      if (!activo) return null;
+      const relleno = parseFloat(getComputedStyle(toc).getPropertyValue("--toc-fill"));
+      const punta = toc.getBoundingClientRect().top + relleno;
+      const pip = activo.getBoundingClientRect();
+      return Math.abs(punta - (pip.top + pip.height / 2));
+    });
+
+    expect(desfase, `a ${fraccion * 100}% la punta deberia caer sobre el pip`).toBeLessThan(2);
+  }
+});

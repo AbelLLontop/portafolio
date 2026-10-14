@@ -446,38 +446,25 @@ body {
 }
 
 /* ===========================================================
-   Progreso de lectura e indice
+   Indice del post
    =========================================================== */
-
-/* Consume el --ascent que escribe AscentHud: cero JS propio, el progreso
-   de scroll sigue teniendo un solo duenio. */
-.post-progress {
-  @apply pointer-events-none fixed inset-x-0 top-0 z-[60] h-[2px];
-}
-
-.post-progress > i {
-  @apply block h-full;
-  width: calc(var(--ascent, 0) * 100%);
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--color-accent) 30%, transparent),
-    var(--color-accent)
-  );
-  box-shadow: 0 0 10px var(--color-accent);
-}
 
 .toc {
   @apply relative pl-3;
   border-left: 1px solid var(--line);
 }
 
-/* El mismo progreso, recorriendo el espinazo del indice. */
+/* --toc-fill lo escribe el script del indice: el espinazo llega siempre
+   justo hasta el pip del item activo. No mide el scroll de la pagina (de
+   eso ya se ocupan la barra de arriba y el riel de altitud), porque dos
+   marcas midiendo cosas distintas sobre la misma linea se separaban. */
 .toc::after {
   content: "";
   @apply absolute left-[-1px] top-0 w-px;
-  height: calc(var(--ascent, 0) * 100%);
+  height: var(--toc-fill, 0px);
   background: var(--color-accent);
   box-shadow: 0 0 8px var(--color-accent);
+  transition: height 0.2s ease;
 }
 
 /* text-sm, igual que el resumen de cada fila del listado: el indice ya no
