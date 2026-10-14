@@ -40,6 +40,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F33 — Tratamiento tipográfico del post: bloques de código, tablas y progreso de lectura
 - [x] F34 — Un solo progreso de lectura: fuera la barra superior y el índice deja de contradecirse
 - [x] F35 — Menú de hamburguesa en mobile
+- [x] F36 — Fuera el email de los canales de contacto
 
 ---
 
@@ -255,3 +256,10 @@ El tratamiento display se reubica en `src/pages/sobre-mi.astro`, donde una decla
 **Excluye:** el header sticky del post, que se queda tal como lo dejó F34. Se probaron dos alternativas al salto de contenido que da al encogerse y las dos se descartaron por cómo quedaban: reservar el hueco con altos medidos y `margin-bottom` compensatorio (el cuerpo no se movía, pero quedaba un hueco vacío entre el header encogido y el texto, muy visible con scroll lento) y reemplazarlo por una barra fija aparte que aparece al perder de vista el header. También quedan fuera el breakpoint del resto del sitio y el índice lateral, que sigue oculto bajo `lg`.
 
 **Verificación:** `npm run check` (0 errores); `npm run lint`; `npm run build` (15 páginas); `npx playwright test`. Medido contra la página servida a 375px: el header mide 64px con el menú cerrado y con el menú abierto, `Escape` lo cierra y no queda scroll horizontal.
+
+## F36 — Fuera el email de los canales de contacto
+
+**Incluye:** el correo electrónico deja de publicarse en el sitio por privacidad. Se elimina la entrada `email` de `CONTACTS` en `src/lib/profile.ts` — el único lugar donde vivía el valor real, como `display` y como `href: mailto:` — y con ella sale de `Contact["key"]`, de `mailIcon` en `src/lib/contact-icons.ts` (que existía solo para ese canal) y por tanto de los dos consumidores sin tocarlos: `ContactSection.astro` y las tarjetas de `channels` de la consola, que iteran la lista. En `Hero.astro` la prosa de `contacto` decía "los tres van directo desde esta consola" y pasa a "los dos". Quedan GitHub y LinkedIn, ambos `external`.
+**SPEC.md:** se reescribieron con aprobación explícita la línea 23 (contacto es solo GitHub + LinkedIn, y queda escrito que el correo no se publica por privacidad), la línea de "Preguntar primero" y la de "Nunca" sobre datos personales (el correo pasa de dato acordado a dato excluido) y el Success Criteria de la home.
+**Excluye:** formulario de contacto u otro canal nuevo en reemplazo del correo; ofuscar el correo en JS en vez de quitarlo (se evaluó y se descartó: un scraper que ejecute JS lo lee igual, así que no es privacidad real); reescribir las entradas históricas F12, F24 y F26 de este plan, que describen lo que se construyó entonces.
+**Verificación:** `npm run check`; `npm run lint`; `npm run build`; `npx playwright test`. Contra el build: ni `mailto:` ni la dirección aparecen en ningún archivo de `dist/`, y la sección de contacto y el comando `contacto` renderizan dos canales.

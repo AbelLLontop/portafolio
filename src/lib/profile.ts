@@ -43,7 +43,7 @@ export const WORK_APPROACH: [string, string][] = [
 ];
 
 export interface Contact {
-  key: "email" | "github" | "linkedin";
+  key: "github" | "linkedin";
   label: string;
   /** Como se muestra en la consola, donde el link es el destino y no un boton. */
   display: string;
@@ -52,13 +52,6 @@ export interface Contact {
 }
 
 export const CONTACTS: Contact[] = [
-  {
-    key: "email",
-    label: "Email",
-    display: "a.llontopmeza@gmail.com",
-    href: "mailto:a.llontopmeza@gmail.com",
-    external: false,
-  },
   {
     key: "github",
     label: "GitHub",

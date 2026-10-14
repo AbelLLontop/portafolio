@@ -20,7 +20,7 @@ Es el primer proyecto del usuario construido con Claude Code, y una motivación 
 - **Blog:** contenido en Markdown/MDX dentro del repo (Astro Content Collections), sin CMS externo ni backend.
 - **Nivel de interactividad:** la capa de ambiente (campo de estrellas reactivo, HUD de altitud, cohete que sigue al cursor) es ambiciosa y responde al visitante; la capa de contenido se mantiene legible y sin ruido. El criterio es “hecho a medida”, no “discreto”.
 - **Idioma:** español únicamente por ahora (usuario está aprendiendo inglés; no bilingüe todavía, pero no cerrar la puerta a i18n futuro).
-- **Contacto:** solo email + GitHub + LinkedIn, sin foto adicional de perfil, sin formulario.
+- **Contacto:** solo GitHub + LinkedIn, sin foto adicional de perfil, sin formulario. El correo electrónico no se publica en el sitio: es un dato personal y queda fuera por privacidad.
 - **Sobre mí:** página dedicada (`/sobre-mi`, enlazada en el nav entre "Inicio" y "Blog") con un resumen profesional breve: enfoque como desarrollador de software, años de experiencia (texto fijo, no calculado), stack principal, y mención de apoyo en herramientas de IA. Usa el mismo SVG de marca (cabeza + cohete) que el Hero, no una foto personal. Sin timeline de empleos (empresa/cargo/fechas).
 - **Tema visual:** dark mode por defecto, estética terminal/dev, un solo color de acento (azul tipo React o celeste tipo Go — decisión final del acento abierta, ver Open Questions), sin exagerar en estética "hacker" (el usuario es más frontend, nunca trabajó estética hacker/neón).
 - **Terminal del hero:** arranca sola con un diálogo escrito a máquina (el visitante ve una conversación con Claude sobre el autor) y después **acepta comandos reales**: `whoami`, `stack`, `proyectos`, `blog`, `contacto`, `help`, `clear`. Se opera por teclado o por pills de atajo, que cubren el caso mobile sin depender del teclado virtual. Un comando desconocido responde con una línea de aviso que sugiere `help`, nunca con un error crudo. Las respuestas se derivan de los mismos datos que ya renderiza el sitio (stack, colección de blog), no de un texto duplicado.
@@ -199,9 +199,9 @@ Dado que es un sitio estático personal sin lógica de negocio compleja, la estr
 - **Preguntar primero:**
   - Agregar cualquier dependencia nueva no mencionada en este spec (especialmente librerías de animación adicionales, CMS, backend, base de datos).
   - Cambiar el dominio, la configuración DNS, o el proveedor de hosting elegido.
-  - Añadir cualquier dato personal además de email/GitHub/LinkedIn.
+  - Añadir cualquier dato personal además de GitHub/LinkedIn.
 - **Nunca:**
-  - Incluir foto personal, timeline de empleos (empresa/cargo/fechas) o datos personales más allá de lo acordado (email, GitHub, LinkedIn).
+  - Incluir foto personal, correo electrónico, timeline de empleos (empresa/cargo/fechas) o datos personales más allá de lo acordado (GitHub, LinkedIn).
   - Inventar proyectos falsos o demos presentados como reales.
   - Usar iconografía/logos de marcas de forma que viole su licencia de uso (verificar licencia de Simple Icons/Devicon, que son MIT/libres para este uso).
   - Comprometer performance (ej. librerías de animación pesadas cargadas globalmente) en nombre de una decoración menor.
@@ -210,7 +210,7 @@ Dado que es un sitio estático personal sin lógica de negocio compleja, la estr
 
 - `npm run build` compila sin errores y `astro check` no reporta errores de tipos.
 - Lighthouse (mobile): Performance ≥ 90, Accessibility ≥ 90, SEO ≥ 90 en la home.
-- La home muestra: hero con wordmark de tratamiento distintivo + titular display + terminal que acepta comandos, sección de proyectos con tarjetas (nombre/descripción/stack/links), sección de contacto (email/GitHub/LinkedIn).
+- La home muestra: hero con wordmark de tratamiento distintivo + titular display + terminal que acepta comandos, sección de proyectos con tarjetas (nombre/descripción/stack/links), sección de contacto (GitHub/LinkedIn).
 - El fondo es un campo de estrellas que reacciona al puntero y al scroll (paralaje por profundidad y trazos de warp al acelerar), y en desktop un HUD fijo muestra la altitud y la fase alcanzada según el avance del scroll.
 - El nav incluye la página "Sobre mí" (Inicio → Sobre mí → Blog) con el resumen profesional breve.
 - El blog lista posts desde `src/content/blog/*.mdx` y cada post individual muestra su número, título, fecha y código con syntax highlighting; seleccionar texto en un post lo resalta con el color de acento. La cabecera del post no lleva badges de tecnología: recargan la entrada a la nota sin aportar navegación.
