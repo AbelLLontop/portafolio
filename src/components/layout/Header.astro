@@ -12,12 +12,15 @@ const navLinks = [
   class="sticky top-0 z-50 border-b bg-zinc-950/70 backdrop-blur-md"
   style="border-color: var(--line);"
 >
-  <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-4">
-    <a href="/" class="flex items-center gap-3 transition-opacity hover:opacity-80">
+  <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4">
+    <a href="/" class="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-80">
       <img src="/images/abelitolll-head.svg" alt="" width="32" height="32" class="h-8 w-8 shrink-0" />
       <Wordmark size="sm" client:visible />
     </a>
-    <nav>
+
+    <!-- Desktop: los links en linea. Mobile: solo el boton, para que la
+         barra nunca crezca a dos filas. -->
+    <nav class="hidden sm:block">
       <ul class="flex gap-6">
         {navLinks.map((link) => (
           <li>
@@ -28,5 +31,143 @@ const navLinks = [
         ))}
       </ul>
     </nav>
+
+    <button
+      type="button"
+      id="nav-toggle"
+      class="nav-toggle"
+      aria-label="Abrir el menú"
+      aria-expanded="false"
+      aria-controls="nav-mobile"
+    >
+      <span class="nav-bar"></span>
+      <span class="nav-bar"></span>
+      <span class="nav-bar"></span>
+    </button>
   </div>
+
+  <!-- Panel absoluto: se superpone al contenido en vez de empujar el header. -->
+  <nav id="nav-mobile" class="nav-mobile" hidden>
+    <ul class="mx-auto flex max-w-5xl flex-col gap-1 px-4 py-3">
+      {navLinks.map((link) => (
+        <li>
+          <a
+            href={link.href}
+            class="block rounded-sm px-2 py-2.5 font-mono text-sm tracking-[0.06em] text-zinc-300 transition-colors hover:text-accent"
+          >
+            {link.label}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
 </header>
+
+<style>
+  /* La visibilidad va aca y no con utilidades `sm:hidden`: el estilo con
+     scope de Astro gana en especificidad y dejaria el boton visible. */
+  .nav-toggle {
+    display: none;
+    height: 2rem;
+    width: 2rem;
+    flex-shrink: 0;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    background: color-mix(in srgb, var(--color-accent) 5%, transparent);
+    transition: border-color 0.2s ease;
+  }
+
+  .nav-toggle:hover {
+    border-color: color-mix(in srgb, var(--color-accent) 40%, var(--line));
+  }
+
+  .nav-bar {
+    display: block;
+    height: 1.5px;
+    width: 1rem;
+    background: var(--dim);
+    transition:
+      transform 0.2s ease,
+      opacity 0.15s ease,
+      background-color 0.2s ease;
+  }
+
+  .nav-toggle[aria-expanded="true"] .nav-bar {
+    background: var(--color-accent);
+  }
+
+  .nav-toggle[aria-expanded="true"] .nav-bar:nth-child(1) {
+    transform: translateY(6.5px) rotate(45deg);
+  }
+
+  .nav-toggle[aria-expanded="true"] .nav-bar:nth-child(2) {
+    opacity: 0;
+  }
+
+  .nav-toggle[aria-expanded="true"] .nav-bar:nth-child(3) {
+    transform: translateY(-6.5px) rotate(-45deg);
+  }
+
+  .nav-mobile {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    border-bottom: 1px solid var(--line);
+    background: #0b0b0f;
+    backdrop-filter: blur(8px);
+  }
+
+  .nav-mobile li + li {
+    border-top: 1px solid var(--line);
+  }
+
+  @media (max-width: 639px) {
+    .nav-toggle {
+      display: flex;
+    }
+  }
+
+  @media (min-width: 640px) {
+    .nav-mobile {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  const toggle = document.getElementById("nav-toggle");
+  const panel = document.getElementById("nav-mobile");
+
+  if (toggle && panel) {
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute("aria-expanded", String(open));
+      toggle.setAttribute("aria-label", open ? "Cerrar el menú" : "Abrir el menú");
+      panel.hidden = !open;
+    };
+
+    toggle.addEventListener("click", () => {
+      setOpen(toggle.getAttribute("aria-expanded") !== "true");
+    });
+
+    // Cerrar al tocar fuera o con Escape, para que el panel no se quede
+    // tapando el contenido.
+    document.addEventListener("click", (event) => {
+      const target = event.target as Node;
+      if (!panel.hidden && !panel.contains(target) && !toggle.contains(target)) {
+        setOpen(false);
+      }
+    });
+
+    document.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" && !panel.hidden) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+  }
+</script>
