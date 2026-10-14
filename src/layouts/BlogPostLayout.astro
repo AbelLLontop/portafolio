@@ -27,13 +27,14 @@ const formattedDate = formatPostDate(date);
   <main class="mx-auto max-w-5xl px-4 py-12">
     <div class="lg:grid lg:grid-cols-[1fr_12rem] lg:gap-10">
       <article class="max-w-3xl">
-        <div id="post-header-sentinel"></div>
-        <header class="post-header sticky top-16 z-40 mb-6 border-b border-transparent pb-6 pt-4">
+        <!-- Header real: estatico, es el unico que ocupa espacio en el flujo.
+             No se encoge nunca, asi que el contenido de abajo no se mueve. -->
+        <header class="post-header mb-6 pb-6 pt-4">
           <div class="post-eyebrow flex items-center gap-3">
             <span class="post-chip">Nota #{number}</span>
             <span class="h-px flex-1" style="background: var(--line);"></span>
           </div>
-          <h1 class="mt-3 font-display text-3xl font-bold tracking-[-0.02em] text-zinc-100 md:text-4xl">
+          <h1 class="post-title mt-3 font-display text-3xl font-bold tracking-[-0.02em] text-zinc-100 md:text-4xl">
             {title}
           </h1>
           <p class="post-date mt-3 font-mono text-xs tracking-[0.08em]" style="color: var(--faint);">
@@ -41,6 +42,17 @@ const formattedDate = formatPostDate(date);
           </p>
         </header>
 
+        <!-- Caja sticky de alto 0: no ocupa espacio en el flujo, pero al vivir
+             dentro del <article> hereda su ancho, asi que el panel queda
+             alineado con el titulo real sin calcular nada. -->
+        <div class="post-bar" aria-hidden="true">
+          <div class="post-bar-panel flex items-center gap-3 py-3">
+            <span class="post-chip shrink-0">#{number}</span>
+            <span class="truncate font-display text-base font-bold tracking-[-0.01em] text-zinc-100">
+              {title}
+            </span>
+          </div>
+        </div>
 
         <ScrollReveal client:visible y={0}>
           <div class="prose-post-body">
@@ -66,91 +78,121 @@ const formattedDate = formatPostDate(date);
         </div>
       </aside>
     </div>
+
   </main>
 </BaseLayout>
 
 <style>
-  /* Evita que el navegador "compense" el cambio de alto del header
-     reajustando el scroll (scroll anchoring), que es lo que provocaba
-     el bucle de encoger/crecer al hacer scroll lento. */
-  article {
-    overflow-anchor: none;
+  /* Alto 0: la caja se pega arriba pero no ocupa ni un pixel del flujo, asi
+     que el contenido de abajo nunca se mueve. El header real no cambia de
+     tamanio: los dos titulos se cruzan por opacidad. */
+  .post-bar {
+    position: sticky;
+    top: 4rem; /* alto del nav */
+    z-index: 40;
+    height: 0;
   }
 
-  .post-header,
-  .post-header h1,
-  .post-header .post-date,
-  .post-header .post-eyebrow {
-    transition:
-      padding 0.2s ease,
-      font-size 0.2s ease,
-      width 0.2s ease,
-      height 0.2s ease,
-      opacity 0.15s ease,
-      max-height 0.2s ease,
-      margin 0.2s ease,
-      background-color 0.2s ease,
-      border-color 0.2s ease;
-  }
-
-  .post-header.is-stuck {
-    padding-top: 0.75rem;
-    padding-bottom: 0.75rem;
+  .post-bar-panel {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    border-bottom: 1px solid var(--line);
     background-color: color-mix(in srgb, var(--color-accent) 6%, #0c0c10 94%);
-    border-color: var(--line);
     box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.4);
     backdrop-filter: blur(8px);
-  }
-
-  .post-header.is-stuck h1 {
-    margin-top: 0;
-    font-size: 1.125rem;
-  }
-
-  .post-header.is-stuck .post-date,
-  .post-header.is-stuck .post-eyebrow {
-    margin-top: 0;
-    max-height: 0;
     opacity: 0;
-    overflow: hidden;
+    /* Sin el translate la barra "aterriza" de golpe; con -0.25rem entra
+       deslizandose apenas, en el mismo gesto del scroll. */
+    transform: translateY(-0.25rem);
+    pointer-events: none;
+    transition:
+      opacity 0.18s ease,
+      transform 0.18s ease,
+      visibility 0.18s;
+    visibility: hidden;
+  }
+
+  .post-bar.is-visible .post-bar-panel {
+    opacity: 1;
+    transform: none;
+    visibility: visible;
+  }
+
+  /* En mobile la banda llega a los bordes como el nav: -1rem es justo el px-4
+     del <main>. El padding devuelve el texto a su sitio, alineado con el
+     titulo real. Arriba de 768px el panel ya coincide con la columna del post
+     por si solo, sin tocar nada. */
+  @media (max-width: 767px) {
+    .post-bar-panel {
+      margin-right: -1rem;
+      margin-left: -1rem;
+      padding-right: 1rem;
+      padding-left: 1rem;
+    }
+  }
+
+  /* El titulo grande se desvanece mientras sube: evita el instante en que se
+     ve dos veces el mismo texto, uno entrando y otro saliendo. */
+  .post-title {
+    transition: opacity 0.18s ease;
+  }
+
+  .post-header.is-handed-off .post-title {
+    opacity: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .post-bar-panel,
+    .post-title {
+      transition: none;
+    }
+
+    .post-bar-panel {
+      transform: none;
+    }
   }
 </style>
 
 <script>
   const header = document.querySelector<HTMLElement>(".post-header");
-  const sentinel = document.getElementById("post-header-sentinel");
+  const title = document.querySelector<HTMLElement>(".post-title");
+  const bar = document.querySelector<HTMLElement>(".post-bar");
 
-  if (header && sentinel) {
-    // Umbral fijo (independiente del alto actual del header) para que
-    // encoger/crecer el header no mueva el propio punto de disparo.
+  if (header && title && bar) {
     const NAV_HEIGHT = 64;
-    const baseline = sentinel.getBoundingClientRect().top + window.scrollY - NAV_HEIGHT;
-    const HYSTERESIS = 6;
+    // Se mide el titulo real en vivo (no un umbral guardado): el relevo pasa
+    // justo cuando el h1 grande termina de esconderse detras del nav.
+    const HYSTERESIS = 8;
 
-    let stuck = false;
+    let visible = false;
     let ticking = false;
 
     const update = () => {
       ticking = false;
-      if (!stuck && window.scrollY > baseline + HYSTERESIS) {
-        stuck = true;
-        header.classList.add("is-stuck");
-      } else if (stuck && window.scrollY < baseline - HYSTERESIS) {
-        stuck = false;
-        header.classList.remove("is-stuck");
+      const bottom = title.getBoundingClientRect().bottom;
+
+      if (!visible && bottom < NAV_HEIGHT - HYSTERESIS) {
+        visible = true;
+        bar.classList.add("is-visible");
+        header.classList.add("is-handed-off");
+      } else if (visible && bottom > NAV_HEIGHT + HYSTERESIS) {
+        visible = false;
+        bar.classList.remove("is-visible");
+        header.classList.remove("is-handed-off");
       }
     };
 
-    window.addEventListener(
-      "scroll",
-      () => {
-        if (!ticking) {
-          ticking = true;
-          requestAnimationFrame(update);
-        }
-      },
-      { passive: true },
-    );
+    const request = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    };
+
+    update();
+    window.addEventListener("scroll", request, { passive: true });
+    window.addEventListener("resize", request, { passive: true });
   }
 </script>
 

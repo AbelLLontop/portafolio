@@ -103,3 +103,48 @@ test("el indice marca la ultima seccion y su linea termina en el item activo", a
     expect(desfase, `a ${fraccion * 100}% la punta deberia caer sobre el pip`).toBeLessThan(2);
   }
 });
+
+test("la barra compacta del post aparece sin mover el contenido", async ({ page }) => {
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.goto("/blog/desplegar-proyecto-docker-01-dockerizar-app");
+  await page.waitForTimeout(500);
+
+  const barra = page.locator(".post-bar");
+  await expect(barra).not.toHaveClass(/is-visible/);
+
+  // Posicion del cuerpo del post dentro del documento, no en el viewport: es
+  // lo que se movia cuando el header encogia y tapaba el texto.
+  const posicion = () =>
+    page.evaluate(() => {
+      const cuerpo = document.querySelector(".prose-post-body")!;
+      return cuerpo.getBoundingClientRect().top + window.scrollY;
+    });
+
+  const antes = await posicion();
+
+  // Scroll pasando el titulo grande: la barra entra en su lugar.
+  await page.evaluate(() => window.scrollTo(0, 600));
+  await page.waitForTimeout(500);
+  await expect(barra).toHaveClass(/is-visible/);
+  expect(await posicion()).toBeCloseTo(antes, 0);
+
+  // En desktop la caja cae exactamente sobre la columna del post: mismos
+  // bordes que el titulo real, sin estirarse a todo el viewport (taparia la
+  // decoracion del fondo a los costados).
+  const cajas = await page.evaluate(() => {
+    const r = (s: string) => {
+      const b = document.querySelector(s)!.getBoundingClientRect();
+      return { left: Math.round(b.left), right: Math.round(b.right) };
+    };
+    return { panel: r(".post-bar-panel"), articulo: r("article"), viewport: window.innerWidth };
+  });
+
+  expect(cajas.panel).toEqual(cajas.articulo);
+  expect(cajas.panel.right).toBeLessThan(cajas.viewport - 100);
+
+  // Y al volver arriba se va, tambien sin desplazar nada.
+  await page.evaluate(() => window.scrollTo(0, 0));
+  await page.waitForTimeout(500);
+  await expect(barra).not.toHaveClass(/is-visible/);
+  expect(await posicion()).toBeCloseTo(antes, 0);
+});

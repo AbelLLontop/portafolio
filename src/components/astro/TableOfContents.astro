@@ -44,7 +44,16 @@ const { headings } = Astro.props;
       .map((slug) => document.getElementById(slug))
       .filter((el): el is HTMLElement => el !== null);
 
-    const header = document.querySelector<HTMLElement>(".post-header");
+    // El offset lo marca la barra compacta cuando esta visible; si no, el nav.
+    // Medir el header del post ya no sirve: es estatico y se va del viewport.
+    const NAV_HEIGHT = 64;
+    const bar = document.querySelector<HTMLElement>(".post-bar");
+    const panel = document.querySelector<HTMLElement>(".post-bar-panel");
+
+    const topOffset = () =>
+      bar?.classList.contains("is-visible") && panel
+        ? panel.getBoundingClientRect().bottom
+        : NAV_HEIGHT;
 
     links.forEach((link) => {
       link.addEventListener("click", (event) => {
@@ -54,12 +63,10 @@ const { headings } = Astro.props;
 
         event.preventDefault();
 
-        // Usamos la altura actual del header sticky (que cambia entre su
-        // estado normal y el encogido) para que el heading destino no
-        // quede tapado detrás de él.
-        const headerBottom = header?.getBoundingClientRect().bottom ?? 0;
+        // Se descuenta la chrome fija de arriba para que el heading destino
+        // no quede tapado detrás de ella.
         const gap = 16;
-        const top = target.getBoundingClientRect().top + window.scrollY - headerBottom - gap;
+        const top = target.getBoundingClientRect().top + window.scrollY - topOffset() - gap;
 
         window.scrollTo({ top, behavior: "smooth" });
         history.pushState(null, "", `#${slug}`);
@@ -95,7 +102,7 @@ const { headings } = Astro.props;
 
     const update = () => {
       ticking = false;
-      const offset = (header?.getBoundingClientRect().bottom ?? 0) + 24;
+      const offset = topOffset() + 24;
 
       let current: string | null = null;
       for (const el of headingEls) {
