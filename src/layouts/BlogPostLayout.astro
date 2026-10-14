@@ -27,32 +27,26 @@ const formattedDate = formatPostDate(date);
   <main class="mx-auto max-w-5xl px-4 py-12">
     <div class="lg:grid lg:grid-cols-[1fr_12rem] lg:gap-10">
       <article class="max-w-3xl">
-        <!-- Header real: estatico, es el unico que ocupa espacio en el flujo.
-             No se encoge nunca, asi que el contenido de abajo no se mueve. -->
-        <header class="post-header mb-6 pb-6 pt-4">
-          <div class="post-eyebrow flex items-center gap-3">
-            <span class="post-chip">Nota #{number}</span>
-            <span class="h-px flex-1" style="background: var(--line);"></span>
-          </div>
-          <h1 class="post-title mt-3 font-display text-3xl font-bold tracking-[-0.02em] text-zinc-100 md:text-4xl">
-            {title}
-          </h1>
-          <p class="post-date mt-3 font-mono text-xs tracking-[0.08em]" style="color: var(--faint);">
-            {formattedDate}
-          </p>
-        </header>
-
-        <!-- Caja sticky de alto 0: no ocupa espacio en el flujo, pero al vivir
-             dentro del <article> hereda su ancho, asi que el panel queda
-             alineado con el titulo real sin calcular nada. -->
-        <div class="post-bar" aria-hidden="true">
-          <div class="post-bar-panel flex items-center gap-3 py-3">
-            <span class="post-chip shrink-0">#{number}</span>
-            <span class="truncate font-display text-base font-bold tracking-[-0.01em] text-zinc-100">
-              {title}
-            </span>
-          </div>
+        <!-- El titulo es hijo directo del <article> (alto, cubre todo el post):
+             asi el sticky tiene recorrido para quedarse pegado durante todo
+             el scroll, en vez de quedar acotado por un <header> chico. -->
+        <div class="post-eyebrow flex items-center gap-3 pt-4">
+          <span class="post-chip">Nota #{number}</span>
+          <span class="h-px flex-1" style="background: var(--line);"></span>
         </div>
+
+        <div class="post-title-sentinel" aria-hidden="true"></div>
+        <h1 class="post-title sticky top-16 z-40 mt-3 flex items-center font-display text-3xl font-bold tracking-[-0.02em] text-zinc-100 md:text-4xl">
+          <span class="post-title-number" aria-hidden="true">#{number}</span>
+          {title}
+        </h1>
+
+        <p
+          class="post-date mt-3 mb-6 pb-6 font-mono text-xs tracking-[0.08em]"
+          style="color: var(--faint);"
+        >
+          {formattedDate}
+        </p>
 
         <ScrollReveal client:visible y={0}>
           <div class="prose-post-body">
@@ -78,121 +72,116 @@ const formattedDate = formatPostDate(date);
         </div>
       </aside>
     </div>
-
   </main>
 </BaseLayout>
 
 <style>
-  /* Alto 0: la caja se pega arriba pero no ocupa ni un pixel del flujo, asi
-     que el contenido de abajo nunca se mueve. El header real no cambia de
-     tamanio: los dos titulos se cruzan por opacidad. */
-  .post-bar {
-    position: sticky;
-    top: 4rem; /* alto del nav */
-    z-index: 40;
+  /* El titulo es el mismo elemento siempre: no hay duplicado ni crossfade.
+     Al quedar pegado (JS agrega is-stuck justo cuando el sticky engancha)
+     se encoge a tamanio de barra y gana un fondo propio, para no quedar
+     gigante ni superponerse ilegible sobre el contenido que sigue subiendo
+     detras. */
+  /* Punto de referencia sin tamanio, en el mismo lugar del flujo donde
+     arranca el titulo. El h1 mide siempre lo mismo mientras esta sticky
+     (pegado), asi que hace falta medir OTRO elemento, que si siga
+     scrolleando libremente, para saber cuando el titulo quedo pegado. */
+  .post-title-sentinel {
     height: 0;
   }
 
-  .post-bar-panel {
-    position: absolute;
-    top: 0;
-    right: 0;
-    left: 0;
-    border-bottom: 1px solid var(--line);
+  /* El borde y el blur quedan declarados siempre (transparente / 0px) para
+     que tengan algo animable de donde partir: si "border-style" o el filtro
+     recien aparecen en el estado final, el navegador los aplica de golpe
+     sin transicion, y es justo eso lo que se sentia como un salto o rebote
+     en vez de un cambio suave. */
+  .post-title {
+    border-bottom: 1px solid transparent;
+    backdrop-filter: blur(0px);
+    transition:
+      font-size 0.22s ease-out,
+      padding 0.22s ease-out,
+      background-color 0.22s ease-out,
+      box-shadow 0.22s ease-out,
+      border-color 0.22s ease-out,
+      backdrop-filter 0.22s ease-out;
+  }
+
+  .post-title.is-stuck {
+    padding: 0.65rem 0;
+    font-size: 1.05rem;
+    line-height: 1.4;
+    border-bottom-color: var(--line);
     background-color: color-mix(in srgb, var(--color-accent) 6%, #0c0c10 94%);
     box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.4);
     backdrop-filter: blur(8px);
+  }
+
+  /* Numero de nota: solo tiene sentido cuando el titulo esta encogido y
+     funciona como barra (el chip "Nota #N" grande ya esta arriba, visible,
+     mientras el titulo es grande). Ocupa 0 de ancho hasta entonces, asi que
+     aparece deslizandose en vez de empujar el texto de golpe. */
+  .post-title-number {
+    display: inline-block;
+    overflow: hidden;
+    max-width: 0;
     opacity: 0;
-    /* Sin el translate la barra "aterriza" de golpe; con -0.25rem entra
-       deslizandose apenas, en el mismo gesto del scroll. */
-    transform: translateY(-0.25rem);
-    pointer-events: none;
+    margin-right: 0;
+    font-size: 0.85em;
+    font-weight: 700;
+    color: var(--faint);
+    white-space: nowrap;
     transition:
-      opacity 0.18s ease,
-      transform 0.18s ease,
-      visibility 0.18s;
-    visibility: hidden;
+      max-width 0.22s ease-out,
+      opacity 0.22s ease-out,
+      margin-right 0.22s ease-out;
   }
 
-  .post-bar.is-visible .post-bar-panel {
+  .post-title.is-stuck .post-title-number {
+    max-width: 4rem;
     opacity: 1;
-    transform: none;
-    visibility: visible;
+    margin-right: 0.5rem;
   }
 
-  /* En mobile la banda llega a los bordes como el nav: -1rem es justo el px-4
-     del <main>. El padding devuelve el texto a su sitio, alineado con el
-     titulo real. Arriba de 768px el panel ya coincide con la columna del post
-     por si solo, sin tocar nada. */
+  /* En mobile la banda llega a los bordes como el nav: -1rem es justo el
+     px-4 del <main>. El padding horizontal devuelve el texto a su sitio.
+     Arriba de 768px el titulo ya coincide con la columna del post por si
+     solo. */
   @media (max-width: 767px) {
-    .post-bar-panel {
+    .post-title.is-stuck {
       margin-right: -1rem;
       margin-left: -1rem;
-      padding-right: 1rem;
-      padding-left: 1rem;
+      padding: 0.65rem 1rem;
     }
-  }
-
-  /* El titulo grande se desvanece mientras sube: evita el instante en que se
-     ve dos veces el mismo texto, uno entrando y otro saliendo. */
-  .post-title {
-    transition: opacity 0.18s ease;
-  }
-
-  .post-header.is-handed-off .post-title {
-    opacity: 0;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .post-bar-panel,
-    .post-title {
+    .post-title,
+    .post-title-number {
       transition: none;
-    }
-
-    .post-bar-panel {
-      transform: none;
     }
   }
 </style>
 
 <script>
-  const header = document.querySelector<HTMLElement>(".post-header");
+  const sentinel = document.querySelector<HTMLElement>(".post-title-sentinel");
   const title = document.querySelector<HTMLElement>(".post-title");
-  const bar = document.querySelector<HTMLElement>(".post-bar");
 
-  if (header && title && bar) {
-    const NAV_HEIGHT = 64;
-    // Se mide el titulo real en vivo (no un umbral guardado): el relevo pasa
-    // justo cuando el h1 grande termina de esconderse detras del nav.
-    const HYSTERESIS = 8;
+  if (sentinel && title) {
+    const NAV_HEIGHT = 64; /* alto del nav, = top-16 del titulo */
 
-    let visible = false;
-    let ticking = false;
+    // El titulo mismo no sirve como referencia: una vez sticky, su posicion
+    // queda fija y nunca cruza ningun umbral. El centinela, en cambio, sigue
+    // scrolleando libre: cuando pasa por detras del nav es el mismo instante
+    // en que el sticky frena al titulo ahi, asi que ese es el momento de
+    // encogerlo.
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        title.classList.toggle("is-stuck", !entry.isIntersecting);
+      },
+      { rootMargin: `-${NAV_HEIGHT}px 0px 0px 0px`, threshold: 0 },
+    );
 
-    const update = () => {
-      ticking = false;
-      const bottom = title.getBoundingClientRect().bottom;
-
-      if (!visible && bottom < NAV_HEIGHT - HYSTERESIS) {
-        visible = true;
-        bar.classList.add("is-visible");
-        header.classList.add("is-handed-off");
-      } else if (visible && bottom > NAV_HEIGHT + HYSTERESIS) {
-        visible = false;
-        bar.classList.remove("is-visible");
-        header.classList.remove("is-handed-off");
-      }
-    };
-
-    const request = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(update);
-    };
-
-    update();
-    window.addEventListener("scroll", request, { passive: true });
-    window.addEventListener("resize", request, { passive: true });
+    observer.observe(sentinel);
   }
 </script>
 
@@ -253,14 +242,19 @@ const formattedDate = formatPostDate(date);
 
     // ---- Anclas de heading -------------------------------------------------
     // Reusa los ids que ya genera Astro (los mismos que consume el indice).
-    body.querySelectorAll<HTMLHeadingElement>("h2[id], h3[id]").forEach((heading) => {
-      const anchor = document.createElement("a");
-      anchor.className = "heading-anchor";
-      anchor.href = `#${heading.id}`;
-      anchor.textContent = "#";
-      anchor.setAttribute("aria-label", `Enlace a la sección ${heading.textContent ?? ""}`);
-      heading.prepend(anchor);
-    });
+    body
+      .querySelectorAll<HTMLHeadingElement>("h2[id], h3[id]")
+      .forEach((heading) => {
+        const anchor = document.createElement("a");
+        anchor.className = "heading-anchor";
+        anchor.href = `#${heading.id}`;
+        anchor.textContent = "#";
+        anchor.setAttribute(
+          "aria-label",
+          `Enlace a la sección ${heading.textContent ?? ""}`,
+        );
+        heading.prepend(anchor);
+      });
 
     // ---- Tablas ------------------------------------------------------------
     // Sin el marco con scroll propio, una tabla ancha desborda la columna.
