@@ -235,8 +235,14 @@ body {
 /* .table-wrap lo pone el script del layout: sin el, una tabla ancha
    desborda la columna en movil en vez de hacer scroll dentro de su marco. */
 .table-wrap {
-  @apply my-6 overflow-x-auto rounded-lg;
+  @apply my-6 overflow-x-auto rounded-xl;
   border: 1px solid var(--line);
+  /* Mismo panel que los bloques de codigo y la consola del inicio. */
+  background: rgb(8 12 19 / 0.82);
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 30px 80px -40px rgb(0 0 0 / 0.95),
+    inset 0 1px 0 rgb(255 255 255 / 0.04);
 }
 
 .prose-post-body table {
@@ -245,7 +251,9 @@ body {
 
 .prose-post-body th {
   @apply whitespace-nowrap px-4 py-2.5 font-mono text-[0.68rem] font-medium uppercase tracking-[0.16em];
-  background: var(--hull-2);
+  /* Transparente: la cabecera comparte el fondo del marco, como la barra de
+     los bloques de codigo. */
+  background: transparent;
   color: var(--faint);
   border-bottom: 1px solid var(--line);
 }
@@ -279,11 +287,16 @@ body {
    script solo lo envuelve y superpone la barra encima: asi el bloque no
    cambia de alto al hidratar (nada de salto al cargar la nota). */
 .prose-post-body pre.astro-code {
-  @apply overflow-x-auto rounded-lg px-4 pb-4 font-mono text-sm leading-[1.7];
+  @apply overflow-x-auto rounded-xl px-4 pb-4 font-mono text-sm leading-[1.7];
   padding-top: 2.9rem;
   border: 1px solid var(--line);
-  background: linear-gradient(180deg, color-mix(in srgb, var(--hull-2) 60%, #09090b), #09090b) !important;
-  box-shadow: 0 12px 32px -22px rgb(0 0 0 / 0.9);
+  /* Mismo panel que la consola del inicio (TerminalHero): fondo translucido,
+     blur del fondo y la sombra interior de 1px que lo lee como pieza fisica. */
+  background: rgb(8 12 19 / 0.82) !important;
+  backdrop-filter: blur(12px);
+  box-shadow:
+    0 30px 80px -40px rgb(0 0 0 / 0.95),
+    inset 0 1px 0 rgb(255 255 255 / 0.04);
   transition: border-color 0.25s ease;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--color-accent) 30%, transparent) transparent;
@@ -324,10 +337,11 @@ body {
 /* La barra va fuera del <pre> y en absoluto: dentro quedaria enganchada al
    scroll horizontal del codigo y se iria de pantalla al desplazarlo. */
 .code-chrome {
-  @apply pointer-events-none absolute inset-x-px top-px flex h-[2.1rem] items-center justify-between gap-3 rounded-t-[0.4rem] px-3;
+  @apply pointer-events-none absolute inset-x-px top-px flex h-[2.1rem] items-center justify-between gap-3 rounded-t-[0.7rem] px-3.5;
   border-bottom: 1px solid var(--line);
-  background: color-mix(in srgb, var(--hull-2) 92%, transparent);
-  backdrop-filter: blur(6px);
+  /* Transparente a proposito: la barra comparte el fondo del <pre>, igual que
+     la cabecera de la consola del inicio. */
+  background: transparent;
 }
 
 .code-chrome > * {
@@ -335,17 +349,23 @@ body {
 }
 
 .code-id {
-  @apply flex min-w-0 items-center gap-2;
+  @apply flex min-w-0 items-center gap-2.5;
 }
 
+/* Los tres puntos de la consola del inicio: el primero toma el color del
+   lenguaje, los otros dos quedan apagados. */
 .code-dot {
-  @apply h-[6px] w-[6px] shrink-0 rounded-full;
+  @apply h-2.5 w-2.5 shrink-0 rounded-full;
   background: var(--faint);
-  box-shadow: 0 0 7px currentColor;
+}
+
+.code-dot-idle {
+  @apply h-2.5 w-2.5 shrink-0 rounded-full;
+  background: var(--line);
 }
 
 .code-lang {
-  @apply truncate font-mono text-[0.68rem] uppercase tracking-[0.18em];
+  @apply ml-1.5 truncate font-mono text-[0.63rem] uppercase tracking-[0.16em];
   color: var(--faint);
 }
 
