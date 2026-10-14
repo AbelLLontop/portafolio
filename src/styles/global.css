@@ -85,46 +85,136 @@ body {
   color: #09090b;
 }
 
+.post-chip {
+  @apply rounded-full px-2.5 py-1 font-mono text-[0.68rem] uppercase tracking-[0.2em];
+  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, var(--line));
+  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
+  color: var(--color-accent);
+}
+
+/* ===========================================================
+   Cuerpo del post
+   =========================================================== */
+
+/* text-base, el mismo cuerpo de texto que el resto del sitio: el post se
+   distingue por ritmo (interlineado y aire entre bloques), no por tamanio. */
 .prose-post-body {
-  @apply text-zinc-300 leading-relaxed;
+  @apply text-base leading-[1.75] text-zinc-300;
 }
 
 .prose-post-body > * + * {
-  @apply mt-4;
+  @apply mt-5;
+}
+
+/* Entradilla: el primer parrafo arranca mas claro, no mas grande. */
+.prose-post-body > p:first-child {
+  @apply text-zinc-200;
+}
+
+.prose-post-body h2,
+.prose-post-body h3 {
+  /* El header del post es sticky: sin este margen los saltos por hash
+     dejarian el heading debajo de el. */
+  scroll-margin-top: 7.5rem;
 }
 
 .prose-post-body h2 {
-  @apply mt-12 font-display text-2xl font-semibold tracking-[-0.01em] text-zinc-100 md:text-3xl;
+  @apply relative mt-16 pt-6 font-display text-2xl font-semibold tracking-[-0.01em] text-zinc-100 md:text-3xl;
+  border-top: 1px solid var(--line);
+}
+
+/* Marca de acento sobre la regla: separa secciones sin meter otro borde. */
+.prose-post-body h2::before {
+  content: "";
+  position: absolute;
+  top: -1px;
+  left: 0;
+  width: 2.5rem;
+  height: 1px;
+  background: var(--color-accent);
+  box-shadow: 0 0 8px var(--color-accent);
 }
 
 .prose-post-body h3 {
-  @apply mt-8 font-display text-xl font-semibold tracking-[-0.01em] text-zinc-100;
+  @apply relative mt-10 font-display text-xl font-semibold tracking-[-0.01em] text-zinc-100;
 }
 
-.prose-post-body p {
-  @apply text-zinc-300;
+/* El ancla por heading la inyecta el script del layout del post sobre los
+   ids que ya genera Astro, los mismos que consume el indice. */
+.heading-anchor {
+  @apply absolute right-full hidden pr-3 font-mono text-base no-underline opacity-0 transition-opacity duration-200 lg:block;
+  color: var(--color-accent);
 }
 
-.prose-post-body a {
+.prose-post-body :is(h2, h3):hover .heading-anchor,
+.heading-anchor:focus-visible {
+  @apply opacity-100;
+}
+
+.prose-post-body a:not(.heading-anchor) {
   @apply text-accent underline underline-offset-4 transition-opacity hover:opacity-80;
   text-decoration-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
 }
 
+/* ---------- Listas ---------- */
+
 .prose-post-body ul {
-  @apply list-disc pl-6 text-zinc-300;
+  @apply list-none pl-6;
+}
+
+.prose-post-body ul > li {
+  @apply relative;
+}
+
+.prose-post-body ul > li::before {
+  content: "";
+  position: absolute;
+  left: -1.1rem;
+  top: 0.72em;
+  width: 5px;
+  height: 5px;
+  rotate: 45deg;
+  background: color-mix(in srgb, var(--color-accent) 70%, transparent);
 }
 
 .prose-post-body ol {
-  @apply list-decimal pl-6 text-zinc-300;
+  @apply list-decimal pl-6;
 }
 
+.prose-post-body ol > li::marker {
+  @apply font-mono text-[0.85em];
+  color: var(--color-accent);
+}
+
+.prose-post-body li {
+  @apply text-zinc-300;
+}
+
+.prose-post-body li + li {
+  @apply mt-2;
+}
+
+.prose-post-body li > ul,
+.prose-post-body li > ol {
+  @apply mt-2;
+}
+
+/* ---------- Nota al margen ---------- */
+
 .prose-post-body blockquote {
-  @apply border-l-2 border-accent/50 py-1 pl-4 italic;
+  @apply rounded-lg px-5 py-4;
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 4%, var(--hull));
   color: var(--dim);
 }
 
+.prose-post-body blockquote > * + * {
+  @apply mt-3;
+}
+
 .prose-post-body hr {
-  @apply my-10 border-0;
+  @apply my-12 border-0;
   border-top: 1px solid var(--line);
 }
 
@@ -132,58 +222,268 @@ body {
   @apply font-semibold text-zinc-100;
 }
 
+/* ---------- Codigo en linea ---------- */
+
 .prose-post-body code {
-  @apply rounded bg-zinc-900 px-1.5 py-0.5 text-sm text-accent;
+  @apply rounded px-[0.3rem] py-[0.1rem] font-mono text-[0.86em] text-accent;
+  background: color-mix(in srgb, var(--color-accent) 9%, var(--hull));
+  border: 1px solid color-mix(in srgb, var(--color-accent) 16%, transparent);
 }
 
-/* El <pre> de Shiki queda envuelto en .code-block por el script del layout
-   del post; el borde y el radio los pone el contenedor para que la barra
-   superior y el codigo se lean como una sola pieza. */
-.prose-post-body pre {
-  @apply overflow-x-auto p-4 text-sm;
-}
+/* ---------- Tablas ---------- */
 
-.code-block {
-  @apply my-4 overflow-hidden rounded-lg;
+/* .table-wrap lo pone el script del layout: sin el, una tabla ancha
+   desborda la columna en movil en vez de hacer scroll dentro de su marco. */
+.table-wrap {
+  @apply my-6 overflow-x-auto rounded-lg;
   border: 1px solid var(--line);
 }
 
-.code-block-bar {
-  @apply flex items-center justify-between gap-3 px-3 py-1.5 font-mono text-[0.66rem] uppercase tracking-[0.16em];
-  border-bottom: 1px solid var(--line);
+.prose-post-body table {
+  @apply w-full border-collapse text-left text-sm;
+}
+
+.prose-post-body th {
+  @apply whitespace-nowrap px-4 py-2.5 font-mono text-[0.68rem] font-medium uppercase tracking-[0.16em];
   background: var(--hull-2);
   color: var(--faint);
+  border-bottom: 1px solid var(--line);
 }
 
-.code-block pre {
-  @apply my-0 rounded-none border-0;
+.prose-post-body td {
+  @apply px-4 py-2.5 align-top text-zinc-300;
+  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
 }
 
-.code-copy {
-  @apply cursor-pointer rounded px-2 py-0.5 font-mono text-[0.66rem] uppercase tracking-[0.16em] transition-colors;
+.prose-post-body tbody tr {
+  @apply transition-colors;
+}
+
+.prose-post-body tbody tr:hover {
+  background: color-mix(in srgb, var(--color-accent) 4%, transparent);
+}
+
+.prose-post-body tbody tr:first-child td {
+  border-top: 0;
+}
+
+.prose-post-body td:first-child {
+  @apply font-medium text-zinc-100;
+}
+
+/* ===========================================================
+   Bloques de codigo
+   =========================================================== */
+
+/* El <pre> ya trae el marco y el hueco de la barra desde el CSS, y el
+   script solo lo envuelve y superpone la barra encima: asi el bloque no
+   cambia de alto al hidratar (nada de salto al cargar la nota). */
+.prose-post-body pre.astro-code {
+  @apply overflow-x-auto rounded-lg px-4 pb-4 font-mono text-sm leading-[1.7];
+  padding-top: 2.9rem;
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--hull-2) 60%, #09090b), #09090b) !important;
+  box-shadow: 0 12px 32px -22px rgb(0 0 0 / 0.9);
+  transition: border-color 0.25s ease;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--color-accent) 30%, transparent) transparent;
+}
+
+.code-block {
+  @apply relative my-6;
+}
+
+.code-block:hover pre.astro-code {
+  border-color: color-mix(in srgb, var(--color-accent) 32%, var(--line));
+}
+
+/* El codigo en linea se mide en em (relativo al parrafo), asi que dentro
+   del <pre> encogeria el bloque: aca vuelve a tomar el tamanio del <pre>. */
+.prose-post-body pre code {
+  @apply border-0 bg-transparent p-0 text-inherit;
+  font-size: inherit;
+}
+
+.prose-post-body pre.astro-code::-webkit-scrollbar {
+  height: 8px;
+}
+
+.prose-post-body pre.astro-code::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.prose-post-body pre.astro-code::-webkit-scrollbar-thumb {
+  @apply rounded-full;
+  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
+}
+
+.prose-post-body pre.astro-code:hover::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+
+/* La barra va fuera del <pre> y en absoluto: dentro quedaria enganchada al
+   scroll horizontal del codigo y se iria de pantalla al desplazarlo. */
+.code-chrome {
+  @apply pointer-events-none absolute inset-x-px top-px flex h-[2.1rem] items-center justify-between gap-3 rounded-t-[0.4rem] px-3;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--hull-2) 92%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.code-chrome > * {
+  @apply pointer-events-auto;
+}
+
+.code-id {
+  @apply flex min-w-0 items-center gap-2;
+}
+
+.code-dot {
+  @apply h-[6px] w-[6px] shrink-0 rounded-full;
+  background: var(--faint);
+  box-shadow: 0 0 7px currentColor;
+}
+
+.code-lang {
+  @apply truncate font-mono text-[0.68rem] uppercase tracking-[0.18em];
   color: var(--faint);
 }
 
-.code-copy:hover,
-.code-copy:focus-visible {
+.code-block[data-lang="bash"] .code-dot {
+  background: #a3e635;
+}
+
+.code-block[data-lang="js"] .code-dot {
+  background: #facc15;
+}
+
+.code-block[data-lang="yaml"] .code-dot {
+  background: #c084fc;
+}
+
+.code-block[data-lang="nginx"] .code-dot {
+  background: #4ade80;
+}
+
+.code-block[data-lang="sql"] .code-dot {
+  background: #38bdf8;
+}
+
+.code-block[data-lang="dockerfile"] .code-dot {
+  background: #60a5fa;
+}
+
+.code-block[data-lang="html"] .code-dot {
+  background: #fb923c;
+}
+
+/* ---------- Boton de copiar ---------- */
+
+.code-copy {
+  @apply relative grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md border-0 bg-transparent opacity-55 transition;
+  color: var(--dim);
+}
+
+.code-block:hover .code-copy,
+.code-copy:focus-visible,
+.code-copy[data-state="copied"],
+.code-copy[data-state="error"] {
+  @apply opacity-100;
+}
+
+.code-copy:hover {
   color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
 }
 
-.code-copy.is-copied {
+/* Sin hover (tactil) el boton nunca se revelaria: ahi va siempre visible. */
+@media (hover: none) {
+  .code-copy {
+    @apply opacity-100;
+  }
+}
+
+.code-copy svg {
+  @apply absolute h-[15px] w-[15px] transition-all duration-200;
+}
+
+.code-copy .icon-check {
+  @apply scale-50 opacity-0;
+}
+
+.code-copy[data-state="copied"] {
   color: var(--go);
+  background: color-mix(in srgb, var(--go) 14%, transparent);
 }
 
-.prose-post-body pre code {
-  @apply bg-transparent p-0 text-inherit;
+.code-copy[data-state="copied"] .icon-copy {
+  @apply scale-50 opacity-0;
+}
+
+.code-copy[data-state="copied"] .icon-check {
+  @apply scale-100 opacity-100;
+}
+
+.code-copy[data-state="error"] {
+  color: #fb7185;
+}
+
+/* El texto que antes vivia dentro del boton pasa a este globo: el boton se
+   queda solo con el icono, como en cualquier consola moderna. */
+.code-copy::after {
+  content: attr(data-tip);
+  @apply pointer-events-none absolute right-0 top-[calc(100%+0.4rem)] z-10 whitespace-nowrap rounded px-2 py-1 font-mono text-[0.68rem] uppercase tracking-[0.14em] opacity-0 transition-opacity duration-150;
+  border: 1px solid var(--line);
+  background: #0c0c10;
+  color: var(--dim);
+}
+
+.code-copy:hover::after,
+.code-copy:focus-visible::after,
+.code-copy[data-state="copied"]::after,
+.code-copy[data-state="error"]::after {
+  @apply opacity-100;
+}
+
+/* ===========================================================
+   Progreso de lectura e indice
+   =========================================================== */
+
+/* Consume el --ascent que escribe AscentHud: cero JS propio, el progreso
+   de scroll sigue teniendo un solo duenio. */
+.post-progress {
+  @apply pointer-events-none fixed inset-x-0 top-0 z-[60] h-[2px];
+}
+
+.post-progress > i {
+  @apply block h-full;
+  width: calc(var(--ascent, 0) * 100%);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-accent) 30%, transparent),
+    var(--color-accent)
+  );
+  box-shadow: 0 0 10px var(--color-accent);
 }
 
 .toc {
+  @apply relative pl-3;
   border-left: 1px solid var(--line);
-  @apply pl-3;
 }
 
+/* El mismo progreso, recorriendo el espinazo del indice. */
+.toc::after {
+  content: "";
+  @apply absolute left-[-1px] top-0 w-px;
+  height: calc(var(--ascent, 0) * 100%);
+  background: var(--color-accent);
+  box-shadow: 0 0 8px var(--color-accent);
+}
+
+/* text-sm, igual que el resumen de cada fila del listado: el indice ya no
+   suma dos tamanios propios al sitio y la profundidad la marca la sangria. */
 .toc-link {
-  @apply -ml-3 block border-l-2 border-transparent py-1 pl-3 text-[0.82rem] leading-snug transition-colors duration-200;
+  @apply -ml-3 block border-l-2 border-transparent py-1 pl-3 text-sm leading-snug transition-colors duration-200;
   color: var(--faint);
 }
 
@@ -192,9 +492,21 @@ body {
 }
 
 .toc-link[data-depth="3"] {
-  @apply pl-6 text-[0.76rem];
+  @apply pl-6;
+}
+
+.toc-link {
+  @apply relative;
 }
 
 .toc-link.is-active {
   @apply border-accent text-accent;
+}
+
+/* Pip sobre el espinazo: marca donde va la lectura, igual que el del HUD. */
+.toc-link.is-active::before {
+  content: "";
+  @apply absolute left-[-5px] top-1/2 block h-[6px] w-[6px] -translate-y-1/2 rounded-full;
+  background: var(--color-accent);
+  box-shadow: 0 0 10px var(--color-accent);
 }

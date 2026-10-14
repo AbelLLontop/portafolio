@@ -44,3 +44,24 @@ test("el buscador filtra por numero de nota y por texto", async ({ page }) => {
   await expect(filas).toHaveCount(0);
   await expect(page.getByText(/no se encontraron notas/i)).toBeVisible();
 });
+
+test("el post arma la barra de codigo con boton de icono y enmarca las tablas", async ({
+  page,
+}) => {
+  await page.goto("/blog/desplegar-proyecto-docker-02-recursos-y-github");
+
+  const bloque = page.locator(".code-block").first();
+  await expect(bloque).toBeVisible();
+  await expect(bloque.locator(".code-lang")).not.toBeEmpty();
+
+  // El boton es solo icono: el texto vive en el globo (data-tip), no dentro.
+  const copiar = bloque.locator(".code-copy");
+  await expect(copiar).toHaveText("");
+  await expect(copiar).toHaveAttribute("data-tip", "Copiar");
+  await expect(copiar.locator("svg")).toHaveCount(2);
+
+  // Toda tabla queda dentro de su marco con scroll propio.
+  const tablas = await page.locator("table").count();
+  expect(tablas).toBeGreaterThan(0);
+  await expect(page.locator(".table-wrap > table")).toHaveCount(tablas);
+});

@@ -24,16 +24,20 @@ const formattedDate = formatPostDate(date);
 ---
 
 <BaseLayout title={`${title} — abelitolll`} description={summary}>
+  <div class="post-progress" aria-hidden="true"><i></i></div>
   <main class="mx-auto max-w-5xl px-4 py-12">
     <div class="lg:grid lg:grid-cols-[1fr_12rem] lg:gap-10">
       <article class="max-w-3xl">
         <div id="post-header-sentinel"></div>
         <header class="post-header sticky top-16 z-40 mb-6 border-b border-transparent pb-6 pt-4">
-          <p class="post-eyebrow section-label">Nota #{number}</p>
+          <div class="post-eyebrow flex items-center gap-3">
+            <span class="post-chip">Nota #{number}</span>
+            <span class="h-px flex-1" style="background: var(--line);"></span>
+          </div>
           <h1 class="mt-3 font-display text-3xl font-bold tracking-[-0.02em] text-zinc-100 md:text-4xl">
             {title}
           </h1>
-          <p class="post-date mt-2 font-mono text-xs tracking-[0.08em]" style="color: var(--faint);">
+          <p class="post-date mt-3 font-mono text-xs tracking-[0.08em]" style="color: var(--faint);">
             {formattedDate}
           </p>
         </header>
@@ -152,45 +156,78 @@ const formattedDate = formatPostDate(date);
 </script>
 
 <script>
-  // Shiki ya deja el lenguaje en data-language, asi que la barra se monta
-  // sobre el <pre> existente sin tocar los .mdx ni el tema.
-  const blocks = document.querySelectorAll<HTMLPreElement>(".prose-post-body pre.astro-code");
+  const body = document.querySelector<HTMLElement>(".prose-post-body");
 
-  blocks.forEach((pre) => {
-    const wrapper = document.createElement("figure");
-    wrapper.className = "code-block";
+  if (body) {
+    // ---- Bloques de codigo -------------------------------------------------
+    // Shiki ya deja el lenguaje en data-language, asi que la barra se monta
+    // sobre el <pre> existente sin tocar los .mdx ni el tema.
+    const ICON_COPY =
+      '<svg class="icon-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="2.5"/><path d="M14 5.5A2.5 2.5 0 0 0 11.5 3h-6A2.5 2.5 0 0 0 3 5.5v6A2.5 2.5 0 0 0 5.5 14"/></svg>';
+    const ICON_CHECK =
+      '<svg class="icon-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>';
 
-    const bar = document.createElement("figcaption");
-    bar.className = "code-block-bar";
+    body.querySelectorAll<HTMLPreElement>("pre.astro-code").forEach((pre) => {
+      const raw = pre.dataset.language ?? "plaintext";
+      const language = raw === "plaintext" ? "texto" : raw;
 
-    const language = document.createElement("span");
-    language.textContent = pre.dataset.language ?? "texto";
+      const wrapper = document.createElement("figure");
+      wrapper.className = "code-block";
+      wrapper.dataset.lang = language;
 
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = "code-copy";
-    button.textContent = "copiar";
+      const chrome = document.createElement("figcaption");
+      chrome.className = "code-chrome";
+      chrome.innerHTML = `<span class="code-id"><i class="code-dot"></i><span class="code-lang">${language}</span></span>`;
 
-    let resetTimer: ReturnType<typeof setTimeout> | undefined;
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "code-copy";
+      button.dataset.tip = "Copiar";
+      button.setAttribute("aria-label", `Copiar el código ${language}`);
+      button.innerHTML = ICON_COPY + ICON_CHECK;
 
-    button.addEventListener("click", async () => {
-      const code = pre.querySelector("code")?.textContent ?? "";
-      try {
-        await navigator.clipboard.writeText(code);
-        button.textContent = "copiado";
-        button.classList.add("is-copied");
-      } catch {
-        button.textContent = "no se pudo copiar";
-      }
-      clearTimeout(resetTimer);
-      resetTimer = setTimeout(() => {
-        button.textContent = "copiar";
-        button.classList.remove("is-copied");
-      }, 1800);
+      let resetTimer: ReturnType<typeof setTimeout> | undefined;
+
+      button.addEventListener("click", async () => {
+        const code = pre.querySelector("code")?.textContent ?? "";
+        try {
+          await navigator.clipboard.writeText(code);
+          button.dataset.state = "copied";
+          button.dataset.tip = "Copiado";
+        } catch {
+          button.dataset.state = "error";
+          button.dataset.tip = "No se pudo copiar";
+        }
+        clearTimeout(resetTimer);
+        resetTimer = setTimeout(() => {
+          delete button.dataset.state;
+          button.dataset.tip = "Copiar";
+        }, 1800);
+      });
+
+      chrome.append(button);
+      pre.parentNode?.insertBefore(wrapper, pre);
+      wrapper.append(pre, chrome);
     });
 
-    bar.append(language, button);
-    pre.parentNode?.insertBefore(wrapper, pre);
-    wrapper.append(bar, pre);
-  });
+    // ---- Anclas de heading -------------------------------------------------
+    // Reusa los ids que ya genera Astro (los mismos que consume el indice).
+    body.querySelectorAll<HTMLHeadingElement>("h2[id], h3[id]").forEach((heading) => {
+      const anchor = document.createElement("a");
+      anchor.className = "heading-anchor";
+      anchor.href = `#${heading.id}`;
+      anchor.textContent = "#";
+      anchor.setAttribute("aria-label", `Enlace a la sección ${heading.textContent ?? ""}`);
+      heading.prepend(anchor);
+    });
+
+    // ---- Tablas ------------------------------------------------------------
+    // Sin el marco con scroll propio, una tabla ancha desborda la columna.
+    body.querySelectorAll("table").forEach((table) => {
+      const wrapper = document.createElement("div");
+      wrapper.className = "table-wrap";
+      table.parentNode?.insertBefore(wrapper, table);
+      wrapper.append(table);
+    });
+  }
 </script>
