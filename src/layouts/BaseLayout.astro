@@ -82,7 +82,7 @@ const seo = buildSeoMeta({ title, url: Astro.url, lang, route, slug, description
     <div class="veil"></div>
     <Starfield client:visible />
     <CursorRocket client:visible />
-    <AscentHud lang={lang} />
+    {route === "post" && <AscentHud lang={lang} />}
     <Header lang={lang} route={route} slug={slug} />
     <div class="flex-1">
       <slot />
