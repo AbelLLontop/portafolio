@@ -87,6 +87,17 @@ Un commit de tooling del repo siempre lleva ámbito; nunca debe quedar un `chore
 - Un commit = un cambio lógico. Si la descripción necesita "y" para unir dos cosas no relacionadas, son dos commits.
 - Los mensajes de commit no llevan líneas de coautoría, firmas ni emojis. Nunca.
 
+**Cuerpo del commit:**
+
+El commit DEBE llevar cuerpo cuando se cumpla alguna de estas:
+
+- El cambio arregla un bug cuya causa no es evidente en el diff.
+- Se eligió una solución sobre otra y la alternativa era razonable.
+- El cambio toca muchos archivos con intenciones distintas.
+- El cambio afecta comportamiento en runtime que ningún test cubre.
+
+NO debe llevar cuerpo cuando el asunto ya se explica solo. Prohibido un cuerpo que parafrasee el asunto. El cuerpo responde "por qué así", nunca "qué cambié".
+
 **Ejemplos buenos:**
 
 ```
