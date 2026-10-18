@@ -14,18 +14,45 @@
   --go: #5ee6a8;
 }
 
+/* El fondo va en <html> y no en <body> a propósito, y los dos motivos
+   importan:
+
+   1. La decoración de fondo (el campo de estrellas y el veil) vive en
+      z-index negativo. En el orden de pintado, esas capas van DESPUÉS del
+      fondo del elemento raíz pero ANTES del fondo de un <body> normal, y el
+      degradado de abajo es opaco: con el fondo en <body> las taparía por
+      completo.
+   2. Entre dos documentos el navegador pinta el lienzo del <html>, así que
+      sin un color propio ahí el cambio de página se ve como un parpadeo.
+
+   Mientras <html> no declaraba fondo, el navegador propagaba el del <body>
+   al lienzo y las dos cosas funcionaban por accidente; al declararlo, esa
+   propagación se corta. Declarándolo acá quedan las dos a propósito. */
 html {
   color-scheme: dark;
-}
-
-body {
-  @apply text-zinc-100;
   background-color: #09090b;
   background-image:
     radial-gradient(ellipse 80% 50% at 15% 0%, color-mix(in srgb, var(--color-accent) 10%, transparent), transparent),
     radial-gradient(ellipse 60% 40% at 100% 20%, color-mix(in srgb, var(--color-accent) 6%, transparent), transparent),
     linear-gradient(180deg, #0c0c10 0%, #09090b 40%, #0a0a0d 100%);
   background-attachment: fixed;
+}
+
+/* Cambio de idioma: la clase la pone un script inline del <head> antes del
+   primer pintado (ver lib/instant-nav.ts). Las secciones quedan en su estado
+   final, así que el texto se reemplaza de golpe en vez de volver a revelarse.
+   El !important es a propósito: gana sobre los estilos inline que escribe
+   Framer Motion. Dura toda esa vista de la página — después de un cambio de
+   idioma no hay animación de scroll hasta la siguiente navegación. */
+html.instant-nav [data-reveal] {
+  opacity: 1 !important;
+  transform: none !important;
+}
+
+/* Sin fondo propio: lo pinta <html> (ver arriba). Si se le pone uno acá,
+   vuelve a tapar el campo de estrellas y el veil. */
+body {
+  @apply text-zinc-100;
 }
 
 /* --ascent (0 -> 1) lo escribe el script de AscentHud.astro: es el unico

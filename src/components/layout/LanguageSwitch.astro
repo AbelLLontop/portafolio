@@ -1,0 +1,98 @@
+---
+// Switch de idioma: los dos códigos a la vista, el activo relleno. Se lee
+// como un control, no como dos enlaces sueltos.
+//
+// El inactivo es un enlace a ESTA misma página en el otro idioma (no al
+// inicio), y se nombra en su propio idioma ("English", "Español") con su
+// `lang`: es la convención del W3C para un selector de idioma, porque quien
+// busca la versión inglesa reconoce "English", no "Inglés".
+import { LANGS, useTranslations, type Lang } from "../../i18n/index.ts";
+import { pathFor, type Route } from "../../i18n/routes.ts";
+
+interface Props {
+  lang: Lang;
+  route: Route;
+  slug?: string;
+  class?: string;
+}
+
+const { lang, route, slug, class: className } = Astro.props;
+const t = useTranslations(lang);
+
+const langName = (value: Lang) => useTranslations(value)("nav.langName");
+---
+
+<nav class:list={["lang-switch", className]} aria-label={t("nav.language")}>
+  {LANGS.map((value) =>
+    value === lang ? (
+      <span class="lang-option is-active" aria-current="true">
+        {value.toUpperCase()}
+      </span>
+    ) : (
+      <a
+        class="lang-option"
+        href={pathFor(route, value, slug)}
+        hreflang={value}
+        lang={value}
+        aria-label={langName(value)}
+        data-lang-link
+      >
+        {value.toUpperCase()}
+      </a>
+    ),
+  )}
+</nav>
+
+<style is:global>
+  /* Global y no con scope: el componente se usa dentro del header y dentro
+     del panel mobile, y el scope de Astro no alcanza a los dos sin repetir. */
+  .lang-switch {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    padding: 2px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgb(255 255 255 / 0.03);
+  }
+
+  /* Mismo tamaño e interlineado que los enlaces del nav (0.8rem,
+     line-height normal) a propósito: con métricas distintas el texto del
+     switch cae media línea más arriba y se ve desalineado contra ellos,
+     aunque las dos cajas estén centradas. */
+  .lang-option {
+    border-radius: 999px;
+    padding: 0.15rem 0.55rem;
+    font-family: var(--font-mono, ui-monospace, monospace);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    color: var(--faint);
+    transition:
+      color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .lang-option.is-active {
+    background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+    color: var(--color-accent);
+  }
+
+  a.lang-option:hover {
+    color: var(--color-accent);
+  }
+
+  /* La variante del header: solo desde sm, porque en mobile el switch vive
+     dentro del panel del menú y en la barra no entra sin romperla en dos
+     filas. Va acá y no con scope en Header.astro: el scope de Astro no llega
+     al <nav> de este componente, así que desde allá la regla no aplicaría y
+     el switch se vería en los dos lugares a la vez. */
+  .lang-switch-desktop {
+    display: none;
+  }
+
+  @media (min-width: 640px) {
+    .lang-switch-desktop {
+      display: inline-flex;
+    }
+  }
+</style>

@@ -34,3 +34,31 @@ test("home carga y la terminal del hero termina su secuencia sin errores de cons
   expect(consoleErrors).toEqual([]);
   expect(pageErrors).toEqual([]);
 });
+
+test("el fondo lo pinta <html>, para no tapar el campo de estrellas", async ({ page }) => {
+  await page.goto("/");
+
+  const estilos = await page.evaluate(() => {
+    const html = getComputedStyle(document.documentElement);
+    const body = getComputedStyle(document.body);
+    const canvas = getComputedStyle(document.querySelector("canvas")!);
+    return {
+      htmlImage: html.backgroundImage,
+      htmlColor: html.backgroundColor,
+      bodyImage: body.backgroundImage,
+      bodyColor: body.backgroundColor,
+      canvasZ: canvas.zIndex,
+    };
+  });
+
+  // El campo de estrellas vive en z-index negativo: en el orden de pintado
+  // va despues del fondo del elemento raiz pero ANTES del fondo de un <body>
+  // normal, y el degradado del fondo es opaco. Por eso el fondo tiene que
+  // estar en <html> y el <body> quedar transparente: con el fondo en <body>
+  // las estrellas desaparecen por completo, sin ningun error que lo delate.
+  expect(Number(estilos.canvasZ)).toBeLessThan(0);
+  expect(estilos.htmlImage).toContain("gradient");
+  expect(estilos.htmlColor).not.toBe("rgba(0, 0, 0, 0)");
+  expect(estilos.bodyImage).toBe("none");
+  expect(estilos.bodyColor).toBe("rgba(0, 0, 0, 0)");
+});

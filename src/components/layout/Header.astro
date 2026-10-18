@@ -1,11 +1,12 @@
 ---
 import Wordmark from "../react/Wordmark.tsx";
-import { otherLang, useTranslations, type Lang } from "../../i18n/index.ts";
+import LanguageSwitch from "./LanguageSwitch.astro";
+import { useTranslations, type Lang } from "../../i18n/index.ts";
 import { NAV_ROUTES, pathFor, type Route } from "../../i18n/routes.ts";
 
 interface Props {
   lang: Lang;
-  /** La página actual, para que el botón ES/EN caiga en su equivalente. */
+  /** La página actual, para que el switch de idioma caiga en su equivalente. */
   route: Route;
   slug?: string;
 }
@@ -17,16 +18,6 @@ const navLinks = NAV_ROUTES.map((key) => ({
   href: pathFor(key, lang),
   label: t(`nav.${key}`),
 }));
-
-// El botón no manda al inicio del otro idioma sino a *esta misma* página
-// traducida: cambiar de idioma leyendo una nota no debería perder la nota.
-const target = otherLang(lang);
-const switchHref = pathFor(route, target, slug);
-
-// El nombre de cada idioma sale de SU propio diccionario, no del de la
-// página: así el enlace a la versión inglesa dice "English" también cuando
-// se lo lee desde el español.
-const langName = (value: Lang) => useTranslations(value)("nav.langName");
 ---
 
 <header
@@ -46,7 +37,10 @@ const langName = (value: Lang) => useTranslations(value)("nav.langName");
          barra nunca crezca a dos filas. -->
     <div class="flex items-center gap-5">
       <nav class="hidden sm:block">
-        <ul class="flex gap-6">
+        {/* items-center: sin eso los <li> se estiran a la altura del <ul> y el
+            enlace queda pegado arriba de su caja, media línea más alto que el
+            switch de idioma que va al lado. */}
+        <ul class="flex items-center gap-6">
           {navLinks.map((link) => (
             <li>
               <a href={link.href} class="font-mono text-[0.8rem] tracking-[0.06em] text-zinc-400 transition-colors hover:text-accent">
@@ -57,40 +51,7 @@ const langName = (value: Lang) => useTranslations(value)("nav.langName");
         </ul>
       </nav>
 
-      <!-- Los dos codigos siempre visibles: el activo marca donde estas y el
-           otro es el link, asi se entiende sin abrir nada. -->
-      <nav
-        class="hidden items-center gap-1 font-mono text-[0.72rem] tracking-[0.08em] sm:flex"
-        aria-label={t("nav.language")}
-      >
-        {lang === "es" ? (
-          <span class="text-accent" aria-current="true">ES</span>
-        ) : (
-          <a
-            href={pathFor(route, "es", slug)}
-            hreflang="es"
-            lang="es"
-            aria-label={langName("es")}
-            class="text-zinc-500 transition-colors hover:text-accent"
-          >
-            ES
-          </a>
-        )}
-        <span aria-hidden="true" style="color: var(--line);">/</span>
-        {lang === "en" ? (
-          <span class="text-accent" aria-current="true">EN</span>
-        ) : (
-          <a
-            href={pathFor(route, "en", slug)}
-            hreflang="en"
-            lang="en"
-            aria-label={langName("en")}
-            class="text-zinc-500 transition-colors hover:text-accent"
-          >
-            EN
-          </a>
-        )}
-      </nav>
+      <LanguageSwitch lang={lang} route={route} slug={slug} class="lang-switch-desktop" />
 
       <button
         type="button"
@@ -122,16 +83,11 @@ const langName = (value: Lang) => useTranslations(value)("nav.langName");
           </a>
         </li>
       ))}
-      <li>
-        <a
-          href={switchHref}
-          hreflang={target}
-          lang={target}
-          class="block rounded-sm px-2 py-2.5 font-mono text-sm tracking-[0.06em] transition-colors hover:text-accent"
-          style="color: var(--dim);"
-        >
-          {target.toUpperCase()} · {langName(target)}
-        </a>
+      <li class="flex items-center justify-between gap-4 px-2 py-2.5">
+        <span class="font-mono text-sm tracking-[0.06em]" style="color: var(--faint);">
+          {t("nav.language")}
+        </span>
+        <LanguageSwitch lang={lang} route={route} slug={slug} />
       </li>
     </ul>
   </nav>
@@ -214,6 +170,15 @@ const langName = (value: Lang) => useTranslations(value)("nav.langName");
 </style>
 
 <script>
+  import { markInstantNav } from "../../lib/instant-nav.ts";
+
+  // Al cambiar de idioma se marca la próxima carga para que llegue sin
+  // animaciones: el texto tiene que aparecer ya puesto, no revelarse ni
+  // retipearse de nuevo. Cualquier otra navegación anima como siempre.
+  document.querySelectorAll("[data-lang-link]").forEach((link) => {
+    link.addEventListener("click", markInstantNav);
+  });
+
   const toggle = document.getElementById("nav-toggle");
   const panel = document.getElementById("nav-mobile");
 

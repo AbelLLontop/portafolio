@@ -55,7 +55,9 @@ test("el botón de idioma cambia de idioma sin perder la página", async ({ page
 test("el idioma activo se marca y no es un link", async ({ page }) => {
   await page.goto("/en/");
 
-  const activo = page.locator("header [aria-current='true']");
+  // Acotado al switch del header: el del panel mobile también existe en el
+  // DOM (oculto) y un selector CSS no distingue.
+  const activo = page.locator(".lang-switch-desktop [aria-current='true']");
   await expect(activo).toHaveText("EN");
   // El activo es un <span>: no tiene sentido linkear a donde ya estás.
   await expect(page.getByRole("link", { name: "English", exact: true })).toHaveCount(0);
@@ -176,6 +178,43 @@ test("la consola inglesa acepta los comandos traducidos", async ({ page }) => {
   await input.fill("proyectos");
   await input.press("Enter");
   await expect(consola).toContainText(/don.t know the command/i, { timeout: 20000 });
+});
+
+test("cambiar de idioma no vuelve a animar la página", async ({ page }) => {
+  await page.goto("/");
+  // Se espera a que la consola termine su diálogo de apertura, para no
+  // confundir el estado inicial con el que llega tras el cambio.
+  await expect(page.locator("[data-cycle-count='1']")).toBeVisible({ timeout: 20000 });
+
+  await page.getByRole("link", { name: "English", exact: true }).click();
+  await page.waitForURL("/en/");
+
+  // La marca la pone un script inline del <head>, antes del primer pintado.
+  await expect(page.locator("html")).toHaveClass(/instant-nav/);
+
+  // La consola llega con el diálogo ya escrito: `data-cycle-count` pasa a 1
+  // apenas hidrata, en vez de después de varios segundos de tecleo.
+  await expect(page.locator("[data-cycle-count='1']")).toBeVisible({ timeout: 2000 });
+  await expect(page.locator("[data-cycle-count]")).toContainText("I am Abel Llontop");
+
+  // Y las secciones llegan en su estado final en vez de revelarse. La primera
+  // está bajo el pliegue: en una carga normal seguiría en opacity 0.
+  const opacidad = await page
+    .locator("[data-reveal]")
+    .first()
+    .evaluate((el) => getComputedStyle(el).opacity);
+  expect(opacidad).toBe("1");
+});
+
+test("una navegación normal sí anima", async ({ page }) => {
+  // El "sin animación" es solo para el cambio de idioma: el resto del sitio
+  // conserva sus revelados.
+  await page.goto("/");
+  // Desde el header: el pie también tiene un enlace "Blog".
+  await page.locator("header nav").first().getByRole("link", { name: "Blog" }).click();
+  await page.waitForURL("/blog");
+
+  await expect(page.locator("html")).not.toHaveClass(/instant-nav/);
 });
 
 test("el menú hamburguesa en inglés incluye el cambio de idioma", async ({ page }) => {

@@ -16,6 +16,9 @@ export default function ScrollReveal({
 }: ScrollRevealProps) {
   return (
     <motion.div
+      // Hook para que el CSS pueda dejar la sección en su estado final al
+      // volver de un cambio de idioma (ver lib/instant-nav.ts).
+      data-reveal
       className={className}
       initial={{ opacity: 0, y }}
       whileInView={{ opacity: 1, y: 0 }}

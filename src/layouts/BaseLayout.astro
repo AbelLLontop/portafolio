@@ -8,6 +8,7 @@ import AscentHud from "../components/astro/AscentHud.astro";
 import { buildSeoMeta, SITE_LOCALES, SITE_NAME } from "../lib/seo.ts";
 import { otherLang, type Lang } from "../i18n/index.ts";
 import type { Route } from "../i18n/routes.ts";
+import { INSTANT_NAV_CLASS, INSTANT_NAV_KEY } from "../lib/instant-nav.ts";
 
 interface Props {
   title: string;
@@ -39,6 +40,19 @@ const seo = buildSeoMeta({ title, url: Astro.url, lang, route, slug, description
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
 
+    {/* Tiene que ser inline y acá arriba: corre antes del primer pintado, así
+        que al cambiar de idioma la página ya aparece en su estado final en
+        vez de revelarse de nuevo. Un script empaquetado llegaría tarde. */}
+    <script is:inline define:vars={{ key: INSTANT_NAV_KEY, cls: INSTANT_NAV_CLASS }}>
+      try {
+        if (sessionStorage.getItem(key) === "1") {
+          sessionStorage.removeItem(key);
+          document.documentElement.classList.add(cls);
+        }
+      } catch {
+        // Sin sessionStorage simplemente se anima como en cualquier carga.
+      }
+    </script>
 
     <meta name="description" content={seo.description} />
     <link rel="canonical" href={seo.url} />

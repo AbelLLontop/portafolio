@@ -1,6 +1,7 @@
 import { motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { interpolate } from "../../i18n/interpolate.ts";
+import { isInstantNav } from "../../lib/instant-nav.ts";
 
 /** Un valor de fila puede ser texto suelto o un destino al que se puede ir. */
 export type RowValue = string | { text: string; href: string; external?: boolean };
@@ -265,7 +266,10 @@ export default function TerminalHero({
 
   // El diálogo de apertura no es un caso especial: son dos trabajos encolados.
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    // Sin tecleo en dos casos: cuando el visitante pidió menos movimiento, y
+    // al volver de un cambio de idioma, donde retipear todo el diálogo sería
+    // justo lo contrario de "solo cambiaron las palabras".
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || isInstantNav()) {
       setHistory(exchanges);
       setCycleCount(1);
       setReady(true);
