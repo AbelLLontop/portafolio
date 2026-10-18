@@ -1,6 +1,14 @@
 ---
 import { monoIcon } from "../../lib/tech-icons";
 import { STACK } from "../../lib/profile.ts";
+import { useTranslations, type Lang } from "../../i18n/index.ts";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
 
 // Lista repetida 4 veces para loop infinito sin salto: la animación recorre
 // -25% del ancho total (cuatro copias idénticas), de forma que siempre hay
@@ -10,7 +18,7 @@ import { STACK } from "../../lib/profile.ts";
 const items = [...STACK, ...STACK, ...STACK, ...STACK];
 ---
 
-<section class="mx-auto max-w-5xl px-4 py-6 md:py-8" aria-label="Tecnologías">
+<section class="mx-auto max-w-5xl px-4 py-6 md:py-8" aria-label={t("marquee.label")}>
   <div class="group relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
     <ul class="marquee flex w-max items-center gap-8 pr-8 motion-reduce:animate-none group-hover:[animation-play-state:paused]">
       {items.map((tech, i) => {

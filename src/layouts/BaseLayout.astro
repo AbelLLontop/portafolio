@@ -5,19 +5,26 @@ import Footer from "../components/layout/Footer.astro";
 import Starfield from "../components/react/decor/Starfield.tsx";
 import CursorRocket from "../components/react/decor/CursorRocket.tsx";
 import AscentHud from "../components/astro/AscentHud.astro";
-import { buildSeoMeta, SITE_LOCALE, SITE_NAME } from "../lib/seo.ts";
+import { buildSeoMeta, SITE_LOCALES, SITE_NAME } from "../lib/seo.ts";
+import { otherLang, type Lang } from "../i18n/index.ts";
+import type { Route } from "../i18n/routes.ts";
 
 interface Props {
   title: string;
+  lang: Lang;
+  /** Qué página es, para armar el botón ES/EN y los hreflang. */
+  route: Route;
+  /** Solo para `route="post"`. */
+  slug?: string;
   description?: string;
   image?: string;
 }
 
-const { title, description, image } = Astro.props;
-const seo = buildSeoMeta({ title, url: Astro.url, description, image });
+const { title, lang, route, slug, description, image } = Astro.props;
+const seo = buildSeoMeta({ title, url: Astro.url, lang, route, slug, description, image });
 ---
 
-<html lang="es" class="dark">
+<html lang={lang} class="dark">
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -32,12 +39,21 @@ const seo = buildSeoMeta({ title, url: Astro.url, description, image });
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
 
+
     <meta name="description" content={seo.description} />
     <link rel="canonical" href={seo.url} />
 
+    {/* Cada idioma declara al otro, y x-default manda al español (el sitio
+        por defecto) cuando el navegador no matchea ninguno. */}
+    {seo.alternates.map((alternate) => (
+      <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
+    ))}
+    <link rel="alternate" hreflang="x-default" href={seo.defaultHref} />
+
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={SITE_NAME} />
-    <meta property="og:locale" content={SITE_LOCALE} />
+    <meta property="og:locale" content={seo.locale} />
+    <meta property="og:locale:alternate" content={SITE_LOCALES[otherLang(lang)]} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={seo.description} />
     <meta property="og:image" content={seo.image} />
@@ -52,12 +68,12 @@ const seo = buildSeoMeta({ title, url: Astro.url, description, image });
     <div class="veil"></div>
     <Starfield client:visible />
     <CursorRocket client:visible />
-    <AscentHud />
-    <Header />
+    <AscentHud lang={lang} />
+    <Header lang={lang} route={route} slug={slug} />
     <div class="flex-1">
       <slot />
     </div>
-    <Footer />
+    <Footer lang={lang} />
     <script>
       import { inject } from "@vercel/analytics";
       inject();

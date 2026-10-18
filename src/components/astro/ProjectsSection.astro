@@ -1,31 +1,42 @@
 ---
 import { getCollection } from "astro:content";
 import ProjectCard from "./ProjectCard.astro";
+import { useTranslations, type Lang } from "../../i18n/index.ts";
+import { pathFor } from "../../i18n/routes.ts";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
 
 const projects = await getCollection("projects");
 ---
 
 <section class="mx-auto max-w-5xl px-4 py-12 md:py-16">
-  <p class="section-label">Lo que estoy construyendo</p>
+  <p class="section-label">{t("projects.label")}</p>
   <h2 class="mt-3 font-display text-3xl font-bold tracking-[-0.02em] text-zinc-100 md:text-4xl">
-    Proyectos
+    {t("projects.title")}
   </h2>
   {projects.length === 0 ? (
     <div class="project-placeholder hull-panel relative mt-6 flex flex-col gap-3 overflow-hidden p-8 transition-colors hover:border-accent/50">
       <span class="relative inline-flex w-fit items-center gap-1.5 rounded-full border border-accent/40 px-3 py-1 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-accent">
         <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-accent"></span>
-        en construcción
+        {t("projects.badge")}
       </span>
       <p class="relative max-w-prose text-zinc-300">
-        Todavía no hay nada que enseñar por aquí — estoy construyendo cosas interesantes y
-        pronto las vas a ver en esta sección.
+        {t("projects.placeholder")}
       </p>
       <p class="relative max-w-prose text-sm" style="color: var(--faint);">
-        Mientras tanto, el{" "}
-        <a href="/blog" class="underline decoration-accent/50 underline-offset-4 hover:text-accent">
-          blog
+        {t("projects.meanwhileBefore")}{" "}
+        <a
+          href={pathFor("blog", lang)}
+          class="underline decoration-accent/50 underline-offset-4 hover:text-accent"
+        >
+          {t("projects.meanwhileLink")}
         </a>{" "}
-        tiene notas reales de lo que voy aprendiendo.
+        {t("projects.meanwhileAfter")}
       </p>
     </div>
   ) : (

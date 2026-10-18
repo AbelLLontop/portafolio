@@ -1,0 +1,18 @@
+---
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import BlogIndexBody from "../../../components/pages/BlogIndexBody.astro";
+import { pageTitle } from "../../../lib/seo.ts";
+import { useTranslations } from "../../../i18n/index.ts";
+
+const lang = "en" as const;
+const t = useTranslations(lang);
+---
+
+<BaseLayout
+  title={pageTitle(t("seo.blog.title"))}
+  description={t("seo.blog.description")}
+  lang={lang}
+  route="blog"
+>
+  <BlogIndexBody lang={lang} />
+</BaseLayout>

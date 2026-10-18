@@ -1,70 +1,94 @@
 ---
-import { getCollection } from "astro:content";
 import Wordmark from "../react/Wordmark.tsx";
 import TerminalHero from "../react/TerminalHero.tsx";
-import type { Block, RowValue } from "../react/TerminalHero.tsx";
+import type { Block, Exchange, RowValue } from "../react/TerminalHero.tsx";
 import { CONTACTS, STACK, YEARS_OF_EXPERIENCE } from "../../lib/profile.ts";
 import { formatPostDateShort } from "../../lib/dates.ts";
 import { CONTACT_ICONS } from "../../lib/contact-icons.ts";
+import { getPostNumbers, getPublishedPosts } from "../../lib/posts.ts";
+import { interpolate, pickStrings, useTranslations, type Lang } from "../../i18n/index.ts";
+import { pathFor } from "../../i18n/routes.ts";
 
-const posts = (await getCollection("blog", ({ data }) => !data.draft)).sort(
-  (a, b) => b.data.date.valueOf() - a.data.date.valueOf(),
-);
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const posts = await getPublishedPosts();
+const numbers = await getPostNumbers();
+
+// El diálogo de apertura se escribe solo al cargar; no es un caso especial
+// dentro de la isla, es un intercambio más que se le pasa ya traducido.
+const exchanges: Exchange[] = [
+  {
+    prompt: t("intro.prompt"),
+    blocks: [
+      { kind: "prose", text: t("intro.prose") },
+      { kind: "rows", rows: [[t("cmd.stack"), "node · go · python · react · aws"]] },
+    ],
+  },
+];
 
 // Las respuestas de la consola salen de los mismos datos que renderiza el
 // sitio (stack compartido y colección de blog), nunca de un texto duplicado.
+// Las claves son los nombres de comando traducidos: en inglés se teclea
+// `projects`, no `proyectos`.
 const commands: Record<string, Block[]> = {
-  whoami: [
+  [t("cmd.whoami")]: [
     {
       kind: "prose",
-      text: `Soy Abel Llontop, desarrollador de software peruano. Llevo ${YEARS_OF_EXPERIENCE} años construyendo aplicaciones escalables, automatizando procesos y optimizando sistemas críticos de negocio.`,
+      text: interpolate(t("answer.whoami.intro"), { years: YEARS_OF_EXPERIENCE }),
     },
-    { kind: "rows", rows: [["hago", "aplicaciones, soluciones y sistemas"]] },
+    { kind: "rows", rows: [[t("answer.whoami.doKey"), t("answer.whoami.doValue")]] },
+    { kind: "prose", text: t("answer.whoami.outro") },
+  ],
+  [t("cmd.stack")]: [
+    { kind: "prose", text: t("answer.stack.intro") },
     {
-      kind: "prose",
-      text: "Me divierte investigar, encontrar los problemas y resolverlos. Y me gusta anotar lo que aprendo y compartirlo — por eso existe esta página.",
+      kind: "rows",
+      rows: [[t("answer.stack.key"), STACK.map((tech) => tech.name).join(" · ")]],
     },
   ],
-  stack: [
-    { kind: "prose", text: "Esto es lo que uso en el día a día:" },
-    { kind: "rows", rows: [["día a día", STACK.map((tech) => tech.name).join(" · ")]] },
-  ],
-  proyectos: [
-    {
-      kind: "prose",
-      text: "Todavía no tengo proyectos publicados. El primero está en construcción: una app Node + PostgreSQL dockerizada, detrás de Nginx y con HTTPS que se renueva solo.",
-    },
+  [t("cmd.projects")]: [
+    { kind: "prose", text: t("answer.projects.intro") },
     {
       kind: "rows",
       rows: [
-        ["publicados", "0"],
-        ["en construcción", "1"],
-        ["estado", "en integración"],
+        [t("answer.projects.publishedKey"), "0"],
+        [t("answer.projects.buildingKey"), "1"],
+        [t("answer.projects.statusKey"), t("answer.projects.statusValue")],
       ],
     },
   ],
-  blog: [
+  [t("cmd.blog")]: [
     {
       kind: "prose",
-      text: `Tengo ${posts.length} notas publicadas. Las últimas:`,
+      text: interpolate(t("answer.blog.intro"), { count: posts.length }),
     },
     {
       kind: "entries",
-      entries: posts.slice(0, 3).map((post, index) => ({
-        number: posts.length - index,
+      entries: posts.slice(0, 3).map((post) => ({
+        number: numbers.get(post.id) ?? 0,
         title: post.data.title,
         summary: post.data.summary,
-        date: formatPostDateShort(post.data.date),
-        href: "/blog/" + post.id,
+        date: formatPostDateShort(post.data.date, lang),
+        href: pathFor("post", lang, post.id),
       })),
     },
     {
       kind: "rows",
-      rows: [["todas", { text: "ver el blog completo →", href: "/blog" }]] as [string, RowValue][],
+      rows: [
+        [
+          t("answer.blog.allKey"),
+          { text: t("answer.blog.allValue"), href: pathFor("blog", lang) },
+        ],
+      ] as [string, RowValue][],
     },
   ],
-  contacto: [
-    { kind: "prose", text: "Por acá me encuentras — los dos van directo desde esta consola:" },
+  [t("cmd.contact")]: [
+    { kind: "prose", text: t("answer.contact.intro") },
     {
       kind: "channels",
       channels: CONTACTS.map((contact) => ({
@@ -77,12 +101,39 @@ const commands: Record<string, Block[]> = {
     },
   ],
 };
+
+// La tabla del `help` se arma acá porque es el único lugar que conoce los
+// nombres de comando de este idioma. `help` y `clear` no se traducen: son
+// palabras de consola, iguales en los dos.
+const help: [string, string][] = [
+  [t("cmd.whoami"), t("console.help.whoami")],
+  [t("cmd.stack"), t("console.help.stack")],
+  [t("cmd.projects"), t("console.help.projects")],
+  [t("cmd.blog"), t("console.help.blog")],
+  [t("cmd.contact"), t("console.help.contact")],
+  ["clear", t("console.help.clear")],
+];
+
+// La isla recibe su copy por props en vez de importar el diccionario: así el
+// bundle del cliente lleva solo el idioma de esta página, no los dos.
+const strings = pickStrings(lang, [
+  "console.title",
+  "console.busy",
+  "console.idle",
+  "console.thinking",
+  "console.inputLabel",
+  "console.placeholder",
+  "console.hint",
+  "console.cleared",
+  "console.unknown",
+  "console.helpIntro",
+] as const);
 ---
 
 <section class="mx-auto flex max-w-5xl flex-col gap-8 px-4 pb-12 pt-12 md:pb-14 md:pt-16">
   <div class="flex flex-col gap-5">
     <p class="font-mono text-[0.68rem] uppercase tracking-[0.3em]" style="color: var(--faint);">
-      Lima · Perú · desarrollador de software
+      {t("hero.eyebrow")}
     </p>
 
     <h1 class="flex items-center gap-4">
@@ -97,11 +148,16 @@ const commands: Record<string, Block[]> = {
     </h1>
 
     <p class="max-w-[46ch] leading-relaxed" style="color: var(--dim);">
-      Construyo con apoyo de herramientas de IA y dejo notas técnicas en el camino — cada
-      paso, incluyendo lo que se rompió.
+      {t("hero.tagline")}
     </p>
   </div>
 
   <!-- client:load: above-the-fold, único caso justificado fuera de client:visible -->
-  <TerminalHero commands={commands} client:load />
+  <TerminalHero
+    exchanges={exchanges}
+    commands={commands}
+    help={help}
+    strings={strings}
+    client:load
+  />
 </section>

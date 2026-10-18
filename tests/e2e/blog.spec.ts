@@ -21,7 +21,9 @@ test("el buscador filtra por numero de nota y por texto", async ({ page }) => {
   await page.goto("/blog");
 
   const input = page.getByPlaceholder(/buscar por/);
-  const contador = page.locator("main p.font-mono").first();
+  // El contador por su aria-live y no por .font-mono: es el unico parrafo de
+  // la pagina que se anuncia, y la clase la comparte con otros.
+  const contador = page.locator("main p[aria-live='polite']");
   const filas = page.locator("a[href^='/blog/']");
 
   // La isla es client:visible, asi que hay que esperar a que hidrate ANTES de
@@ -51,7 +53,11 @@ test("el buscador filtra por numero de nota y por texto", async ({ page }) => {
   // un numero que no existe cae en el estado vacio
   await input.fill("999");
   await expect(filas).toHaveCount(0);
-  await expect(page.getByText(/no se encontraron notas/i)).toBeVisible();
+  // Acotado a <main>: el copy de la isla viaja en sus props serializadas, y
+  // el dev toolbar de Astro las muestra como JSON en un <code>. getByText
+  // atraviesa el shadow DOM, asi que sin acotar matchea dos veces y el modo
+  // estricto falla, aunque la pagina este perfecta (en el build no existe).
+  await expect(page.locator("main").getByText(/no se encontraron notas/i)).toBeVisible();
 });
 
 test("el post arma la barra de codigo con boton de icono y enmarca las tablas", async ({

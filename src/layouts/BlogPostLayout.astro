@@ -4,6 +4,9 @@ import BaseLayout from "./BaseLayout.astro";
 import TableOfContents from "../components/astro/TableOfContents.astro";
 import ScrollReveal from "../components/react/ScrollReveal.tsx";
 import { formatPostDate } from "../lib/dates.ts";
+import { pageTitle } from "../lib/seo.ts";
+import { interpolate, useTranslations, type Lang } from "../i18n/index.ts";
+import { pathFor } from "../i18n/routes.ts";
 
 interface Heading {
   depth: number;
@@ -14,16 +17,24 @@ interface Heading {
 interface Props {
   post: CollectionEntry<"blog">;
   number: number;
+  lang: Lang;
   headings?: Heading[];
 }
 
-const { post, number, headings = [] } = Astro.props;
+const { post, number, lang, headings = [] } = Astro.props;
 const { title, date, summary } = post.data;
 
-const formattedDate = formatPostDate(date);
+const t = useTranslations(lang);
+const formattedDate = formatPostDate(date, lang);
 ---
 
-<BaseLayout title={`${title} — abelitolll`} description={summary}>
+<BaseLayout
+  title={pageTitle(title)}
+  description={summary}
+  lang={lang}
+  route="post"
+  slug={post.id}
+>
   <main class="mx-auto max-w-5xl px-4 py-12">
     <div class="lg:grid lg:grid-cols-[1fr_12rem] lg:gap-10">
       <article class="max-w-3xl">
@@ -31,7 +42,7 @@ const formattedDate = formatPostDate(date);
              asi el sticky tiene recorrido para quedarse pegado durante todo
              el scroll, en vez de quedar acotado por un <header> chico. -->
         <div class="post-eyebrow flex items-center gap-3 pt-4">
-          <span class="post-chip">Nota #{number}</span>
+          <span class="post-chip">{interpolate(t("post.chip"), { number })}</span>
           <span class="h-px flex-1" style="background: var(--line);"></span>
         </div>
 
@@ -46,28 +57,47 @@ const formattedDate = formatPostDate(date);
           style="color: var(--faint);"
         >
           {formattedDate}
+          {/* Los .mdx no se traducen: leyendo en inglés conviene saberlo
+              antes de empezar el post, no a mitad de camino. */}
+          {lang !== "es" && (
+            <>
+              <span aria-hidden="true"> · </span>
+              <span>{t("post.spanishNotice")}</span>
+            </>
+          )}
         </p>
 
         <ScrollReveal client:visible y={0}>
-          <div class="prose-post-body">
+          {/* El copy del script (botón de copiar, anclas) viaja por data-*:
+              un <script> de Astro se empaqueta aparte y no ve estas props,
+              y `define:vars` lo volvería inline y sin tipado TS. */}
+          <div
+            class="prose-post-body"
+            data-copy={t("post.copy")}
+            data-copied={t("post.copied")}
+            data-copy-error={t("post.copyError")}
+            data-copy-aria={t("post.copyAria")}
+            data-plaintext={t("post.plaintext")}
+            data-heading-anchor={t("post.headingAnchor")}
+          >
             <slot />
           </div>
         </ScrollReveal>
 
         <footer class="mt-14 border-t pt-6" style="border-color: var(--line);">
           <a
-            href="/blog"
+            href={pathFor("blog", lang)}
             class="inline-flex items-center gap-2 font-mono text-xs tracking-[0.08em] transition-colors hover:text-accent"
             style="color: var(--dim);"
           >
-            <span aria-hidden="true">&#8592;</span> volver a las notas
+            <span aria-hidden="true">&#8592;</span> {t("post.back")}
           </a>
         </footer>
       </article>
       <aside class="hidden lg:block">
         <div class="sticky top-24">
           <ScrollReveal client:visible y={0} delay={0.1}>
-            <TableOfContents headings={headings} />
+            <TableOfContents headings={headings} lang={lang} />
           </ScrollReveal>
         </div>
       </aside>
@@ -189,6 +219,18 @@ const formattedDate = formatPostDate(date);
   const body = document.querySelector<HTMLElement>(".prose-post-body");
 
   if (body) {
+    // Copy traducido, puesto por el .astro en data-* (ver el comentario alla).
+    const COPY = body.dataset.copy ?? "";
+    const COPIED = body.dataset.copied ?? "";
+    const COPY_ERROR = body.dataset.copyError ?? "";
+    const COPY_ARIA = body.dataset.copyAria ?? "";
+    const PLAINTEXT = body.dataset.plaintext ?? "";
+    const HEADING_ANCHOR = body.dataset.headingAnchor ?? "";
+
+    /** Reemplaza los marcadores {asi} del copy que llega por data-*. */
+    const fill = (template: string, values: Record<string, string>) =>
+      template.replace(/\{(\w+)\}/g, (match, key: string) => values[key] ?? match);
+
     // ---- Bloques de codigo -------------------------------------------------
     // Shiki ya deja el lenguaje en data-language, asi que la barra se monta
     // sobre el <pre> existente sin tocar los .mdx ni el tema.
@@ -199,7 +241,7 @@ const formattedDate = formatPostDate(date);
 
     body.querySelectorAll<HTMLPreElement>("pre.astro-code").forEach((pre) => {
       const raw = pre.dataset.language ?? "plaintext";
-      const language = raw === "plaintext" ? "texto" : raw;
+      const language = raw === "plaintext" ? PLAINTEXT : raw;
 
       const wrapper = document.createElement("figure");
       wrapper.className = "code-block";
@@ -212,8 +254,8 @@ const formattedDate = formatPostDate(date);
       const button = document.createElement("button");
       button.type = "button";
       button.className = "code-copy";
-      button.dataset.tip = "Copiar";
-      button.setAttribute("aria-label", `Copiar el código ${language}`);
+      button.dataset.tip = COPY;
+      button.setAttribute("aria-label", fill(COPY_ARIA, { language }));
       button.innerHTML = ICON_COPY + ICON_CHECK;
 
       let resetTimer: ReturnType<typeof setTimeout> | undefined;
@@ -223,15 +265,15 @@ const formattedDate = formatPostDate(date);
         try {
           await navigator.clipboard.writeText(code);
           button.dataset.state = "copied";
-          button.dataset.tip = "Copiado";
+          button.dataset.tip = COPIED;
         } catch {
           button.dataset.state = "error";
-          button.dataset.tip = "No se pudo copiar";
+          button.dataset.tip = COPY_ERROR;
         }
         clearTimeout(resetTimer);
         resetTimer = setTimeout(() => {
           delete button.dataset.state;
-          button.dataset.tip = "Copiar";
+          button.dataset.tip = COPY;
         }, 1800);
       });
 
@@ -251,7 +293,7 @@ const formattedDate = formatPostDate(date);
         anchor.textContent = "#";
         anchor.setAttribute(
           "aria-label",
-          `Enlace a la sección ${heading.textContent ?? ""}`,
+          fill(HEADING_ANCHOR, { heading: heading.textContent ?? "" }),
         );
         heading.prepend(anchor);
       });

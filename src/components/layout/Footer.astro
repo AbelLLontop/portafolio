@@ -1,10 +1,21 @@
 ---
+import { useTranslations, type Lang } from "../../i18n/index.ts";
+import { FOOTER_ROUTES, pathFor } from "../../i18n/routes.ts";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
 const year = new Date().getFullYear();
 
-const navLinks = [
-  { href: "/", label: "Inicio" },
-  { href: "/blog", label: "Blog" },
-];
+// Mismo mapa de rutas que el header: antes el pie tenía su propia lista y las
+// dos podían irse separando.
+const navLinks = FOOTER_ROUTES.map((key) => ({
+  href: pathFor(key, lang),
+  label: t(`nav.${key}`),
+}));
 ---
 
 <footer class="border-t bg-zinc-950/60 backdrop-blur-md" style="border-color: var(--line);">

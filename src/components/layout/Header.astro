@@ -1,11 +1,32 @@
 ---
 import Wordmark from "../react/Wordmark.tsx";
+import { otherLang, useTranslations, type Lang } from "../../i18n/index.ts";
+import { NAV_ROUTES, pathFor, type Route } from "../../i18n/routes.ts";
 
-const navLinks = [
-  { href: "/", label: "Inicio" },
-  { href: "/sobre-mi", label: "Sobre mí" },
-  { href: "/blog", label: "Blog" },
-];
+interface Props {
+  lang: Lang;
+  /** La página actual, para que el botón ES/EN caiga en su equivalente. */
+  route: Route;
+  slug?: string;
+}
+
+const { lang, route, slug } = Astro.props;
+const t = useTranslations(lang);
+
+const navLinks = NAV_ROUTES.map((key) => ({
+  href: pathFor(key, lang),
+  label: t(`nav.${key}`),
+}));
+
+// El botón no manda al inicio del otro idioma sino a *esta misma* página
+// traducida: cambiar de idioma leyendo una nota no debería perder la nota.
+const target = otherLang(lang);
+const switchHref = pathFor(route, target, slug);
+
+// El nombre de cada idioma sale de SU propio diccionario, no del de la
+// página: así el enlace a la versión inglesa dice "English" también cuando
+// se lo lee desde el español.
+const langName = (value: Lang) => useTranslations(value)("nav.langName");
 ---
 
 <header
@@ -13,37 +34,79 @@ const navLinks = [
   style="border-color: var(--line);"
 >
   <div class="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-4">
-    <a href="/" class="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-80">
+    <a
+      href={pathFor("home", lang)}
+      class="flex min-w-0 items-center gap-3 transition-opacity hover:opacity-80"
+    >
       <img src="/images/abelitolll-head.svg" alt="" width="32" height="32" class="h-8 w-8 shrink-0" />
       <Wordmark size="sm" client:visible />
     </a>
 
     <!-- Desktop: los links en linea. Mobile: solo el boton, para que la
          barra nunca crezca a dos filas. -->
-    <nav class="hidden sm:block">
-      <ul class="flex gap-6">
-        {navLinks.map((link) => (
-          <li>
-            <a href={link.href} class="font-mono text-[0.8rem] tracking-[0.06em] text-zinc-400 transition-colors hover:text-accent">
-              {link.label}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
+    <div class="flex items-center gap-5">
+      <nav class="hidden sm:block">
+        <ul class="flex gap-6">
+          {navLinks.map((link) => (
+            <li>
+              <a href={link.href} class="font-mono text-[0.8rem] tracking-[0.06em] text-zinc-400 transition-colors hover:text-accent">
+                {link.label}
+              </a>
+            </li>
+          ))}
+        </ul>
+      </nav>
 
-    <button
-      type="button"
-      id="nav-toggle"
-      class="nav-toggle"
-      aria-label="Abrir el menú"
-      aria-expanded="false"
-      aria-controls="nav-mobile"
-    >
-      <span class="nav-bar"></span>
-      <span class="nav-bar"></span>
-      <span class="nav-bar"></span>
-    </button>
+      <!-- Los dos codigos siempre visibles: el activo marca donde estas y el
+           otro es el link, asi se entiende sin abrir nada. -->
+      <nav
+        class="hidden items-center gap-1 font-mono text-[0.72rem] tracking-[0.08em] sm:flex"
+        aria-label={t("nav.language")}
+      >
+        {lang === "es" ? (
+          <span class="text-accent" aria-current="true">ES</span>
+        ) : (
+          <a
+            href={pathFor(route, "es", slug)}
+            hreflang="es"
+            lang="es"
+            aria-label={langName("es")}
+            class="text-zinc-500 transition-colors hover:text-accent"
+          >
+            ES
+          </a>
+        )}
+        <span aria-hidden="true" style="color: var(--line);">/</span>
+        {lang === "en" ? (
+          <span class="text-accent" aria-current="true">EN</span>
+        ) : (
+          <a
+            href={pathFor(route, "en", slug)}
+            hreflang="en"
+            lang="en"
+            aria-label={langName("en")}
+            class="text-zinc-500 transition-colors hover:text-accent"
+          >
+            EN
+          </a>
+        )}
+      </nav>
+
+      <button
+        type="button"
+        id="nav-toggle"
+        class="nav-toggle"
+        aria-label={t("nav.openMenu")}
+        aria-expanded="false"
+        aria-controls="nav-mobile"
+        data-label-open={t("nav.openMenu")}
+        data-label-close={t("nav.closeMenu")}
+      >
+        <span class="nav-bar"></span>
+        <span class="nav-bar"></span>
+        <span class="nav-bar"></span>
+      </button>
+    </div>
   </div>
 
   <!-- Panel absoluto: se superpone al contenido en vez de empujar el header. -->
@@ -59,6 +122,17 @@ const navLinks = [
           </a>
         </li>
       ))}
+      <li>
+        <a
+          href={switchHref}
+          hreflang={target}
+          lang={target}
+          class="block rounded-sm px-2 py-2.5 font-mono text-sm tracking-[0.06em] transition-colors hover:text-accent"
+          style="color: var(--dim);"
+        >
+          {target.toUpperCase()} · {langName(target)}
+        </a>
+      </li>
     </ul>
   </nav>
 </header>
@@ -144,9 +218,14 @@ const navLinks = [
   const panel = document.getElementById("nav-mobile");
 
   if (toggle && panel) {
+    // Las etiquetas llegan por data-* porque este script se empaqueta aparte y
+    // no puede leer props de Astro; `define:vars` lo volveria inline y sin TS.
+    const labelOpen = toggle.dataset.labelOpen ?? "";
+    const labelClose = toggle.dataset.labelClose ?? "";
+
     const setOpen = (open: boolean) => {
       toggle.setAttribute("aria-expanded", String(open));
-      toggle.setAttribute("aria-label", open ? "Cerrar el menú" : "Abrir el menú");
+      toggle.setAttribute("aria-label", open ? labelClose : labelOpen);
       panel.hidden = !open;
     };
 

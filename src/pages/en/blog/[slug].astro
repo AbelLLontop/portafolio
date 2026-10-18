@@ -1,0 +1,27 @@
+---
+import { getCollection, render } from "astro:content";
+import BlogPostLayout from "../../../layouts/BlogPostLayout.astro";
+import { getPostNumbers } from "../../../lib/posts.ts";
+
+// Mismos posts y mismos números que la versión española: los .mdx no se
+// traducen, lo que cambia es el chrome alrededor (y el aviso de que la nota
+// está en español). La numeración sale de lib/posts.ts, así que `#N` no
+// puede divergir entre idiomas.
+export async function getStaticPaths() {
+  const posts = await getCollection("blog");
+  const numbers = await getPostNumbers();
+
+  return posts.map((post) => ({
+    params: { slug: post.id },
+    props: { post, number: numbers.get(post.id) ?? 0 },
+  }));
+}
+
+const { post, number } = Astro.props;
+const { Content, headings } = await render(post);
+const tocHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
+---
+
+<BlogPostLayout post={post} number={number} headings={tocHeadings} lang="en">
+  <Content />
+</BlogPostLayout>

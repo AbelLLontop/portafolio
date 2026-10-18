@@ -1,5 +1,6 @@
 import { motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { interpolate } from "../../i18n/interpolate.ts";
 
 /** Un valor de fila puede ser texto suelto o un destino al que se puede ir. */
 export type RowValue = string | { text: string; href: string; external?: boolean };
@@ -35,10 +36,32 @@ export interface Exchange {
   blocks: Block[];
 }
 
+/**
+ * Copy de la consola, ya traducido. Llega por props y no importando el
+ * diccionario: así el bundle del cliente lleva solo el idioma de la página.
+ */
+export interface TerminalStrings {
+  "console.title": string;
+  "console.busy": string;
+  "console.idle": string;
+  "console.thinking": string;
+  "console.inputLabel": string;
+  "console.placeholder": string;
+  "console.hint": string;
+  "console.cleared": string;
+  /** Lleva el marcador {command}. */
+  "console.unknown": string;
+  "console.helpIntro": string;
+}
+
 interface TerminalHeroProps {
-  exchanges?: Exchange[];
+  /** Diálogo de apertura, que la consola teclea sola al cargar. */
+  exchanges: Exchange[];
   /** Respuestas de los comandos; las arma la página desde sus propios datos. */
-  commands?: Record<string, Block[]>;
+  commands: Record<string, Block[]>;
+  /** Filas de la tabla del `help`: nombre del comando y qué hace. */
+  help: [string, string][];
+  strings: TerminalStrings;
 }
 
 interface Job extends Exchange {
@@ -48,23 +71,6 @@ interface Job extends Exchange {
   pauseMs: number;
   endsIntro?: boolean;
 }
-
-const DEFAULT_EXCHANGES: Exchange[] = [
-  {
-    prompt: "¿quién eres?",
-    blocks: [
-      {
-        kind: "prose",
-        text: "Soy Abel Llontop, desarrollador de software peruano. Me dedico a construir sistemas, aprender y divertirme en el camino.",
-      },
-      { kind: "rows", rows: [["stack", "node · go · python · react · aws"]] },
-    ],
-  },
-];
-
-const DEFAULT_COMMANDS: Record<string, Block[]> = {
-  whoami: [{ kind: "prose", text: "Soy Abel — desarrollador de software peruano, 3 años." }],
-};
 
 const PROMPT_CHAR_MS = 45;
 const PROSE_CHAR_MS = 9;
@@ -235,8 +241,10 @@ function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
 }
 
 export default function TerminalHero({
-  exchanges = DEFAULT_EXCHANGES,
-  commands = DEFAULT_COMMANDS,
+  exchanges,
+  commands,
+  help,
+  strings,
 }: TerminalHeroProps) {
   const [history, setHistory] = useState<Exchange[]>([]);
   const [queue, setQueue] = useState<Job[]>([]);
@@ -385,25 +393,15 @@ export default function TerminalHero({
       if (command === "clear") {
         setHistory([]);
         enqueue(raw.trim(), [
-          { kind: "note", tone: "system", text: "consola limpia · escribe help para ver los comandos" },
+          { kind: "note", tone: "system", text: strings["console.cleared"] },
         ]);
         return;
       }
 
       if (command === "help") {
         enqueue(raw.trim(), [
-          { kind: "prose", text: "Estos son los comandos que entiende esta consola:" },
-          {
-            kind: "rows",
-            rows: [
-              ["whoami", "quién soy, en corto"],
-              ["stack", "las tecnologías que uso"],
-              ["proyectos", "en qué estoy trabajando"],
-              ["blog", "mis últimas notas publicadas"],
-              ["contacto", "dónde encontrarme"],
-              ["clear", "limpia la consola"],
-            ],
-          },
+          { kind: "prose", text: strings["console.helpIntro"] },
+          { kind: "rows", rows: help },
         ]);
         return;
       }
@@ -414,7 +412,7 @@ export default function TerminalHero({
           {
             kind: "note",
             tone: "warn",
-            text: `No conozco el comando "${command}". Escribe help para ver la lista.`,
+            text: interpolate(strings["console.unknown"], { command }),
           },
         ]);
         return;
@@ -422,7 +420,7 @@ export default function TerminalHero({
 
       enqueue(raw.trim(), blocks);
     },
-    [busy, commands, enqueue],
+    [busy, commands, enqueue, help, strings],
   );
 
   const typedPrompt =
@@ -457,8 +455,10 @@ export default function TerminalHero({
           />
           <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--line)" }} />
           <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--line)" }} />
-          <span className="ml-1.5">abel llontop · consola</span>
-          <span className="ml-auto hidden sm:inline">{busy ? "escribiendo…" : "en espera"}</span>
+          <span className="ml-1.5">{strings["console.title"]}</span>
+          <span className="ml-auto hidden sm:inline">
+            {busy ? strings["console.busy"] : strings["console.idle"]}
+          </span>
         </div>
 
         <div
@@ -490,7 +490,7 @@ export default function TerminalHero({
 
               {phase === "thinking" && (
                 <p className="mt-1 flex items-center gap-1" style={{ color: "var(--faint)" }}>
-                  pensando
+                  {strings["console.thinking"]}
                   <span className="inline-flex gap-0.5">
                     <span className="animate-bounce">.</span>
                     <span className="animate-bounce [animation-delay:150ms]">.</span>
@@ -509,9 +509,7 @@ export default function TerminalHero({
           )}
 
           {!busy && !usedConsole && history.length > 0 && (
-            <p style={{ color: "var(--go)" }}>
-              la consola acepta comandos — escribe help o toca uno de los botones.
-            </p>
+            <p style={{ color: "var(--go)" }}>{strings["console.hint"]}</p>
           )}
         </div>
 
@@ -532,8 +530,8 @@ export default function TerminalHero({
             disabled={busy}
             autoComplete="off"
             spellCheck={false}
-            aria-label="Consola"
-            placeholder={busy ? "escribiendo…" : "escribe un comando…"}
+            aria-label={strings["console.inputLabel"]}
+            placeholder={busy ? strings["console.busy"] : strings["console.placeholder"]}
             className="min-w-0 flex-1 bg-transparent p-0 text-base text-zinc-100 caret-accent outline-none transition-opacity placeholder:text-zinc-600 disabled:opacity-40 sm:text-[0.84rem]"
           />
         </form>

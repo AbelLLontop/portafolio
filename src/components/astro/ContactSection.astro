@@ -1,18 +1,25 @@
 ---
 import { CONTACTS } from "../../lib/profile.ts";
 import { CONTACT_ICONS } from "../../lib/contact-icons.ts";
+import { useTranslations, type Lang } from "../../i18n/index.ts";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
 
 const contacts = CONTACTS.map((contact) => ({ ...contact, icon: CONTACT_ICONS[contact.key] }));
 ---
 
 <section class="mx-auto max-w-5xl px-4 py-12 md:py-20">
-  <p class="section-label">Dónde encontrarme</p>
+  <p class="section-label">{t("contact.label")}</p>
   <h2 class="mt-3 font-display text-3xl font-bold tracking-[-0.02em] text-zinc-100 md:text-4xl">
-    Contacto
+    {t("contact.title")}
   </h2>
   <p class="mt-3 max-w-prose" style="color: var(--dim);">
-    Si quieres hablar de algo que estoy construyendo, proponerme un proyecto o simplemente
-    saludar, por aquí me encuentras.
+    {t("contact.intro")}
   </p>
   <div class="mt-6 flex flex-wrap gap-4">
     {contacts.map((contact) => (

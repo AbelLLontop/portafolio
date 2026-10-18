@@ -19,7 +19,7 @@ Es el primer proyecto del usuario construido con Claude Code, y una motivación 
 - **Proyectos:** el usuario actualmente no tiene proyectos reales listos para mostrar. La sección de proyectos se construye como **"en construcción"**: un placeholder con la misma calidad visual que el resto del sitio (no un simple texto "coming soon"), diseñado para ser reemplazado fácilmente por tarjetas reales cuando existan. No se inventan proyectos falsos ni demos de relleno presentados como reales.
 - **Blog:** contenido en Markdown/MDX dentro del repo (Astro Content Collections), sin CMS externo ni backend.
 - **Nivel de interactividad:** la capa de ambiente (campo de estrellas reactivo, HUD de altitud, cohete que sigue al cursor) es ambiciosa y responde al visitante; la capa de contenido se mantiene legible y sin ruido. El criterio es “hecho a medida”, no “discreto”.
-- **Idioma:** español únicamente por ahora (usuario está aprendiendo inglés; no bilingüe todavía, pero no cerrar la puerta a i18n futuro).
+- **Idioma:** el sitio es bilingüe español/inglés. El español es el idioma por defecto y va **sin prefijo** de ruta (`/`, `/blog`, `/blog/<slug>`); el inglés vive bajo `/en/` (`/en/`, `/en/about`, `/en/blog`). Los slugs de las páginas fijas se traducen (`/sobre-mi` ↔ `/en/about`). Se traduce **toda la interfaz** (navegación, hero, consola, secciones, listado del blog, HUD, meta tags); el **contenido de los posts sigue en español** y no se duplica — en la versión inglesa se avisa con una línea sobria, en el listado y dentro del post. El cambio de idioma es explícito, por un botón ES/EN en el nav que lleva a *la misma* página en el otro idioma (no al inicio); no hay detección automática por navegador, que exigiría SSR.
 - **Contacto:** solo GitHub + LinkedIn, sin foto adicional de perfil, sin formulario. El correo electrónico no se publica en el sitio: es un dato personal y queda fuera por privacidad.
 - **Sobre mí:** página dedicada (`/sobre-mi`, enlazada en el nav entre "Inicio" y "Blog") con un resumen profesional breve: enfoque como desarrollador de software, años de experiencia (texto fijo, no calculado), stack principal, y mención de apoyo en herramientas de IA. Usa el mismo SVG de marca (cabeza + cohete) que el Hero, no una foto personal. Sin timeline de empleos (empresa/cargo/fechas).
 - **Tema visual:** dark mode por defecto, estética terminal/dev, un solo color de acento (azul tipo React o celeste tipo Go — decisión final del acento abierta, ver Open Questions), sin exagerar en estética "hacker" (el usuario es más frontend, nunca trabajó estética hacker/neón).
@@ -90,9 +90,18 @@ Format:                 npm run format       # prettier --write .
 │   │   │   ├── ProjectCard.astro
 │   │   │   ├── AscentHud.astro   → HUD fijo de altitud/fase por scroll (desktop)
 │   │   │   └── TechBadge.astro   → logo + nombre de tecnología
-│   │   └── layout/
-│   │       ├── Header.astro
-│   │       └── Footer.astro
+│   │   ├── layout/
+│   │   │   ├── Header.astro       → nav + botón de idioma ES/EN
+│   │   │   └── Footer.astro
+│   │   └── pages/                → cuerpo de cada página, con `lang` como prop
+│   │       ├── HomeBody.astro     → lo comparten `/` y `/en/`
+│   │       ├── AboutBody.astro    → lo comparten `/sobre-mi` y `/en/about`
+│   │       └── BlogIndexBody.astro → lo comparten `/blog` y `/en/blog`
+│   ├── i18n/
+│   │   ├── ui.ts                 → diccionario ES/EN, única fuente del copy de la interfaz
+│   │   ├── index.ts              → tipo Lang, `useTranslations`, `pickStrings` para las islas
+│   │   ├── interpolate.ts        → reemplazo de marcadores {asi}; también lo usan las islas
+│   │   └── routes.ts             → mapa de rutas por idioma; alimenta nav, botón ES/EN y hreflang
 │   ├── content/
 │   │   ├── config.ts             → schema zod de blog y proyectos
 │   │   ├── blog/                 → posts .mdx
@@ -100,17 +109,24 @@ Format:                 npm run format       # prettier --write .
 │   ├── layouts/
 │   │   ├── BaseLayout.astro       → head, meta tags, OG, fonts
 │   │   └── BlogPostLayout.astro
-│   ├── pages/
+│   ├── pages/                    → envoltorios finos: eligen idioma y layout
 │   │   ├── index.astro            → hero + proyectos + contacto
 │   │   ├── sobre-mi.astro         → resumen profesional breve, enlazado en el nav
 │   │   ├── blog/
 │   │   │   ├── index.astro        → listado de posts
 │   │   │   └── [slug].astro       → post individual
-│   │   └── rss.xml.js             → opcional, ver Open Questions
+│   │   └── en/                   → misma estructura, en inglés (ver Boundaries, Idioma)
+│   │       ├── index.astro
+│   │       ├── about.astro
+│   │       └── blog/
+│   │           ├── index.astro
+│   │           └── [slug].astro
 │   ├── styles/
 │   │   └── global.css             → tema Tailwind, variables de color de acento
 │   └── lib/
-│       └── seo.ts                  → helpers de meta tags/OG
+│       ├── seo.ts                  → helpers de meta tags/OG/hreflang
+│       ├── posts.ts                → notas publicadas y numeración `#N` compartida
+│       └── dates.ts                → formato de fecha por idioma, siempre en UTC
 ├── astro.config.mjs
 ├── tailwind.config.mjs
 └── SPEC.md
@@ -231,7 +247,7 @@ Dado que es un sitio estático personal sin lógica de negocio compleja, la estr
 2. **Tratamiento del wordmark "abelitolll":** ✅ libertad creativa total para Claude al momento de implementar (glitch, ensamblado, u otro efecto con las "L"), siempre dentro del límite de "sutil y elegante" ya acordado — no debe sentirse ruidoso ni afectar la legibilidad del nombre.
 3. **Copy de la sección "en construcción":** ✅ tono **personal/casual** (ej. "Estoy construyendo cosas interesantes, pronto las verás aquí" o variación propia de Claude en ese tono), manteniendo la misma calidad visual del resto del sitio — no es un texto plano de disculpa, es una pieza de diseño más.
 4. **RSS feed:** ✅ se omite. El blog es de uso personal, sin audiencia externa suscribiéndose. Se puede agregar en el futuro sin fricción si cambia el caso de uso.
-5. **i18n futuro:** ✅ se construye 100% en español, sin preparar estructura de carpetas/rutas para inglés. Si en el futuro se necesita, se aborda como trabajo aparte en ese momento — no se sobre-ingenieriza ahora.
+5. **i18n:** ✅ el sitio es bilingüe ES/EN (ver Boundaries, *Idioma*). Se usa el **i18n nativo de Astro** para el ruteo (bloque `i18n` en `astro.config.mjs` con `prefixDefaultLocale: false`, más la carpeta `src/pages/en/`) y un **diccionario de strings propio** en `src/i18n/ui.ts` para la interfaz, que es el patrón que recomienda Astro al no traer capa de traducción de UI. El diccionario es la única fuente de verdad del copy: los `.astro` y `.tsx` no llevan texto suelto, y el diccionario inglés está tipado contra el español, así que una clave sin traducir rompe el type-check en vez de dejar un hueco en producción. Los posts `.mdx` no se traducen y el esquema de la colección no cambia: crear un post nuevo es igual que antes.
 
 ## Próximo paso
 

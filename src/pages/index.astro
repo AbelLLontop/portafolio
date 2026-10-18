@@ -1,24 +1,12 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
-import Hero from "../components/astro/Hero.astro";
-import TechMarquee from "../components/astro/TechMarquee.astro";
-import ProjectsSection from "../components/astro/ProjectsSection.astro";
-import ContactSection from "../components/astro/ContactSection.astro";
-import ScrollReveal from "../components/react/ScrollReveal.tsx";
+import HomeBody from "../components/pages/HomeBody.astro";
+import { useTranslations } from "../i18n/index.ts";
+
+const lang = "es" as const;
+const t = useTranslations(lang);
 ---
 
-<BaseLayout
-  title="abelitolll — Desarrollador de software"
-  description="abelitolll — página personal de Abel Llontop, desarrollador de software peruano. Backend, aplicaciones web y notas técnicas."
->
-  <Hero />
-  <ScrollReveal client:visible y={16}>
-    <TechMarquee />
-  </ScrollReveal>
-  <ScrollReveal client:visible y={32}>
-    <ProjectsSection />
-  </ScrollReveal>
-  <ScrollReveal client:visible y={32}>
-    <ContactSection />
-  </ScrollReveal>
+<BaseLayout title={t("seo.home.title")} lang={lang} route="home">
+  <HomeBody lang={lang} />
 </BaseLayout>

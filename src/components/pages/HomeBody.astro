@@ -1,0 +1,27 @@
+---
+// El cuerpo del inicio vive acá y no en la página para que las dos rutas
+// (`/` y `/en/`) compartan el mismo markup y solo cambie el idioma.
+import Hero from "../astro/Hero.astro";
+import TechMarquee from "../astro/TechMarquee.astro";
+import ProjectsSection from "../astro/ProjectsSection.astro";
+import ContactSection from "../astro/ContactSection.astro";
+import ScrollReveal from "../react/ScrollReveal.tsx";
+import type { Lang } from "../../i18n/index.ts";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+---
+
+<Hero lang={lang} />
+<ScrollReveal client:visible y={16}>
+  <TechMarquee lang={lang} />
+</ScrollReveal>
+<ScrollReveal client:visible y={32}>
+  <ProjectsSection lang={lang} />
+</ScrollReveal>
+<ScrollReveal client:visible y={32}>
+  <ContactSection lang={lang} />
+</ScrollReveal>

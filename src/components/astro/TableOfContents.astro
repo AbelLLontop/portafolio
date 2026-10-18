@@ -1,4 +1,6 @@
 ---
+import { useTranslations, type Lang } from "../../i18n/index.ts";
+
 interface Heading {
   depth: number;
   slug: string;
@@ -7,17 +9,19 @@ interface Heading {
 
 interface Props {
   headings: Heading[];
+  lang: Lang;
 }
 
-const { headings } = Astro.props;
+const { headings, lang } = Astro.props;
+const t = useTranslations(lang);
 ---
 
 {
   headings.length > 0 && (
-    <nav class="toc" aria-label="Índice del post">
+    <nav class="toc" aria-label={t("toc.label")}>
       {/* Sin -ml-3 (que anulaba el pl-3 del indice) el titulo deja de pegarse
           a la linea; el pl-0.5 lo cuadra con el borde de 2px de los items. */}
-      <p class="section-label mb-3 pl-0.5">En este post</p>
+      <p class="section-label mb-3 pl-0.5">{t("toc.title")}</p>
       <ul class="space-y-0.5">
         {headings.map((heading) => (
           <li>

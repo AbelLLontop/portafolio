@@ -1,16 +1,14 @@
 ---
 import { getCollection, render } from "astro:content";
 import BlogPostLayout from "../../layouts/BlogPostLayout.astro";
+import { getPostNumbers } from "../../lib/posts.ts";
 
 export async function getStaticPaths() {
+  // Sin filtro: los drafts también generan página (no salen en el listado,
+  // pero se pueden ver con la URL directa). La numeración, en cambio, solo
+  // cuenta las publicadas, así que un draft puede no tener número.
   const posts = await getCollection("blog");
-
-  const chronological = posts
-    .filter((post) => !post.data.draft)
-    .sort((a, b) => a.data.date.valueOf() - b.data.date.valueOf());
-  const numbers = new Map(
-    chronological.map((post, index) => [post.id, index + 1]),
-  );
+  const numbers = await getPostNumbers();
 
   return posts.map((post) => ({
     params: { slug: post.id },
@@ -23,6 +21,6 @@ const { Content, headings } = await render(post);
 const tocHeadings = headings.filter((heading) => heading.depth === 2 || heading.depth === 3);
 ---
 
-<BlogPostLayout post={post} number={number} headings={tocHeadings}>
+<BlogPostLayout post={post} number={number} headings={tocHeadings} lang="es">
   <Content />
 </BlogPostLayout>

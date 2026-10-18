@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { interpolate } from "../../i18n/interpolate.ts";
 
 export interface BlogListPost {
   slug: string;
@@ -9,8 +10,30 @@ export interface BlogListPost {
   number: number;
 }
 
+/**
+ * Copy del listado, ya traducido. Llega por props y no importando el
+ * diccionario: así el bundle del cliente lleva solo el idioma de la página.
+ */
+export interface BlogListStrings {
+  "blog.searchLabel": string;
+  "blog.searchPlaceholder": string;
+  /** Lleva el marcador {total}. */
+  "blog.count": string;
+  /** Lleva los marcadores {shown} y {total}. */
+  "blog.countFiltered": string;
+  /** Lleva los marcadores {current} y {total}. */
+  "blog.pageInfo": string;
+  "blog.noResults": string;
+  "blog.noResultsHint": string;
+  "blog.prev": string;
+  "blog.next": string;
+}
+
 interface BlogListProps {
   posts: BlogListPost[];
+  /** Base de los enlaces: `/blog` en español, `/en/blog` en inglés. */
+  blogPath: string;
+  strings: BlogListStrings;
 }
 
 const POSTS_PER_PAGE = 10;
@@ -20,7 +43,7 @@ const CONTROL_STYLE = {
   background: "rgb(255 255 255 / 0.02)",
 };
 
-export default function BlogList({ posts }: BlogListProps) {
+export default function BlogList({ posts, blogPath, strings }: BlogListProps) {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const topRef = useRef<HTMLDivElement>(null);
@@ -75,10 +98,10 @@ export default function BlogList({ posts }: BlogListProps) {
       {/* text-base en mobile: por debajo de 16px iOS hace zoom al enfocar */}
       <input
         type="search"
-        aria-label="Buscar notas por título o número"
+        aria-label={strings["blog.searchLabel"]}
         value={query}
         onChange={(e) => updateQuery(e.target.value)}
-        placeholder="buscar por título o número…"
+        placeholder={strings["blog.searchPlaceholder"]}
         style={CONTROL_STYLE}
         className="w-full rounded-lg border px-4 py-2.5 font-mono text-base text-zinc-100 caret-accent outline-none transition-colors placeholder:text-zinc-600 focus:border-accent sm:text-sm"
       />
@@ -91,9 +114,16 @@ export default function BlogList({ posts }: BlogListProps) {
         style={{ color: "var(--faint)" }}
       >
         {filtered.length === posts.length
-          ? `${posts.length} notas`
-          : `${filtered.length} de ${posts.length} notas`}
-        {totalPages > 1 && ` · página ${currentPage} de ${totalPages}`}
+          ? interpolate(strings["blog.count"], { total: posts.length })
+          : interpolate(strings["blog.countFiltered"], {
+              shown: filtered.length,
+              total: posts.length,
+            })}
+        {totalPages > 1 &&
+          ` · ${interpolate(strings["blog.pageInfo"], {
+            current: currentPage,
+            total: totalPages,
+          })}`}
       </p>
 
       {filtered.length === 0 ? (
@@ -101,9 +131,9 @@ export default function BlogList({ posts }: BlogListProps) {
           className="mt-6 rounded-xl border border-dashed p-8 text-center"
           style={{ borderColor: "var(--line)" }}
         >
-          <p className="text-zinc-300">No se encontraron notas con esa búsqueda.</p>
+          <p className="text-zinc-300">{strings["blog.noResults"]}</p>
           <p className="mt-2 text-sm" style={{ color: "var(--faint)" }}>
-            Prueba con otras palabras.
+            {strings["blog.noResultsHint"]}
           </p>
         </div>
       ) : (
@@ -113,7 +143,7 @@ export default function BlogList({ posts }: BlogListProps) {
             // numero manda, el borde izquierdo se enciende y la fila se corre.
             <a
               key={post.slug}
-              href={`/blog/${post.slug}`}
+              href={`${blogPath}/${post.slug}`}
               className="group -ml-3 grid grid-cols-[3.4rem_1fr] gap-x-3 rounded-lg border-l-2 border-transparent py-5 pl-3 transition-all hover:border-accent hover:bg-[color-mix(in_srgb,var(--color-accent)_5%,transparent)] hover:pl-4 sm:grid-cols-[4.2rem_1fr]"
               style={{ borderBottom: "1px solid var(--line)" }}
             >
@@ -158,7 +188,7 @@ export default function BlogList({ posts }: BlogListProps) {
             style={CONTROL_STYLE}
             className="rounded-lg border px-3.5 py-2 font-mono text-xs tracking-[0.06em] text-zinc-300 transition-colors disabled:opacity-35 enabled:hover:border-accent enabled:hover:text-accent"
           >
-            ← anterior
+            {strings["blog.prev"]}
           </button>
           <button
             type="button"
@@ -167,7 +197,7 @@ export default function BlogList({ posts }: BlogListProps) {
             style={CONTROL_STYLE}
             className="rounded-lg border px-3.5 py-2 font-mono text-xs tracking-[0.06em] text-zinc-300 transition-colors disabled:opacity-35 enabled:hover:border-accent enabled:hover:text-accent"
           >
-            siguiente →
+            {strings["blog.next"]}
           </button>
         </div>
       )}
