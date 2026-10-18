@@ -42,6 +42,7 @@ Cada feature es vertical (deja algo corriendo y verificable), no toca más de 8 
 - [x] F35 — Menú de hamburguesa en mobile
 - [x] F36 — Fuera el email de los canales de contacto
 - [x] F37 — Copy en primera persona, sin tono de marca personal
+- [x] F38 — Arreglo del índice del post y de los tests que quedaron huérfanos
 
 ---
 
@@ -271,3 +272,13 @@ El tratamiento display se reubica en `src/pages/sobre-mi.astro`, donde una decla
 **SPEC.md:** sin cambios. El spec no fija ninguno de estos textos; solo pide tono personal/casual para el copy (línea 232), que es justo lo que este cambio refuerza.
 **Excluye:** el párrafo bajo el wordmark de la home ("Construyo con apoyo de herramientas de IA y dejo notas técnicas en el camino — cada paso, incluyendo lo que se rompió"), que se probó reescrito y se volvió al original a pedido explícito; el copy de "en construcción" y el de contacto, que ya están en ese tono y los confirma el spec; la poda de `STACK` (Java, Spring Boot, .NET y Angular siguen listados, pendientes de revisión del autor); la cifra de años en la prosa del `whoami`; la descripción del sitio, que sigue en revisión; y los posts del blog, cuyo texto es del autor.
 **Verificación:** `npm run check` (0 errores); `npm run lint` (sin findings); `npm run build` (15 páginas); `npx playwright test --workers=1` → 7 pasan y falla `blog.spec.ts:107` ("la barra compacta del post aparece sin mover el contenido"), que ya fallaba igual en `main` antes de este cambio y no toca copy.
+## F38 — Arreglo del índice del post y de los tests que quedaron huérfanos
+
+**Incluye:** `83b365f` (título sticky) reemplazó `.post-bar` / `.post-bar-panel` por `.post-title` + `.is-stuck`, pero solo tocó `src/layouts/BlogPostLayout.astro` y dejó dos referencias atrás. En `src/components/astro/TableOfContents.astro` el `querySelector(".post-bar")` devolvía `null`, así que `topOffset()` siempre caía en `NAV_HEIGHT = 64` y, con el título pegado (que mide más que eso), un clic en el índice dejaba el heading destino tapado detrás de la banda; ahora mide `.post-title` cuando tiene `is-stuck`. En `tests/e2e/blog.spec.ts` el test de la barra apuntaba a un selector inexistente y fallaba como "element not found", lo que tapaba el bug real: se reapunta a `.post-title` / `.is-stuck` y se agrega un assert de que el número de nota solo aparece encogido. El test del buscador tenía una carrera de hidratación —`input.fill()` corría antes de que hidratara la isla `client:visible`, React montaba con su estado vacío y pisaba lo tipeado, así que el filtro nunca se aplicaba—; ahora espera a que Astro le quite el atributo `ssr` a la isla, que es el instante exacto en que termina de hidratar. Se agrega un test del índice con el título ya pegado, que es el caso que cubre la corrección.
+
+**SPEC.md:** sin cambios. El spec no describe el mecanismo del título sticky a este nivel.
+
+**Excluye:** el corrimiento del contenido. El título es `position: sticky`, así que sigue ocupando su lugar en el flujo y al encogerse (81 px → 45.3 px, medido en Chromium a 1440×1000) arrastra todo lo que viene después 35.7 px hacia arriba — contra la intención explícita de `de015bc`. Se decidió dejarlo y documentarlo: los dos tests lo afirman como relación (`corrimiento ≈ encogido`) en vez de un número fijo, con un comentario `DEUDA CONOCIDA`, para que sigan sirviendo si cambia el tamaño de la banda. Por lo mismo, saltar desde arriba con un link del índice todavía deja el heading tapado: el offset se calcula al hacer clic, cuando el título aún mide grande. El arreglo pendiente es reservar el hueco del `<h1>` para que el encogido no refluya.
+
+**Verificación:** `npx playwright test` → 9 pasan (el baseline antes de este cambio era 6 pasan / 2 fallan); `npm run check` (0 errores); `npm run lint` (sin findings).
+

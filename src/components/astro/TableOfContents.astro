@@ -44,15 +44,15 @@ const { headings } = Astro.props;
       .map((slug) => document.getElementById(slug))
       .filter((el): el is HTMLElement => el !== null);
 
-    // El offset lo marca la barra compacta cuando esta visible; si no, el nav.
-    // Medir el header del post ya no sirve: es estatico y se va del viewport.
+    // El offset lo marca el titulo del post cuando quedo pegado y funciona
+    // como barra; si no, el nav. Medir el header del post ya no sirve: es
+    // estatico y se va del viewport.
     const NAV_HEIGHT = 64;
-    const bar = document.querySelector<HTMLElement>(".post-bar");
-    const panel = document.querySelector<HTMLElement>(".post-bar-panel");
+    const title = document.querySelector<HTMLElement>(".post-title");
 
     const topOffset = () =>
-      bar?.classList.contains("is-visible") && panel
-        ? panel.getBoundingClientRect().bottom
+      title?.classList.contains("is-stuck")
+        ? title.getBoundingClientRect().bottom
         : NAV_HEIGHT;
 
     links.forEach((link) => {
