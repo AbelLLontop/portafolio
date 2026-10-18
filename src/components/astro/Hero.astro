@@ -19,25 +19,15 @@ const commands: Record<string, Block[]> = {
       kind: "prose",
       text: `Soy Abel Llontop, desarrollador de software peruano. Llevo ${YEARS_OF_EXPERIENCE} años construyendo aplicaciones escalables, automatizando procesos y optimizando sistemas críticos de negocio.`,
     },
+    { kind: "rows", rows: [["hago", "aplicaciones, soluciones y sistemas"]] },
     {
-      kind: "rows",
-      rows: [
-        ["hago", "microservicios, APIs REST, integración de sistemas"],
-        ["se me da bien", "grandes volúmenes de datos"],
-        ["escribo", "cada despliegue, incluyendo lo que se rompió"],
-      ],
+      kind: "prose",
+      text: "Me divierte investigar, encontrar los problemas y resolverlos. Y me gusta anotar lo que aprendo y compartirlo — por eso existe esta página.",
     },
   ],
   stack: [
     { kind: "prose", text: "Esto es lo que uso en el día a día:" },
-    {
-      kind: "rows",
-      rows: [
-        ["día a día", STACK.map((tech) => tech.name).join(" · ")],
-        ["además", "pm2 · certbot · ufw · docker compose"],
-        ["despliegue", "vercel · digitalocean"],
-      ],
-    },
+    { kind: "rows", rows: [["día a día", STACK.map((tech) => tech.name).join(" · ")]] },
   ],
   proyectos: [
     {
@@ -56,7 +46,7 @@ const commands: Record<string, Block[]> = {
   blog: [
     {
       kind: "prose",
-      text: `Tengo ${posts.length} notas publicadas, escritas el mismo día que pasaron. Las últimas:`,
+      text: `Tengo ${posts.length} notas publicadas. Las últimas:`,
     },
     {
       kind: "entries",

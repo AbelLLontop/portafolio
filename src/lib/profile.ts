@@ -35,13 +35,6 @@ export const STACK: Tech[] = [
 
 export const YEARS_OF_EXPERIENCE = 3;
 
-/** Lo usa el dialogo de apertura de la consola del hero. */
-export const WORK_APPROACH: [string, string][] = [
-  ["metodología", "ágil"],
-  ["foco", "sistemas robustos y mantenibles"],
-  ["escribo", "también lo que se rompió"],
-];
-
 export interface Contact {
   key: "github" | "linkedin";
   label: string;

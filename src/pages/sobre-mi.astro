@@ -2,7 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import TechBadge from "../components/astro/TechBadge.astro";
 import ScrollReveal from "../components/react/ScrollReveal.tsx";
-import { STACK as stack, YEARS_OF_EXPERIENCE } from "../lib/profile.ts";
+import { STACK as stack } from "../lib/profile.ts";
 ---
 
 <BaseLayout
@@ -16,14 +16,20 @@ import { STACK as stack, YEARS_OF_EXPERIENCE } from "../lib/profile.ts";
       <div class="mt-10 flex flex-col-reverse items-center gap-12 md:flex-row-reverse md:items-center md:gap-16">
         <div class="min-w-0">
           <h1 class="about-headline font-display font-extrabold text-zinc-100">
-            Escribo lo que construyo.<br />
-            <span style="color: var(--dim);">Y también lo que se rompe.</span>
+            Soy Abel Llontop.<br />
+            <span style="color: var(--dim);">Desarrollador de software.</span>
           </h1>
           <p class="mt-6 max-w-prose leading-relaxed" style="color: var(--dim);">
-            Soy desarrollador de software peruano, con {YEARS_OF_EXPERIENCE} años de experiencia
-            construyendo aplicaciones escalables, automatizando procesos y optimizando sistemas
-            críticos de negocio — microservicios, APIs REST, integración de sistemas y manejo de
-            grandes volúmenes de datos.
+            Aprender y crear es lo que más me gusta. Cada cosa nueva que aparece me despierta
+            la curiosidad y las ganas de entender cómo funciona.
+          </p>
+          <p class="mt-4 max-w-prose leading-relaxed" style="color: var(--dim);">
+            Llevo algunos años trabajando como desarrollador en áreas distintas, así que sé un
+            poco de todo: aplicaciones, automatización de procesos y sistemas de negocio, con el
+            grado de bachiller en Ingeniería de Sistemas e Informática de base. Hoy me apoyo en
+            herramientas de IA para sacarme de encima lo repetitivo y avanzar a una velocidad
+            que antes no era posible. Me gusta conversar de tecnología y de lo que va
+            saliendo, y sobre todo divertirme aprendiendo.
           </p>
         </div>
 
@@ -62,8 +68,8 @@ import { STACK as stack, YEARS_OF_EXPERIENCE } from "../lib/profile.ts";
       className="mt-12 flex flex-col items-start gap-4 border-t border-[var(--line)] pt-8 sm:flex-row sm:items-center sm:justify-between"
     >
       <p class="max-w-prose" style="color: var(--dim);">
-        Hoy sigo construyendo software eficiente y mantenible, mientras exploro nuevas
-        oportunidades en entornos de alta exigencia técnica.
+        Hoy sigo en eso: aprendiendo por mi cuenta, construyendo mis propias cosas y abierto
+        a nuevas oportunidades.
       </p>
       <span class="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-accent/40 px-3 py-1 font-mono text-[0.68rem] uppercase tracking-[0.14em] text-accent">
         <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-accent"></span>

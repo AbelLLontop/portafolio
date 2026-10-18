@@ -1,6 +1,5 @@
 import { motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { WORK_APPROACH } from "../../lib/profile.ts";
 
 /** Un valor de fila puede ser texto suelto o un destino al que se puede ir. */
 export type RowValue = string | { text: string; href: string; external?: boolean };
@@ -56,25 +55,9 @@ const DEFAULT_EXCHANGES: Exchange[] = [
     blocks: [
       {
         kind: "prose",
-        text: "Soy Abel Llontop, desarrollador de software peruano. Llevo 3 años construyendo sistemas que tienen que seguir en pie cuando nadie los mira.",
+        text: "Soy Abel Llontop, desarrollador de software peruano. Me dedico a construir sistemas, aprender y divertirme en el camino.",
       },
-      {
-        kind: "rows",
-        rows: [
-          ["experiencia", "3 años"],
-          ["stack", "node · java · angular · react · aws"],
-        ],
-      },
-    ],
-  },
-  {
-    prompt: "¿cómo trabajas?",
-    blocks: [
-      {
-        kind: "prose",
-        text: "Con arquitectura limpia y apoyado en herramientas de IA, para iterar rápido sin perder el control de lo que entrego.",
-      },
-      { kind: "rows", rows: WORK_APPROACH },
+      { kind: "rows", rows: [["stack", "node · go · python · react · aws"]] },
     ],
   },
 ];
