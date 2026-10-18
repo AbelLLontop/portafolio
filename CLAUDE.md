@@ -47,3 +47,74 @@ Deploy target is **Vercel** (confirmed, static site, no VPS/monorepo structure).
 - **Los posts de blog son siempre independientes entre sí**, sin ningún indicio visual de jerarquía ni de "este post depende de otro" — ni en el listado (`/blog`) ni dentro del post individual. Si un post retoma código o contexto de uno anterior, eso se explica en la prosa del propio post, no con un campo de relación en el frontmatter.
 - **Cada post de blog muestra un número `#N`** antes del título (en `/blog` y en la página individual), calculado en orden cronológico ascendente de `date` entre los posts no-draft (el más antiguo es `#1`). Se calcula en `src/pages/blog/index.astro` y `src/pages/blog/[slug].astro`, y se pasa como prop `number` a `BlogPostCard.astro` / `BlogPostLayout.astro`. No es un campo del frontmatter — no hay que agregar nada al crear un post nuevo, el número se recalcula solo según la fecha.
 - **Al adaptar un `.md` propio (notas, tutoriales de VPS, etc.) a un post de blog publicado**: nunca copiar tal cual IPs reales, contraseñas, claves, tokens, nombres de usuario de servicios con acceso de escritura, u otras credenciales reales que aparezcan en el borrador original. Reemplazarlas por placeholders consistentes (`TU_IP`, `TU_CLAVE_AQUI`, `TU-USUARIO`, etc.), incluso si el borrador ya trae partes placeholder y partes reales mezcladas. El dominio propio del sitio (`abelitolll.com`) y nombres de usuario Unix de ejemplo (`abel`) no son secretos y no necesitan redactarse. Ante la duda sobre si un dato es sensible, preguntar antes de publicarlo.
+
+## Convención de commits
+
+Este repo usa [Conventional Commits](https://www.conventionalcommits.org/): `<tipo>(<ámbito>): <descripción>`.
+
+**Tipos:** `feat`, `fix`, `perf`, `refactor`, `style`, `docs`, `test`, `build`, `ci`, `chore`, `revert`.
+
+**Ámbitos** (derivados de la estructura real de `src/`). Los específicos de sección tienen prioridad sobre los genéricos cuando el cambio cae dentro de esa sección:
+
+- `hero` — `src/components/astro/Hero.astro`
+- `terminal` — `src/components/react/TerminalHero.tsx`
+- `about` — página "Sobre mí": `src/pages/sobre-mi.astro`, `src/pages/en/about.astro`, `src/components/pages/AboutBody.astro`
+- `projects` — `src/components/astro/ProjectsSection.astro`, `ProjectCard.astro`, `src/content/projects/*`
+- `contact` — `src/components/astro/ContactSection.astro`, `src/lib/contact-icons.ts`
+- `navbar` — la navegación dentro de `src/components/layout/Header.astro` (incluye el menú mobile y el switch ES/EN)
+- `seo` — `src/lib/seo.ts` y metadata de Open Graph/Twitter
+- `i18n` — `src/i18n/*` (diccionario de copy, rutas, interpolación)
+- `layout` — `src/layouts/*`, `src/components/layout/*` que no sea `navbar` (Footer, BaseLayout)
+- `pages` — `src/pages/*`, `src/components/pages/*` que no tengan ámbito propio (ej. `HomeBody.astro`, `BlogIndexBody.astro`)
+- `components` — `src/components/astro/*`, `src/components/react/*` que no tengan ámbito propio (TechBadge, TechMarquee, AscentHud, ScrollReveal, Wordmark, decor/*)
+- `content` — `src/content/blog/*` y su schema en `content.config.ts`
+- `blog` — lógica específica del blog que cruza capas (numeración de posts, `posts.ts`, `BlogPostLayout`)
+- `lib` — `src/lib/*` que no tenga ámbito propio (fechas, perfil, iconos de tech, navegación instantánea)
+- `styles` — `src/styles/*`
+- `deps` — `package.json` / lockfile
+- `config` — configuración de build/tooling (Astro, Tailwind, TypeScript, ESLint, Prettier)
+- `tests` — specs de Playwright y su configuración
+- `claude` — `.claude/` (skills, agents, settings)
+- `ci` — `.github/` y workflows
+- `git` — hooks de git, `.gitignore`
+
+Un commit de tooling del repo siempre lleva ámbito; nunca debe quedar un `chore:` pelado.
+
+**Reglas:**
+
+- Imperativo presente ("agrega", "corrige", "quita"), nunca gerundio ni pasado.
+- Máximo 72 caracteres en el asunto.
+- Un commit = un cambio lógico. Si la descripción necesita "y" para unir dos cosas no relacionadas, son dos commits.
+- Los mensajes de commit no llevan líneas de coautoría, firmas ni emojis. Nunca.
+
+**Ejemplos buenos:**
+
+```
+fix(blog): corrige el indice de posts huerfano tras la paginacion
+feat(i18n): agrega switch de idioma instantaneo sin recarga
+chore(layout): mueve la navegacion mobile a menu de hamburguesa
+```
+
+**Ejemplos malos** (reales del historial, antes de esta convención):
+
+```
+Convierte el cambio de idioma en un switch y lo hace instantaneo
+```
+Le falta `tipo(ámbito):`, y "lo hace instantaneo" es un segundo cambio lógico (performance) pegado al primero (UI) — debería ser dos commits: `feat(layout): convierte el cambio de idioma en un switch` y `perf(i18n): hace instantaneo el cambio de idioma`.
+
+```
+Arregla el indice del post y los tests que quedaron huerfanos
+```
+Mezcla un fix de producto (`índice del post`) con un fix de tests huérfanos — dos áreas y dos causas distintas en un solo commit. Sin `tipo(ámbito):`.
+
+```
+Quita la barra de progreso superior y corrige el indice del post
+```
+De nuevo dos cambios no relacionados (quitar una feature de UI, corregir un bug del índice) en un commit, sin tipo ni ámbito.
+
+## Flujo de trabajo
+
+- Nunca commitear directo a `main`. Todo cambio va en una rama `tipo/descripcion-corta` (ej. `fix/indice-post-roto`).
+- Antes de commitear deben pasar, en este orden: `npm run check`, `npm run build`, `npx playwright test --workers=1`.
+- Nunca marcar algo como terminado con tests en rojo.
+- Prohibido `git push --force` sobre `main`.
