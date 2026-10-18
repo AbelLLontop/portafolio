@@ -12,7 +12,8 @@
     "check": "astro check",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "hooks:install": "node scripts/install-hooks.js"
   },
   "dependencies": {
     "@astrojs/mdx": "^8.0.3",
