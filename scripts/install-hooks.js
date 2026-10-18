@@ -3,7 +3,10 @@ import { chmodSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const repoRoot = path.resolve(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "..",
+);
 const hookPath = path.join(repoRoot, ".githooks", "commit-msg");
 
 if (!existsSync(hookPath)) {

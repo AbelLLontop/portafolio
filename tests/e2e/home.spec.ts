@@ -35,7 +35,9 @@ test("home carga y la terminal del hero termina su secuencia sin errores de cons
   expect(pageErrors).toEqual([]);
 });
 
-test("el fondo lo pinta <html>, para no tapar el campo de estrellas", async ({ page }) => {
+test("el fondo lo pinta <html>, para no tapar el campo de estrellas", async ({
+  page,
+}) => {
   await page.goto("/");
 
   const estilos = await page.evaluate(() => {

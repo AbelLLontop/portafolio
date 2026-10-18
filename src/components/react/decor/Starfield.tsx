@@ -46,12 +46,15 @@ export default function Starfield() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     const accentColor =
-      getComputedStyle(document.documentElement).getPropertyValue("--color-accent").trim() ||
-      "#61dafb";
+      getComputedStyle(document.documentElement)
+        .getPropertyValue("--color-accent")
+        .trim() || "#61dafb";
 
     let width = window.innerWidth;
     let height = window.innerHeight;
@@ -60,7 +63,10 @@ export default function Starfield() {
     // El campo mide 2x el alto del viewport y se envuelve con módulo, así nunca
     // se agota por más que el paralaje de scroll lo arrastre.
     const makeStars = (): Star[] => {
-      const count = Math.min(MAX_STARS, Math.round((width * height) / DENSITY_DIVISOR));
+      const count = Math.min(
+        MAX_STARS,
+        Math.round((width * height) / DENSITY_DIVISOR),
+      );
       return Array.from({ length: count }, () => {
         const z = 0.25 + Math.random() * 0.75;
         return {
@@ -102,7 +108,9 @@ export default function Starfield() {
       const field = height * 2;
 
       for (const star of stars) {
-        const shifted = (star.y - scrollY * star.z * SCROLL_SHIFT - parallaxY * star.z) % field;
+        const shifted =
+          (star.y - scrollY * star.z * SCROLL_SHIFT - parallaxY * star.z) %
+          field;
         const y = shifted < 0 ? shifted + field : shifted;
         if (y > height + 4) continue;
 
@@ -127,7 +135,11 @@ export default function Starfield() {
       if (prefersReducedMotion) return;
 
       if (!shootingStar && Math.random() < SHOOTING_STAR_CHANCE) {
-        shootingStar = { x: Math.random() * width, y: Math.random() * height * 0.5, life: 0 };
+        shootingStar = {
+          x: Math.random() * width,
+          y: Math.random() * height * 0.5,
+          life: 0,
+        };
       }
       if (shootingStar) {
         shootingStar.life += 11;
@@ -171,7 +183,10 @@ export default function Starfield() {
     const tick = (time: number) => {
       if (!running) return;
       const scrollY = window.scrollY;
-      const target = Math.min(1, Math.abs(scrollY - lastScroll) / WARP_SCROLL_DELTA);
+      const target = Math.min(
+        1,
+        Math.abs(scrollY - lastScroll) / WARP_SCROLL_DELTA,
+      );
       warp += (target - warp) * WARP_EASING;
       lastScroll = scrollY;
       draw(time);
@@ -188,7 +203,9 @@ export default function Starfield() {
 
     raf = requestAnimationFrame(tick);
     window.addEventListener("resize", resize);
-    window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    window.addEventListener("pointermove", handlePointerMove, {
+      passive: true,
+    });
     document.addEventListener("visibilitychange", handleVisibility);
 
     return () => {

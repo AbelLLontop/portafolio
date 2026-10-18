@@ -61,7 +61,10 @@ export function buildSeoMeta(params: {
   const alternates = (Object.keys(SITE_LOCALES) as Lang[]).map((target) => ({
     lang: target,
     hreflang: target,
-    href: new URL(withTrailingSlash(pathFor(route, target, slug)), SITE_URL).toString(),
+    href: new URL(
+      withTrailingSlash(pathFor(route, target, slug)),
+      SITE_URL,
+    ).toString(),
   }));
 
   return {
@@ -71,6 +74,9 @@ export function buildSeoMeta(params: {
     url: params.url.toString(),
     locale: SITE_LOCALES[lang],
     alternates,
-    defaultHref: new URL(withTrailingSlash(pathFor(route, "es", slug)), SITE_URL).toString(),
+    defaultHref: new URL(
+      withTrailingSlash(pathFor(route, "es", slug)),
+      SITE_URL,
+    ).toString(),
   };
 }

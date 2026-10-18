@@ -63,18 +63,27 @@ const strings = pickStrings(lang, [
     {/* Los .mdx no se traducen: en la versión inglesa se avisa antes de que
         el lector haga clic y se encuentre un muro de español. */}
     {lang !== "es" && (
-      <p class="mt-4 flex items-center gap-2 font-mono text-[0.72rem] tracking-[0.06em]" style="color: var(--faint);">
-        <span aria-hidden="true" class="h-px w-5" style="background: var(--line);"></span>
+      <p
+        class="mt-4 flex items-center gap-2 font-mono text-[0.72rem] tracking-[0.06em]"
+        style="color: var(--faint);"
+      >
+        <span
+          aria-hidden="true"
+          class="h-px w-5"
+          style="background: var(--line);"
+        ></span>
         {t("blog.spanishNotice")}
       </p>
     )}
   </ScrollReveal>
   {listPosts.length === 0 ? (
-    <ScrollReveal client:visible delay={0.05} className="mt-8 rounded-xl border border-dashed border-[var(--line)] p-8 text-center">
+    <ScrollReveal
+      client:visible
+      delay={0.05}
+      className="mt-8 rounded-xl border border-dashed border-[var(--line)] p-8 text-center"
+    >
       <p class="text-zinc-300">{t("blog.emptyTitle")}</p>
-      <p class="mt-2 text-sm text-zinc-400">
-        {t("blog.emptyHint")}
-      </p>
+      <p class="mt-2 text-sm text-zinc-400">{t("blog.emptyHint")}</p>
     </ScrollReveal>
   ) : (
     <ScrollReveal client:visible delay={0.05} className="mt-8">

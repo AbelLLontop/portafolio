@@ -22,10 +22,17 @@ export type StaticRoute = keyof typeof PATHS;
 export type Route = StaticRoute | "post";
 
 /** Las entradas de la navegacion, en orden. El label sale del diccionario. */
-export const NAV_ROUTES = ["home", "about", "blog"] as const satisfies readonly StaticRoute[];
+export const NAV_ROUTES = [
+  "home",
+  "about",
+  "blog",
+] as const satisfies readonly StaticRoute[];
 
 /** Las entradas del pie, mas cortas que las del header. */
-export const FOOTER_ROUTES = ["home", "blog"] as const satisfies readonly StaticRoute[];
+export const FOOTER_ROUTES = [
+  "home",
+  "blog",
+] as const satisfies readonly StaticRoute[];
 
 /**
  * Path de una ruta en un idioma. Para `post` hace falta el slug; el slug es el

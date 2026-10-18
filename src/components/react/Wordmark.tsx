@@ -7,7 +7,9 @@ interface WordmarkProps {
 
 const WORD = "abelitolll";
 const GLITCH_CHARS =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*+=-_?/\\|~^".split("");
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%&*+=-_?/\\|~^".split(
+    "",
+  );
 
 const GLITCH_DURATION_MS = 450;
 const SCRAMBLE_INTERVAL_MS = 55;
@@ -31,11 +33,15 @@ function randomBetween(min: number, max: number) {
 
 export default function Wordmark({ size = "sm" }: WordmarkProps) {
   const lCount = WORD.split("").filter((letter) => letter === "l").length;
-  const [letterOpacity, setLetterOpacity] = useState<number[]>(Array(WORD.length).fill(1));
+  const [letterOpacity, setLetterOpacity] = useState<number[]>(
+    Array(WORD.length).fill(1),
+  );
   const [glitching, setGlitching] = useState(false);
   const [scramble, setScramble] = useState<string[]>(Array(lCount).fill("l"));
   const timersRef = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
-  const scrambleIntervalRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  const scrambleIntervalRef = useRef<
+    ReturnType<typeof setInterval> | undefined
+  >(undefined);
 
   useEffect(() => {
     const schedule = (fn: () => void, delay: number) => {
@@ -95,7 +101,9 @@ export default function Wordmark({ size = "sm" }: WordmarkProps) {
         }
 
         const progress = elapsed / threshold;
-        const baseGap = FLICKER_MAX_GAP_MS + (FLICKER_MIN_GAP_MS - FLICKER_MAX_GAP_MS) * progress;
+        const baseGap =
+          FLICKER_MAX_GAP_MS +
+          (FLICKER_MIN_GAP_MS - FLICKER_MAX_GAP_MS) * progress;
         const gap = baseGap * randomBetween(0.6, 1.3);
 
         schedule(() => {
@@ -160,7 +168,10 @@ export default function Wordmark({ size = "sm" }: WordmarkProps) {
               data-letter={letter}
               data-index={index}
               className="relative inline-block"
-              animate={{ opacity: letterOpacity[index], ...glitchKeyframes(subtleShift, subtleShake) }}
+              animate={{
+                opacity: letterOpacity[index],
+                ...glitchKeyframes(subtleShift, subtleShake),
+              }}
               transition={glitchTransition}
             >
               {letter}
@@ -177,7 +188,10 @@ export default function Wordmark({ size = "sm" }: WordmarkProps) {
             data-letter={letter}
             data-index={index}
             className="relative inline-block w-[1ch] text-center text-accent"
-            animate={{ opacity: letterOpacity[index], ...glitchKeyframes(shift, shake) }}
+            animate={{
+              opacity: letterOpacity[index],
+              ...glitchKeyframes(shift, shake),
+            }}
             transition={glitchTransition}
           >
             {displayChar}

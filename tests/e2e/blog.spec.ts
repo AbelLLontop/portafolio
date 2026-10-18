@@ -5,9 +5,13 @@ test("listado de blog muestra posts y ningun link lleva a un 404", async ({
 }) => {
   await page.goto("/blog");
 
-  const hrefs = await page.locator("a[href^='/blog/']").evaluateAll((links) =>
-    links.map((link) => link.getAttribute("href")!).filter((href) => href !== "/blog"),
-  );
+  const hrefs = await page
+    .locator("a[href^='/blog/']")
+    .evaluateAll((links) =>
+      links
+        .map((link) => link.getAttribute("href")!)
+        .filter((href) => href !== "/blog"),
+    );
 
   expect(hrefs.length).toBeGreaterThan(0);
 
@@ -57,7 +61,9 @@ test("el buscador filtra por numero de nota y por texto", async ({ page }) => {
   // el dev toolbar de Astro las muestra como JSON en un <code>. getByText
   // atraviesa el shadow DOM, asi que sin acotar matchea dos veces y el modo
   // estricto falla, aunque la pagina este perfecta (en el build no existe).
-  await expect(page.locator("main").getByText(/no se encontraron notas/i)).toBeVisible();
+  await expect(
+    page.locator("main").getByText(/no se encontraron notas/i),
+  ).toBeVisible();
 });
 
 test("el post arma la barra de codigo con boton de icono y enmarca las tablas", async ({
@@ -93,7 +99,9 @@ test("el indice marca la ultima seccion y su linea termina en el item activo", a
 
   // Al fondo de la pagina la ultima seccion queda marcada: su heading nunca
   // llega al umbral porque abajo no hay una pantalla entera de contenido.
-  await page.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+  await page.evaluate(() =>
+    window.scrollTo(0, document.documentElement.scrollHeight),
+  );
   await page.waitForTimeout(500);
   await expect(ultimo).toHaveClass(/is-active/);
 
@@ -109,13 +117,18 @@ test("el indice marca la ultima seccion y su linea termina en el item activo", a
       const toc = document.querySelector(".toc")!;
       const activo = document.querySelector(".toc-link.is-active");
       if (!activo) return null;
-      const relleno = parseFloat(getComputedStyle(toc).getPropertyValue("--toc-fill"));
+      const relleno = parseFloat(
+        getComputedStyle(toc).getPropertyValue("--toc-fill"),
+      );
       const punta = toc.getBoundingClientRect().top + relleno;
       const pip = activo.getBoundingClientRect();
       return Math.abs(punta - (pip.top + pip.height / 2));
     });
 
-    expect(desfase, `a ${fraccion * 100}% la punta deberia caer sobre el pip`).toBeLessThan(2);
+    expect(
+      desfase,
+      `a ${fraccion * 100}% la punta deberia caer sobre el pip`,
+    ).toBeLessThan(2);
   }
 });
 
@@ -139,7 +152,9 @@ test("con el titulo ya pegado, un link del indice no deja el heading tapado", as
 
   const cajas = await page.evaluate((s) => {
     const heading = document.getElementById(s!)!.getBoundingClientRect();
-    const titulo = document.querySelector(".post-title")!.getBoundingClientRect();
+    const titulo = document
+      .querySelector(".post-title")!
+      .getBoundingClientRect();
     return { headingTop: heading.top, tituloBottom: titulo.bottom };
   }, slug);
 
@@ -205,7 +220,11 @@ test("el titulo del post se encoge al quedar pegado", async ({ page }) => {
       const b = document.querySelector(s)!.getBoundingClientRect();
       return { left: Math.round(b.left), right: Math.round(b.right) };
     };
-    return { titulo: r(".post-title"), articulo: r("article"), viewport: window.innerWidth };
+    return {
+      titulo: r(".post-title"),
+      articulo: r("article"),
+      viewport: window.innerWidth,
+    };
   });
 
   expect(cajas.titulo).toEqual(cajas.articulo);

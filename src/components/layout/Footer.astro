@@ -18,7 +18,10 @@ const navLinks = FOOTER_ROUTES.map((key) => ({
 }));
 ---
 
-<footer class="border-t bg-zinc-950/60 backdrop-blur-md" style="border-color: var(--line);">
+<footer
+  class="border-t bg-zinc-950/60 backdrop-blur-md"
+  style="border-color: var(--line);"
+>
   <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-between gap-4 px-4 py-6">
     <p class="font-mono text-xs tracking-[0.08em]" style="color: var(--faint);">
       &copy; {year} abelitolll
@@ -27,7 +30,10 @@ const navLinks = FOOTER_ROUTES.map((key) => ({
       <ul class="flex gap-6">
         {navLinks.map((link) => (
           <li>
-            <a href={link.href} class="font-mono text-xs tracking-[0.08em] text-zinc-400 transition-colors hover:text-accent">
+            <a
+              href={link.href}
+              class="font-mono text-xs tracking-[0.08em] text-zinc-400 transition-colors hover:text-accent"
+            >
               {link.label}
             </a>
           </li>
