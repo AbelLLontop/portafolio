@@ -1,0 +1,16 @@
+# Finales de linea LF en el indice y tambien en el working tree, en cualquier
+# sistema. Sin esto, en Windows `core.autocrlf` deja CRLF en disco y
+# `prettier --check .` (parte de `npm run lint`) falla en archivos que en el
+# repo estan bien.
+* text=auto eol=lf
+
+# Los hooks los ejecuta /bin/sh: con CRLF, sh falla con "bad interpreter".
+.githooks/* text eol=lf
+
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
