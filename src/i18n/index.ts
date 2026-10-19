@@ -42,7 +42,13 @@ export function useTranslations(lang: Lang) {
  * Las islas no importan `ui.ts`: eso mandaria los dos idiomas completos en el
  * bundle del cliente. Asi cada pagina manda solo las claves que su isla usa.
  */
-export function pickStrings<K extends UIKey>(lang: Lang, keys: readonly K[]): Record<K, string> {
+export function pickStrings<K extends UIKey>(
+  lang: Lang,
+  keys: readonly K[],
+): Record<K, string> {
   const t = useTranslations(lang);
-  return Object.fromEntries(keys.map((key) => [key, t(key)])) as Record<K, string>;
+  return Object.fromEntries(keys.map((key) => [key, t(key)])) as Record<
+    K,
+    string
+  >;
 }

@@ -16,24 +16,27 @@ const { headings, lang } = Astro.props;
 const t = useTranslations(lang);
 ---
 
-{
-  headings.length > 0 && (
-    <nav class="toc" aria-label={t("toc.label")}>
-      {/* Sin -ml-3 (que anulaba el pl-3 del indice) el titulo deja de pegarse
+{headings.length > 0 && (
+  <nav class="toc" aria-label={t("toc.label")}>
+    {/* Sin -ml-3 (que anulaba el pl-3 del indice) el titulo deja de pegarse
           a la linea; el pl-0.5 lo cuadra con el borde de 2px de los items. */}
-      <p class="section-label mb-3 pl-0.5">{t("toc.title")}</p>
-      <ul class="space-y-0.5">
-        {headings.map((heading) => (
-          <li>
-            <a href={`#${heading.slug}`} class="toc-link" data-depth={heading.depth} data-slug={heading.slug}>
-              {heading.text}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </nav>
-  )
-}
+    <p class="section-label mb-3 pl-0.5">{t("toc.title")}</p>
+    <ul class="space-y-0.5">
+      {headings.map((heading) => (
+        <li>
+          <a
+            href={`#${heading.slug}`}
+            class="toc-link"
+            data-depth={heading.depth}
+            data-slug={heading.slug}
+          >
+            {heading.text}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+)}
 
 <script>
   const links = document.querySelectorAll<HTMLAnchorElement>(".toc-link");
@@ -70,7 +73,11 @@ const t = useTranslations(lang);
         // Se descuenta la chrome fija de arriba para que el heading destino
         // no quede tapado detrás de ella.
         const gap = 16;
-        const top = target.getBoundingClientRect().top + window.scrollY - topOffset() - gap;
+        const top =
+          target.getBoundingClientRect().top +
+          window.scrollY -
+          topOffset() -
+          gap;
 
         window.scrollTo({ top, behavior: "smooth" });
         history.pushState(null, "", `#${slug}`);
@@ -118,7 +125,8 @@ const t = useTranslations(lang);
       // (abajo no queda una pantalla entera de contenido), asi que la ultima
       // seccion no se marcaba nunca en ningun post.
       const fondo =
-        window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 2;
+        window.scrollY + window.innerHeight >=
+        document.documentElement.scrollHeight - 2;
       if (fondo && headingEls.length > 0) {
         current = headingEls[headingEls.length - 1].id;
       }

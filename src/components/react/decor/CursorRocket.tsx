@@ -52,7 +52,9 @@ function nextWanderTarget(
     1,
     Math.max(0, (distFromAnchor - WANDER_RADIUS * 0.5) / (WANDER_RADIUS * 0.5)),
   );
-  const blendedHeading = currentHeading + shortestAngleDelta(currentHeading, anchorHeading) * pullWeight;
+  const blendedHeading =
+    currentHeading +
+    shortestAngleDelta(currentHeading, anchorHeading) * pullWeight;
 
   const angleDeg = blendedHeading + (Math.random() * 2 - 1) * WANDER_CONE;
   const angleRad = (angleDeg * Math.PI) / 180;
@@ -76,7 +78,9 @@ export default function CursorRocket() {
     const isCoarsePointer = window.matchMedia("(pointer: coarse)").matches;
     if (isCoarsePointer) return;
 
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const prefersReducedMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
 
     let targetX = window.innerWidth / 2;
     let targetY = window.innerHeight / 2;
@@ -111,7 +115,8 @@ export default function CursorRocket() {
     let wanderY = y;
 
     const tick = (time: number) => {
-      const dt = lastTime === null ? 0 : Math.min((time - lastTime) / 1000, MAX_DT);
+      const dt =
+        lastTime === null ? 0 : Math.min((time - lastTime) / 1000, MAX_DT);
       lastTime = time;
 
       const cursorDesiredX = targetX + OFFSET_X;
@@ -135,8 +140,14 @@ export default function CursorRocket() {
       }
 
       const cruiseSpeed = isIdle ? IDLE_MAX_SPEED : CHASE_MAX_SPEED;
-      const desiredSpeed = (dist < ARRIVE_RADIUS ? cruiseSpeed * (dist / ARRIVE_RADIUS) : cruiseSpeed) * speedFactor;
-      const speedDelta = Math.max(-MAX_ACCEL * dt, Math.min(MAX_ACCEL * dt, desiredSpeed - speed));
+      const desiredSpeed =
+        (dist < ARRIVE_RADIUS
+          ? cruiseSpeed * (dist / ARRIVE_RADIUS)
+          : cruiseSpeed) * speedFactor;
+      const speedDelta = Math.max(
+        -MAX_ACCEL * dt,
+        Math.min(MAX_ACCEL * dt, desiredSpeed - speed),
+      );
       speed = Math.max(0, speed + speedDelta);
 
       const rad = (heading * Math.PI) / 180;
@@ -167,7 +178,13 @@ export default function CursorRocket() {
         isIdle = true;
         idleAnchorCursorX = targetX;
         idleAnchorCursorY = targetY;
-        const next = nextWanderTarget(x, y, heading, cursorDesiredX, cursorDesiredY);
+        const next = nextWanderTarget(
+          x,
+          y,
+          heading,
+          cursorDesiredX,
+          cursorDesiredY,
+        );
         wanderX = next.x;
         wanderY = next.y;
       }
@@ -177,12 +194,14 @@ export default function CursorRocket() {
       const speedRatio = Math.min(1, speed / cruiseSpeed);
       if (speedRatio > FLAME_THRESHOLD) {
         const t = (speedRatio - FLAME_THRESHOLD) / (1 - FLAME_THRESHOLD);
-        const flicker = 1 + Math.sin(time * 0.03) * 0.1 + Math.sin(time * 0.057) * 0.06;
+        const flicker =
+          1 + Math.sin(time * 0.03) * 0.1 + Math.sin(time * 0.057) * 0.06;
         flame.style.opacity = String(Math.min(1, t * 1.2));
         flame.style.transform = `translate(-50%, -50%) scaleY(${(0.5 + t * 1.3) * flicker}) scaleX(${0.75 + t * 0.35})`;
 
         if (!isIdle && speedRatio > MAX_FLAME_THRESHOLD) {
-          const mt = (speedRatio - MAX_FLAME_THRESHOLD) / (1 - MAX_FLAME_THRESHOLD);
+          const mt =
+            (speedRatio - MAX_FLAME_THRESHOLD) / (1 - MAX_FLAME_THRESHOLD);
           maxFlame.style.opacity = String(Math.min(1, mt * 1.3));
         } else {
           maxFlame.style.opacity = "0";
@@ -213,12 +232,22 @@ export default function CursorRocket() {
       <div
         ref={flameRef}
         className="absolute left-0 top-0 opacity-0"
-        style={{ transform: "translate(-50%, -50%)", transformOrigin: "13px 23px", willChange: "transform, opacity" }}
+        style={{
+          transform: "translate(-50%, -50%)",
+          transformOrigin: "13px 23px",
+          willChange: "transform, opacity",
+        }}
       >
         {/* mismo viewBox/tamaño que el cohete (24x24 en 26x26px) para compartir
         el mismo sistema de coordenadas; overflow visible deja dibujar la llama
         más abajo del límite del viewBox sin recortarla */}
-        <svg width="26" height="26" viewBox="0 0 24 24" style={{ overflow: "visible" }} className="text-accent">
+        <svg
+          width="26"
+          height="26"
+          viewBox="0 0 24 24"
+          style={{ overflow: "visible" }}
+          className="text-accent"
+        >
           {/* propulsor normal — separado del cohete (empieza en y=23, la cola del cohete termina ~y=21) */}
           <path
             d="M12 23c-1.9 2.3-2.5 4.7-1.5 6.8.5 1 1.5 1.7 1.5 1.7s1-.7 1.5-1.7c1-2.1.4-4.5-1.5-6.8Z"
@@ -264,8 +293,16 @@ export default function CursorRocket() {
           fillOpacity="0.9"
         />
         <circle cx="12" cy="9.5" r="1.6" fill="#09090b" />
-        <path d="M8 14.5 5.5 17l1 2.8 2.7-2.3" fill="currentColor" fillOpacity="0.7" />
-        <path d="M16 14.5 18.5 17l-1 2.8-2.7-2.3" fill="currentColor" fillOpacity="0.7" />
+        <path
+          d="M8 14.5 5.5 17l1 2.8 2.7-2.3"
+          fill="currentColor"
+          fillOpacity="0.7"
+        />
+        <path
+          d="M16 14.5 18.5 17l-1 2.8-2.7-2.3"
+          fill="currentColor"
+          fillOpacity="0.7"
+        />
         <path d="M10.5 17.5 10 21l2-1.3 2 1.3-.5-3.5" fill="currentColor" />
       </svg>
     </div>

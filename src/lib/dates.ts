@@ -23,7 +23,10 @@ export function formatPostDate(date: Date, lang: Lang = DEFAULT_LANG): string {
 }
 
 /** Versión compacta, para espacios angostos como la consola del hero. */
-export function formatPostDateShort(date: Date, lang: Lang = DEFAULT_LANG): string {
+export function formatPostDateShort(
+  date: Date,
+  lang: Lang = DEFAULT_LANG,
+): string {
   return date
     .toLocaleDateString(LOCALES[lang], {
       year: "numeric",

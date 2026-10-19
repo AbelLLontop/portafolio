@@ -6,7 +6,12 @@ import { CONTACTS, STACK, YEARS_OF_EXPERIENCE } from "../../lib/profile.ts";
 import { formatPostDateShort } from "../../lib/dates.ts";
 import { CONTACT_ICONS } from "../../lib/contact-icons.ts";
 import { getPostNumbers, getPublishedPosts } from "../../lib/posts.ts";
-import { interpolate, pickStrings, useTranslations, type Lang } from "../../i18n/index.ts";
+import {
+  interpolate,
+  pickStrings,
+  useTranslations,
+  type Lang,
+} from "../../i18n/index.ts";
 import { pathFor } from "../../i18n/routes.ts";
 
 interface Props {
@@ -26,7 +31,10 @@ const exchanges: Exchange[] = [
     prompt: t("intro.prompt"),
     blocks: [
       { kind: "prose", text: t("intro.prose") },
-      { kind: "rows", rows: [[t("cmd.stack"), "node · go · python · react · aws"]] },
+      {
+        kind: "rows",
+        rows: [[t("cmd.stack"), "node · go · python · react · aws"]],
+      },
     ],
   },
 ];
@@ -39,16 +47,23 @@ const commands: Record<string, Block[]> = {
   [t("cmd.whoami")]: [
     {
       kind: "prose",
-      text: interpolate(t("answer.whoami.intro"), { years: YEARS_OF_EXPERIENCE }),
+      text: interpolate(t("answer.whoami.intro"), {
+        years: YEARS_OF_EXPERIENCE,
+      }),
     },
-    { kind: "rows", rows: [[t("answer.whoami.doKey"), t("answer.whoami.doValue")]] },
+    {
+      kind: "rows",
+      rows: [[t("answer.whoami.doKey"), t("answer.whoami.doValue")]],
+    },
     { kind: "prose", text: t("answer.whoami.outro") },
   ],
   [t("cmd.stack")]: [
     { kind: "prose", text: t("answer.stack.intro") },
     {
       kind: "rows",
-      rows: [[t("answer.stack.key"), STACK.map((tech) => tech.name).join(" · ")]],
+      rows: [
+        [t("answer.stack.key"), STACK.map((tech) => tech.name).join(" · ")],
+      ],
     },
   ],
   [t("cmd.projects")]: [
@@ -132,7 +147,10 @@ const strings = pickStrings(lang, [
 
 <section class="mx-auto flex max-w-5xl flex-col gap-8 px-4 pb-12 pt-12 md:pb-14 md:pt-16">
   <div class="flex flex-col gap-5">
-    <p class="font-mono text-[0.68rem] uppercase tracking-[0.3em]" style="color: var(--faint);">
+    <p
+      class="font-mono text-[0.68rem] uppercase tracking-[0.3em]"
+      style="color: var(--faint);"
+    >
       {t("hero.eyebrow")}
     </p>
 
