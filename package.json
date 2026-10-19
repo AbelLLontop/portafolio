@@ -10,9 +10,10 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check",
-    "lint": "eslint .",
+    "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "test:e2e": "playwright test",
+    "verify": "npm run check && npm run lint && npm run build && npm run test:e2e",
     "hooks:install": "node scripts/install-hooks.js",
     "prepare": "node scripts/install-hooks.js"
   },
