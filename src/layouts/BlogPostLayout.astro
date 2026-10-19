@@ -197,10 +197,21 @@ const formattedDate = formatPostDate(date, lang);
 </style>
 
 <script>
-  const sentinel = document.querySelector<HTMLElement>(".post-title-sentinel");
-  const title = document.querySelector<HTMLElement>(".post-title");
+  // Con el router de cliente este modulo corre una sola vez, pero el titulo y
+  // el centinela son elementos nuevos en cada post: el observer se rehace en
+  // cada pagina y el anterior se desconecta, porque observaria un elemento que
+  // ya no esta en el documento.
+  let observer: IntersectionObserver | undefined;
 
-  if (sentinel && title) {
+  document.addEventListener("astro:page-load", () => {
+    observer?.disconnect();
+
+    const sentinel = document.querySelector<HTMLElement>(
+      ".post-title-sentinel",
+    );
+    const title = document.querySelector<HTMLElement>(".post-title");
+    if (!sentinel || !title) return;
+
     const NAV_HEIGHT = 64; /* alto del nav, = top-16 del titulo */
 
     // El titulo mismo no sirve como referencia: una vez sticky, su posicion
@@ -208,7 +219,7 @@ const formattedDate = formatPostDate(date, lang);
     // scrolleando libre: cuando pasa por detras del nav es el mismo instante
     // en que el sticky frena al titulo ahi, asi que ese es el momento de
     // encogerlo.
-    const observer = new IntersectionObserver(
+    observer = new IntersectionObserver(
       ([entry]) => {
         title.classList.toggle("is-stuck", !entry.isIntersecting);
       },
@@ -216,13 +227,20 @@ const formattedDate = formatPostDate(date, lang);
     );
 
     observer.observe(sentinel);
-  }
+  });
 </script>
 
 <script>
-  const body = document.querySelector<HTMLElement>(".prose-post-body");
+  // Con el router de cliente este modulo corre una sola vez, pero el cuerpo
+  // del post es markup nuevo en cada nota, asi que el realce se rehace por
+  // pagina. `data-enhanced` lo marca ya hecho: el markup que llega del
+  // servidor nunca lo trae, y asi un segundo `astro:page-load` sobre el mismo
+  // DOM (volver atras, por ejemplo) no duplica barras ni anclas.
+  document.addEventListener("astro:page-load", () => {
+    const body = document.querySelector<HTMLElement>(".prose-post-body");
+    if (!body || body.dataset.enhanced) return;
+    body.dataset.enhanced = "1";
 
-  if (body) {
     // Copy traducido, puesto por el .astro en data-* (ver el comentario alla).
     const COPY = body.dataset.copy ?? "";
     const COPIED = body.dataset.copied ?? "";
@@ -313,5 +331,5 @@ const formattedDate = formatPostDate(date, lang);
       table.parentNode?.insertBefore(wrapper, table);
       wrapper.append(table);
     });
-  }
+  });
 </script>

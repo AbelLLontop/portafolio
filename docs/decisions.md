@@ -66,6 +66,24 @@ decisiones. Si cambiás una, actualizá la entrada en el mismo PR.
   terminal del hero (`client:load`), que es above-the-fold y arranca sola.
 - **El HUD de altitud se muestra solo en los posts individuales.** En el resto
   del sitio competía con el contenido sin aportar orientación.
+- **La navegación va por el `<ClientRouter />` de Astro.** El sitio sigue siendo
+  estático: el router es solo cliente, y sin JS los enlaces funcionan como
+  enlaces normales. Se gana que cambiar de página no recargue el documento (sin
+  parpadeo, sin loader en la pestaña, la decoración de fondo no se reinicia) y
+  que un elemento pueda animarse de una página a la otra. El costo está en los
+  `<script>`: corren una sola vez por sesión, así que lo que toca el DOM de la
+  página tiene que ir en `astro:page-load`. Quitar el router obliga a desarmar
+  eso en cinco archivos.
+- **Una carga del documento anima; una navegación del router, no del todo.** Dos
+  clases en `<html>` (`src/lib/nav-flags.ts`) distinguen los casos:
+  `nav-swap` (llegué por el router) hace que la terminal del hero aparezca con
+  su diálogo puesto en vez de retipear un diálogo ya visto — en un swap es
+  instantáneo, así que se vería vacía tecleando sola; `nav-instant` (cambio de
+  idioma) además apaga los reveals, porque ahí solo cambian las palabras. Las
+  demás navegaciones **sí** vuelven a revelar: son medio segundo y son lo que
+  hace que el cambio de página se lea como un cambio de página. Antes del router
+  esto era un `sessionStorage` leído por un script inline del `<head>` antes del
+  primer pintado; sin documento nuevo, basta con `astro:after-swap`.
 - **El acento se usa siempre desde el token**, nunca como hex suelto en un
   componente, para poder cambiarlo en un solo lugar.
 

@@ -83,22 +83,26 @@ const clockLocale = lang === "es" ? "es-PE" : "en-GB";
 <script>
   const MAX_ALTITUDE_KM = 408; // altitud orbital de la ISS
 
-  // Único dueño del progreso de scroll del sitio: escribe `--ascent` en
-  // documentElement y el resto (el veil) lo consume en CSS puro.
-  const pip = document.getElementById("ascent-pip");
-  const kmLabel = document.getElementById("ascent-km");
-  const phaseLabel = document.getElementById("ascent-phase");
-  const clock = document.getElementById("ascent-clock");
-
-  // Las fases llegan traducidas desde el .astro, por data-*.
-  const PHASES: [number, string][] = JSON.parse(
-    phaseLabel?.dataset.phases ?? "[]",
-  );
+  // El HUD existe solo en los posts, pero con el router de cliente este módulo
+  // queda vivo toda la sesión: sus referencias se rearman en cada página (en
+  // `astro:page-load`) y quedan en null al salir a una página sin HUD, donde
+  // todo esto no hace nada. Las suscripciones al scroll, en cambio, se cuelgan
+  // una sola vez: rehacerlas por página las iría acumulando.
+  let pip: HTMLElement | null = null;
+  let kmLabel: HTMLElement | null = null;
+  let phaseLabel: HTMLElement | null = null;
+  let phases: [number, string][] = [];
+  let clockTimer: ReturnType<typeof setInterval> | undefined;
 
   let ticking = false;
 
+  // Único dueño del progreso de scroll del sitio: escribe `--ascent` en
+  // documentElement y el resto (el veil) lo consume en CSS puro. Fuera de los
+  // posts no escribe nada, así que ahí el veil se queda quieto.
   const update = () => {
     ticking = false;
+    if (!pip || !kmLabel || !phaseLabel || phases.length === 0) return;
+
     const max = Math.max(
       1,
       document.documentElement.scrollHeight - window.innerHeight,
@@ -107,13 +111,11 @@ const clockLocale = lang === "es" ? "es-PE" : "en-GB";
 
     document.documentElement.style.setProperty("--ascent", String(progress));
 
-    if (!pip || !kmLabel || !phaseLabel || PHASES.length === 0) return;
-
     pip.style.top = `calc(${progress * 100}% - 5px)`;
     kmLabel.textContent = `${(progress * MAX_ALTITUDE_KM).toFixed(1)} km`;
 
-    let phase = PHASES[0][1];
-    for (const [threshold, name] of PHASES) {
+    let phase = phases[0][1];
+    for (const [threshold, name] of phases) {
       if (progress >= threshold) phase = name;
     }
     phaseLabel.textContent = phase;
@@ -125,18 +127,32 @@ const clockLocale = lang === "es" ? "es-PE" : "en-GB";
     requestAnimationFrame(update);
   };
 
-  update();
   window.addEventListener("scroll", request, { passive: true });
   window.addEventListener("resize", request);
 
-  if (clock) {
-    const locale = clock.dataset.locale ?? "es-PE";
-    const tick = () => {
-      clock.textContent = new Date().toLocaleTimeString(locale, {
-        hour12: false,
-      });
-    };
-    tick();
-    setInterval(tick, 1000);
-  }
+  // `astro:page-load` corre también en la carga inicial, así que esta es la
+  // única inicialización.
+  document.addEventListener("astro:page-load", () => {
+    pip = document.getElementById("ascent-pip");
+    kmLabel = document.getElementById("ascent-km");
+    phaseLabel = document.getElementById("ascent-phase");
+
+    // Las fases llegan traducidas desde el .astro, por data-*.
+    phases = JSON.parse(phaseLabel?.dataset.phases ?? "[]");
+
+    update();
+
+    clearInterval(clockTimer);
+    const clock = document.getElementById("ascent-clock");
+    if (clock) {
+      const locale = clock.dataset.locale ?? "es-PE";
+      const tick = () => {
+        clock.textContent = new Date().toLocaleTimeString(locale, {
+          hour12: false,
+        });
+      };
+      tick();
+      clockTimer = setInterval(tick, 1000);
+    }
+  });
 </script>
