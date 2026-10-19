@@ -54,9 +54,11 @@ const es = {
   "console.thinking": "pensando",
   "console.inputLabel": "Consola",
   "console.placeholder": "escribe un comando…",
-  "console.hint": "la consola acepta comandos — escribe help o toca uno de los botones.",
+  "console.hint":
+    "la consola acepta comandos — escribe help o toca uno de los botones.",
   "console.cleared": "consola limpia · escribe help para ver los comandos",
-  "console.unknown": "No conozco el comando «{command}». Escribe help para ver la lista.",
+  "console.unknown":
+    "No conozco el comando «{command}». Escribe help para ver la lista.",
   "console.helpIntro": "Estos son los comandos que entiende esta consola:",
   "console.help.whoami": "quién soy, en corto",
   "console.help.stack": "las tecnologías que uso",
@@ -88,7 +90,8 @@ const es = {
   "answer.blog.intro": "Tengo {count} notas publicadas. Las últimas:",
   "answer.blog.allKey": "todas",
   "answer.blog.allValue": "ver el blog completo →",
-  "answer.contact.intro": "Por acá me encuentras — los dos van directo desde esta consola:",
+  "answer.contact.intro":
+    "Por acá me encuentras — los dos van directo desde esta consola:",
 
   // ---- Carrusel de tecnologias -------------------------------------------
   "marquee.label": "Tecnologías",
@@ -212,9 +215,11 @@ const en: Record<UIKey, string> = {
   "console.thinking": "thinking",
   "console.inputLabel": "Console",
   "console.placeholder": "type a command…",
-  "console.hint": "the console takes commands — type help or tap one of the buttons.",
+  "console.hint":
+    "the console takes commands — type help or tap one of the buttons.",
   "console.cleared": "console cleared · type help to see the commands",
-  "console.unknown": "I don’t know the command «{command}». Type help to see the list.",
+  "console.unknown":
+    "I don’t know the command «{command}». Type help to see the list.",
   "console.helpIntro": "These are the commands this console understands:",
   "console.help.whoami": "who I am, in short",
   "console.help.stack": "the tech I use",
@@ -246,7 +251,8 @@ const en: Record<UIKey, string> = {
   "answer.blog.intro": "I have {count} notes published. The latest ones:",
   "answer.blog.allKey": "all",
   "answer.blog.allValue": "see the whole blog →",
-  "answer.contact.intro": "Here is where to find me — both go straight from this console:",
+  "answer.contact.intro":
+    "Here is where to find me — both go straight from this console:",
 
   // ---- Carrusel de tecnologias -------------------------------------------
   "marquee.label": "Technologies",
@@ -284,7 +290,8 @@ const en: Record<UIKey, string> = {
   // ---- Listado del blog --------------------------------------------------
   "blog.label": "Technical notes",
   "blog.title": "Blog",
-  "blog.intro": "I write down what I learn while I code, mostly so I do not forget it later.",
+  "blog.intro":
+    "I write down what I learn while I code, mostly so I do not forget it later.",
   "blog.emptyTitle": "No notes published yet.",
   "blog.emptyHint": "I am writing the first ones — come back soon.",
   "blog.searchLabel": "Search notes by title or number",

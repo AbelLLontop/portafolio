@@ -42,13 +42,17 @@ const formattedDate = formatPostDate(date, lang);
              asi el sticky tiene recorrido para quedarse pegado durante todo
              el scroll, en vez de quedar acotado por un <header> chico. -->
         <div class="post-eyebrow flex items-center gap-3 pt-4">
-          <span class="post-chip">{interpolate(t("post.chip"), { number })}</span>
+          <span class="post-chip">
+            {interpolate(t("post.chip"), { number })}
+          </span>
           <span class="h-px flex-1" style="background: var(--line);"></span>
         </div>
 
         <div class="post-title-sentinel" aria-hidden="true"></div>
         <h1 class="post-title sticky top-16 z-40 mt-3 flex items-center font-display text-3xl font-bold tracking-[-0.02em] text-zinc-100 md:text-4xl">
-          <span class="post-title-number" aria-hidden="true">#{number}</span>
+          <span class="post-title-number" aria-hidden="true">
+            #{number}
+          </span>
           {title}
         </h1>
 
@@ -229,7 +233,10 @@ const formattedDate = formatPostDate(date, lang);
 
     /** Reemplaza los marcadores {asi} del copy que llega por data-*. */
     const fill = (template: string, values: Record<string, string>) =>
-      template.replace(/\{(\w+)\}/g, (match, key: string) => values[key] ?? match);
+      template.replace(
+        /\{(\w+)\}/g,
+        (match, key: string) => values[key] ?? match,
+      );
 
     // ---- Bloques de codigo -------------------------------------------------
     // Shiki ya deja el lenguaje en data-language, asi que la barra se monta

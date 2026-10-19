@@ -1,0 +1,33 @@
+version: 2
+
+updates:
+  # Los prefijos existen para que el titulo de los PR de Dependabot pase el
+  # check de Conventional Commits.
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      timezone: America/Lima
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: chore
+      include: scope
+    groups:
+      # Minor y patch juntos; los majors llegan solos, que es cuando hay que
+      # leer el changelog.
+      npm-minor-patch:
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns:
+          - "*"

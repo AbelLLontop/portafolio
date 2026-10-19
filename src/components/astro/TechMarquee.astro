@@ -18,7 +18,10 @@ const t = useTranslations(lang);
 const items = [...STACK, ...STACK, ...STACK, ...STACK];
 ---
 
-<section class="mx-auto max-w-5xl px-4 py-6 md:py-8" aria-label={t("marquee.label")}>
+<section
+  class="mx-auto max-w-5xl px-4 py-6 md:py-8"
+  aria-label={t("marquee.label")}
+>
   <div class="group relative overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_10%,black_90%,transparent)]">
     <ul class="marquee flex w-max items-center gap-8 pr-8 motion-reduce:animate-none group-hover:[animation-play-state:paused]">
       {items.map((tech, i) => {
@@ -33,7 +36,9 @@ const items = [...STACK, ...STACK, ...STACK, ...STACK];
             ) : (
               /* SQL Server y AWS no tienen logo en simple-icons: van como
                  palabra para que no queden huecos invisibles en el carrusel. */
-              <span class="font-mono text-base tracking-[0.08em]">{tech.name}</span>
+              <span class="font-mono text-base tracking-[0.08em]">
+                {tech.name}
+              </span>
             )}
           </li>
         );

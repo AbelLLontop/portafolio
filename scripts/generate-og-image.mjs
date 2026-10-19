@@ -22,7 +22,10 @@ const WORDMARK_Y = 300;
 
 function wordmarkSpans(color, accentColor) {
   return [...WORDMARK]
-    .map((char) => `<tspan fill="${char === "l" ? accentColor : color}">${char}</tspan>`)
+    .map(
+      (char) =>
+        `<tspan fill="${char === "l" ? accentColor : color}">${char}</tspan>`,
+    )
     .join("");
 }
 

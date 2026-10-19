@@ -21,7 +21,8 @@ const t = useTranslations(lang);
     <div class="mt-10 flex flex-col-reverse items-center gap-12 md:flex-row-reverse md:items-center md:gap-16">
       <div class="min-w-0">
         <h1 class="about-headline font-display font-extrabold text-zinc-100">
-          {t("about.headlineName")}<br />
+          {t("about.headlineName")}
+          <br />
           <span style="color: var(--dim);">{t("about.headlineRole")}</span>
         </h1>
         <p class="mt-6 max-w-prose leading-relaxed" style="color: var(--dim);">
@@ -34,8 +35,12 @@ const t = useTranslations(lang);
 
       <div class="orbit shrink-0" aria-hidden="true">
         <span class="orbit-glow"></span>
-        <span class="orbit-ring orbit-ring-outer"><i class="orbit-body"></i></span>
-        <span class="orbit-ring orbit-ring-inner"><i class="orbit-body orbit-body-small"></i></span>
+        <span class="orbit-ring orbit-ring-outer">
+          <i class="orbit-body"></i>
+        </span>
+        <span class="orbit-ring orbit-ring-inner">
+          <i class="orbit-body orbit-body-small"></i>
+        </span>
         <img
           src="/images/abelitolll-head.svg"
           alt=""

@@ -4,7 +4,8 @@ import { interpolate } from "../../i18n/interpolate.ts";
 import { isInstantNav } from "../../lib/instant-nav.ts";
 
 /** Un valor de fila puede ser texto suelto o un destino al que se puede ir. */
-export type RowValue = string | { text: string; href: string; external?: boolean };
+export type RowValue =
+  string | { text: string; href: string; external?: boolean };
 
 /** Una nota del blog, tal como la muestra el listado: numero, titulo y resumen. */
 export interface PostEntry {
@@ -103,8 +104,10 @@ const NOTE_COLOR: Record<"ok" | "warn" | "system", string> = {
 function visibleBlocks(blocks: Block[], progress: Progress): Block[] {
   return blocks.slice(0, progress.block + 1).map((block, index) => {
     if (index < progress.block) return block;
-    if (block.kind === "prose") return { ...block, text: block.text.slice(0, progress.char) };
-    if (block.kind === "rows") return { ...block, rows: block.rows.slice(0, progress.rows) };
+    if (block.kind === "prose")
+      return { ...block, text: block.text.slice(0, progress.char) };
+    if (block.kind === "rows")
+      return { ...block, rows: block.rows.slice(0, progress.rows) };
     if (block.kind === "entries") {
       return { ...block, entries: block.entries.slice(0, progress.rows) };
     }
@@ -136,7 +139,10 @@ function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
   return (
     <div
       className="my-2 flex flex-col gap-2.5 pl-4"
-      style={{ borderLeft: "2px solid color-mix(in srgb, var(--color-accent) 45%, transparent)" }}
+      style={{
+        borderLeft:
+          "2px solid color-mix(in srgb, var(--color-accent) 45%, transparent)",
+      }}
     >
       {blocks.map((block, index) => {
         const isLast = index === blocks.length - 1;
@@ -145,14 +151,19 @@ function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
           return (
             <p key={index} className="max-w-[62ch] text-zinc-300">
               {block.text}
-              {caret && isLast && <span className="ml-0.5 animate-pulse text-accent">▌</span>}
+              {caret && isLast && (
+                <span className="ml-0.5 animate-pulse text-accent">▌</span>
+              )}
             </p>
           );
         }
 
         if (block.kind === "rows") {
           return (
-            <div key={index} className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-1">
+            <div
+              key={index}
+              className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-1"
+            >
               {block.rows.map(([key, value]) => (
                 <div key={key} className="contents">
                   <span className="text-accent">{key}</span>
@@ -173,7 +184,10 @@ function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
                   target={channel.external ? "_blank" : undefined}
                   rel={channel.external ? "noreferrer" : undefined}
                   className="group flex items-center gap-3 rounded-lg border p-3 transition-colors hover:border-accent"
-                  style={{ borderColor: "var(--line)", background: "rgb(255 255 255 / 0.02)" }}
+                  style={{
+                    borderColor: "var(--line)",
+                    background: "rgb(255 255 255 / 0.02)",
+                  }}
                 >
                   <span
                     className="shrink-0 text-zinc-400 transition-colors group-hover:text-accent [&>svg]:h-5 [&>svg]:w-5"
@@ -206,7 +220,10 @@ function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
                   href={entry.href}
                   className="group -ml-2 grid grid-cols-[3.1rem_1fr] gap-x-2 rounded-md border-l-2 border-transparent py-2 pl-2 transition-all hover:border-accent hover:bg-[color-mix(in_srgb,var(--color-accent)_6%,transparent)] hover:pl-3"
                 >
-                  <span className="pt-px transition-colors group-hover:text-accent" style={{ color: "var(--faint)" }}>
+                  <span
+                    className="pt-px transition-colors group-hover:text-accent"
+                    style={{ color: "var(--faint)" }}
+                  >
                     #{entry.number}
                   </span>
                   <span className="min-w-0">
@@ -221,7 +238,10 @@ function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
                         {entry.summary}
                       </span>
                     )}
-                    <span className="mt-1 block text-[0.7rem]" style={{ color: "var(--faint)" }}>
+                    <span
+                      className="mt-1 block text-[0.7rem]"
+                      style={{ color: "var(--faint)" }}
+                    >
                       {entry.date}
                     </span>
                   </span>
@@ -232,7 +252,11 @@ function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
         }
 
         return (
-          <p key={index} className="max-w-[62ch]" style={{ color: NOTE_COLOR[block.tone] }}>
+          <p
+            key={index}
+            className="max-w-[62ch]"
+            style={{ color: NOTE_COLOR[block.tone] }}
+          >
             {block.text}
           </p>
         );
@@ -269,7 +293,10 @@ export default function TerminalHero({
     // Sin tecleo en dos casos: cuando el visitante pidió menos movimiento, y
     // al volver de un cambio de idioma, donde retipear todo el diálogo sería
     // justo lo contrario de "solo cambiaron las palabras".
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || isInstantNav()) {
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      isInstantNav()
+    ) {
       setHistory(exchanges);
       setCycleCount(1);
       setReady(true);
@@ -332,9 +359,13 @@ export default function TerminalHero({
         setPhase("pausing");
       } else if (block.kind === "prose") {
         if (progress.char < block.text.length) {
-          wait(PROSE_CHAR_MS, () => setProgress((p) => ({ ...p, char: p.char + 1 })));
+          wait(PROSE_CHAR_MS, () =>
+            setProgress((p) => ({ ...p, char: p.char + 1 })),
+          );
         } else {
-          wait(BLOCK_GAP_MS, () => setProgress((p) => ({ block: p.block + 1, char: 0, rows: 0 })));
+          wait(BLOCK_GAP_MS, () =>
+            setProgress((p) => ({ block: p.block + 1, char: 0, rows: 0 })),
+          );
         }
       } else if (
         block.kind === "rows" ||
@@ -352,14 +383,21 @@ export default function TerminalHero({
             setProgress((p) => ({ ...p, rows: p.rows + 1 })),
           );
         } else {
-          wait(BLOCK_GAP_MS, () => setProgress((p) => ({ block: p.block + 1, char: 0, rows: 0 })));
+          wait(BLOCK_GAP_MS, () =>
+            setProgress((p) => ({ block: p.block + 1, char: 0, rows: 0 })),
+          );
         }
       } else {
-        wait(BLOCK_GAP_MS, () => setProgress((p) => ({ block: p.block + 1, char: 0, rows: 0 })));
+        wait(BLOCK_GAP_MS, () =>
+          setProgress((p) => ({ block: p.block + 1, char: 0, rows: 0 })),
+        );
       }
     } else if (phase === "pausing") {
       wait(active.pauseMs, () => {
-        setHistory((prev) => [...prev, { prompt: active.prompt, blocks: active.blocks }]);
+        setHistory((prev) => [
+          ...prev,
+          { prompt: active.prompt, blocks: active.blocks },
+        ]);
         if (active.endsIntro) setCycleCount((c) => c + 1);
         setActive(null);
         setPhase("idle");
@@ -428,7 +466,9 @@ export default function TerminalHero({
   );
 
   const typedPrompt =
-    active && phase === "typing-prompt" ? active.prompt.slice(0, promptChars) : active?.prompt;
+    active && phase === "typing-prompt"
+      ? active.prompt.slice(0, promptChars)
+      : active?.prompt;
 
   return (
     <motion.div
@@ -451,14 +491,23 @@ export default function TerminalHero({
       >
         <div
           className="flex items-center gap-2.5 px-3.5 py-2.5 font-mono text-[0.63rem] uppercase tracking-[0.16em]"
-          style={{ borderBottom: "1px solid var(--line)", color: "var(--faint)" }}
+          style={{
+            borderBottom: "1px solid var(--line)",
+            color: "var(--faint)",
+          }}
         >
           <span
             className="h-2.5 w-2.5 animate-pulse rounded-full"
             style={{ background: "var(--go)" }}
           />
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--line)" }} />
-          <span className="h-2.5 w-2.5 rounded-full" style={{ background: "var(--line)" }} />
+          <span
+            className="h-2.5 w-2.5 rounded-full"
+            style={{ background: "var(--line)" }}
+          />
+          <span
+            className="h-2.5 w-2.5 rounded-full"
+            style={{ background: "var(--line)" }}
+          />
           <span className="ml-1.5">{strings["console.title"]}</span>
           <span className="ml-auto hidden sm:inline">
             {busy ? strings["console.busy"] : strings["console.idle"]}
@@ -493,12 +542,19 @@ export default function TerminalHero({
               </p>
 
               {phase === "thinking" && (
-                <p className="mt-1 flex items-center gap-1" style={{ color: "var(--faint)" }}>
+                <p
+                  className="mt-1 flex items-center gap-1"
+                  style={{ color: "var(--faint)" }}
+                >
                   {strings["console.thinking"]}
                   <span className="inline-flex gap-0.5">
                     <span className="animate-bounce">.</span>
-                    <span className="animate-bounce [animation-delay:150ms]">.</span>
-                    <span className="animate-bounce [animation-delay:300ms]">.</span>
+                    <span className="animate-bounce [animation-delay:150ms]">
+                      .
+                    </span>
+                    <span className="animate-bounce [animation-delay:300ms]">
+                      .
+                    </span>
                   </span>
                 </p>
               )}
@@ -535,7 +591,9 @@ export default function TerminalHero({
             autoComplete="off"
             spellCheck={false}
             aria-label={strings["console.inputLabel"]}
-            placeholder={busy ? strings["console.busy"] : strings["console.placeholder"]}
+            placeholder={
+              busy ? strings["console.busy"] : strings["console.placeholder"]
+            }
             className="min-w-0 flex-1 bg-transparent p-0 text-base text-zinc-100 caret-accent outline-none transition-opacity placeholder:text-zinc-600 disabled:opacity-40 sm:text-[0.84rem]"
           />
         </form>

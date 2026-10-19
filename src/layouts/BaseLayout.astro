@@ -22,7 +22,15 @@ interface Props {
 }
 
 const { title, lang, route, slug, description, image } = Astro.props;
-const seo = buildSeoMeta({ title, url: Astro.url, lang, route, slug, description, image });
+const seo = buildSeoMeta({
+  title,
+  url: Astro.url,
+  lang,
+  route,
+  slug,
+  description,
+  image,
+});
 ---
 
 <html lang={lang} class="dark">
@@ -43,7 +51,10 @@ const seo = buildSeoMeta({ title, url: Astro.url, lang, route, slug, description
     {/* Tiene que ser inline y acá arriba: corre antes del primer pintado, así
         que al cambiar de idioma la página ya aparece en su estado final en
         vez de revelarse de nuevo. Un script empaquetado llegaría tarde. */}
-    <script is:inline define:vars={{ key: INSTANT_NAV_KEY, cls: INSTANT_NAV_CLASS }}>
+    <script
+      is:inline
+      define:vars={{ key: INSTANT_NAV_KEY, cls: INSTANT_NAV_CLASS }}
+    >
       try {
         if (sessionStorage.getItem(key) === "1") {
           sessionStorage.removeItem(key);
@@ -53,21 +64,27 @@ const seo = buildSeoMeta({ title, url: Astro.url, lang, route, slug, description
         // Sin sessionStorage simplemente se anima como en cualquier carga.
       }
     </script>
-
     <meta name="description" content={seo.description} />
     <link rel="canonical" href={seo.url} />
 
     {/* Cada idioma declara al otro, y x-default manda al español (el sitio
         por defecto) cuando el navegador no matchea ninguno. */}
     {seo.alternates.map((alternate) => (
-      <link rel="alternate" hreflang={alternate.hreflang} href={alternate.href} />
+      <link
+        rel="alternate"
+        hreflang={alternate.hreflang}
+        href={alternate.href}
+      />
     ))}
     <link rel="alternate" hreflang="x-default" href={seo.defaultHref} />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:locale" content={seo.locale} />
-    <meta property="og:locale:alternate" content={SITE_LOCALES[otherLang(lang)]} />
+    <meta
+      property="og:locale:alternate"
+      content={SITE_LOCALES[otherLang(lang)]}
+    />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={seo.description} />
     <meta property="og:image" content={seo.image} />

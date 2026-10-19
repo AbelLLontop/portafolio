@@ -19,7 +19,9 @@ const githubIcon = githubIconRaw.replace("<svg ", '<svg fill="currentColor" ');
   <p class="mt-2 text-zinc-300">{description}</p>
   {stack.length > 0 && (
     <ul class="mt-4 flex flex-wrap gap-2">
-      {stack.map((tech) => <TechBadge name={tech} />)}
+      {stack.map((tech) => (
+        <TechBadge name={tech} />
+      ))}
     </ul>
   )}
   {(githubUrl || liveUrl) && (
@@ -36,7 +38,12 @@ const githubIcon = githubIconRaw.replace("<svg ", '<svg fill="currentColor" ');
         </a>
       )}
       {liveUrl && (
-        <a href={liveUrl} class="hover:text-accent" target="_blank" rel="noreferrer">
+        <a
+          href={liveUrl}
+          class="hover:text-accent"
+          target="_blank"
+          rel="noreferrer"
+        >
           Demo ↗
         </a>
       )}

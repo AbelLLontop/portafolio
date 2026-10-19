@@ -1,1 +1,11 @@
+# La prosa queda fuera del formateador: los docs del repo (AGENTS.md,
+# CONTRIBUTING.md, docs/) y los posts del blog son texto, no codigo. Si prettier
+# los reescribe, cada edicion de documentacion pelea con el gate de lint y un
+# .mdx publicado puede cambiar de renderizado (tablas, bloques de codigo).
 *.md
+*.mdx
+
+# Salida de build y artefactos: no son fuente.
+dist/
+.astro/
+package-lock.json
