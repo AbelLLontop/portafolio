@@ -78,7 +78,9 @@ decisiones. Si cambiás una, actualizá la entrada en el mismo PR.
 - **Un agente no commitea por su cuenta.** Escribe los archivos, muestra el
   cambio y espera. Cuando se le pide el commit, primero crea la rama. Nunca hace
   push por iniciativa propia. Se aprendió por las malas: un agente con permiso
-  implícito abrió un PR sobre trabajo que todavía no estaba revisado.
+  implícito abrió un PR sobre trabajo que todavía no estaba revisado. Y al
+  revés, su trabajo termina al abrir el PR: vigilar los checks, esperar el CI o
+  fusionar es trabajo del flujo y de la persona, no del agente.
 - **Conventional Commits sin ámbitos cerrados.** Hubo una lista fija de 21
   ámbitos validada por un hook propio: se desincronizaba con `src/` cada vez que
   algo se movía y obligaba a memorizarla. El estándar no define ámbitos, así que

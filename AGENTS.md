@@ -72,7 +72,9 @@ navegación, el botón ES/EN y los `hreflang`.
 2. **No commitear sin que la persona lo pida.** Un agente escribe los archivos,
    muestra el cambio y espera. Cuando se le pide el commit: primero la rama,
    después el commit. Nunca `git push` por iniciativa propia; si se pide el PR,
-   ahí recién se sube la rama.
+   ahí recién se sube la rama. **El trabajo del agente termina al abrir el PR**:
+   devuelve el link y para. No vigila los checks, no espera el resultado del CI
+   y no fusiona. Eso es trabajo del flujo y de la persona.
 3. **Antes de abrir el PR**: `npm run lint`, `npm run test` y `npm run build`
    deben pasar. No hace falta correrlos en cada cambio intermedio: la puerta
    real es el PR.
