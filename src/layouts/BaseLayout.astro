@@ -1,4 +1,5 @@
 ---
+import { ClientRouter } from "astro:transitions";
 import "../styles/global.css";
 import Header from "../components/layout/Header.astro";
 import Footer from "../components/layout/Footer.astro";
@@ -8,7 +9,6 @@ import AscentHud from "../components/astro/AscentHud.astro";
 import { buildSeoMeta, SITE_LOCALES, SITE_NAME } from "../lib/seo.ts";
 import { otherLang, type Lang } from "../i18n/index.ts";
 import type { Route } from "../i18n/routes.ts";
-import { INSTANT_NAV_CLASS, INSTANT_NAV_KEY } from "../lib/instant-nav.ts";
 
 interface Props {
   title: string;
@@ -48,22 +48,11 @@ const seo = buildSeoMeta({
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
 
-    {/* Tiene que ser inline y acá arriba: corre antes del primer pintado, así
-        que al cambiar de idioma la página ya aparece en su estado final en
-        vez de revelarse de nuevo. Un script empaquetado llegaría tarde. */}
-    <script
-      is:inline
-      define:vars={{ key: INSTANT_NAV_KEY, cls: INSTANT_NAV_CLASS }}
-    >
-      try {
-        if (sessionStorage.getItem(key) === "1") {
-          sessionStorage.removeItem(key);
-          document.documentElement.classList.add(cls);
-        }
-      } catch {
-        // Sin sessionStorage simplemente se anima como en cualquier carga.
-      }
-    </script>
+    {/* Navegación sin recargar el documento: Astro intercepta los enlaces
+        internos, se trae el HTML y reemplaza el <body>. El sitio sigue siendo
+        100% estático — esto es solo la capa de cliente. */}
+    <ClientRouter />
+
     <meta name="description" content={seo.description} />
     <link rel="canonical" href={seo.url} />
 
@@ -97,14 +86,48 @@ const seo = buildSeoMeta({
   </head>
   <body class="flex min-h-screen flex-col">
     <div class="veil"></div>
-    <Starfield client:visible />
-    <CursorRocket client:visible />
+    {/* transition:persist: la decoración no se vuelve a montar al navegar. Sin
+        esto el campo de estrellas se regenera de cero y el cohete reaparece de
+        golpe en otro punto, que es justo el parpadeo que el router evita. */}
+    <Starfield client:visible transition:persist />
+    <CursorRocket client:visible transition:persist />
     {route === "post" && <AscentHud lang={lang} />}
     <Header lang={lang} route={route} slug={slug} />
     <div class="flex-1">
       <slot />
     </div>
     <Footer lang={lang} />
+    <script>
+      import { INSTANT_CLASS, SWAP_CLASS } from "../lib/nav-flags.ts";
+
+      // Este módulo corre una sola vez en toda la sesión: el router reemplaza
+      // el <body>, pero no vuelve a ejecutar los scripts ya cargados. Por eso
+      // los listeners van sobre `document`, que sobrevive al swap.
+      let instant = false;
+
+      document.addEventListener("astro:before-preparation", (event) => {
+        // `sourceElement` es el elemento que disparó la navegación, así que el
+        // botón ES/EN se reconoce acá en vez de con un listener por enlace que
+        // habría que volver a colgar en cada página.
+        const source = (event as { sourceElement?: Element }).sourceElement;
+        instant = source?.closest("[data-lang-link]") != null;
+      });
+
+      document.addEventListener("astro:after-swap", () => {
+        // after-swap: el DOM nuevo ya está puesto y el navegador todavía no
+        // pintó, así que las clases llegan a tiempo y nada se revela por un
+        // frame antes de apagarse.
+        const root = document.documentElement;
+        root.classList.add(SWAP_CLASS);
+        root.classList.toggle(INSTANT_CLASS, instant);
+        instant = false;
+
+        // `--ascent` lo escribe el HUD, que solo existe en los posts: al salir
+        // de uno nadie lo bajaría de nuevo y el veil quedaría atenuado para
+        // siempre. Sin la variable, el CSS vuelve a su default (0).
+        root.style.removeProperty("--ascent");
+      });
+    </script>
     <script>
       import { inject } from "@vercel/analytics";
       inject();

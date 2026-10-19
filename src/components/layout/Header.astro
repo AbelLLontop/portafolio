@@ -187,52 +187,53 @@ const navLinks = NAV_ROUTES.map((key) => ({
 </style>
 
 <script>
-  import { markInstantNav } from "../../lib/instant-nav.ts";
+  // El router de cliente reemplaza el <body> sin recargar el documento, así
+  // que este módulo corre una sola vez y las referencias a elementos que
+  // guardara quedarían apuntando al header de la página anterior. De ahí la
+  // forma: todo cuelga de `document` (que sobrevive al swap) y el header se
+  // busca al usarlo, no al cargar. Así tampoco hay que volver a colgar nada en
+  // `astro:page-load`, que iría acumulando listeners duplicados.
+  const panel = () => document.getElementById("nav-mobile");
+  const toggle = () => document.getElementById("nav-toggle");
 
-  // Al cambiar de idioma se marca la próxima carga para que llegue sin
-  // animaciones: el texto tiene que aparecer ya puesto, no revelarse ni
-  // retipearse de nuevo. Cualquier otra navegación anima como siempre.
-  document.querySelectorAll("[data-lang-link]").forEach((link) => {
-    link.addEventListener("click", markInstantNav);
-  });
+  const setOpen = (open: boolean) => {
+    const button = toggle();
+    const menu = panel();
+    if (!button || !menu) return;
 
-  const toggle = document.getElementById("nav-toggle");
-  const panel = document.getElementById("nav-mobile");
-
-  if (toggle && panel) {
     // Las etiquetas llegan por data-* porque este script se empaqueta aparte y
     // no puede leer props de Astro; `define:vars` lo volveria inline y sin TS.
-    const labelOpen = toggle.dataset.labelOpen ?? "";
-    const labelClose = toggle.dataset.labelClose ?? "";
+    const label = open ? button.dataset.labelClose : button.dataset.labelOpen;
 
-    const setOpen = (open: boolean) => {
-      toggle.setAttribute("aria-expanded", String(open));
-      toggle.setAttribute("aria-label", open ? labelClose : labelOpen);
-      panel.hidden = !open;
-    };
+    button.setAttribute("aria-expanded", String(open));
+    button.setAttribute("aria-label", label ?? "");
+    menu.hidden = !open;
+  };
 
-    toggle.addEventListener("click", () => {
-      setOpen(toggle.getAttribute("aria-expanded") !== "true");
-    });
+  document.addEventListener("click", (event) => {
+    const button = toggle();
+    const menu = panel();
+    if (!button || !menu) return;
 
-    // Cerrar al tocar fuera o con Escape, para que el panel no se quede
-    // tapando el contenido.
-    document.addEventListener("click", (event) => {
-      const target = event.target as Node;
-      if (
-        !panel.hidden &&
-        !panel.contains(target) &&
-        !toggle.contains(target)
-      ) {
-        setOpen(false);
-      }
-    });
+    const target = event.target as Node;
 
-    document.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" && !panel.hidden) {
-        setOpen(false);
-        toggle.focus();
-      }
-    });
-  }
+    if (button.contains(target)) {
+      setOpen(button.getAttribute("aria-expanded") !== "true");
+      return;
+    }
+
+    // Cerrar al tocar fuera, para que el panel no se quede tapando el
+    // contenido.
+    if (!menu.hidden && !menu.contains(target)) setOpen(false);
+  });
+
+  document.addEventListener("keydown", (event) => {
+    const menu = panel();
+    if (event.key !== "Escape" || !menu || menu.hidden) return;
+    setOpen(false);
+    toggle()?.focus();
+  });
+
+  // El panel abierto no hace falta cerrarlo al navegar: el header que llega
+  // del servidor ya viene con el panel oculto.
 </script>

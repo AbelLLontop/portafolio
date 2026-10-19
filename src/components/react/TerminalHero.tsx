@@ -1,7 +1,7 @@
 import { motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { interpolate } from "../../i18n/interpolate.ts";
-import { isInstantNav } from "../../lib/instant-nav.ts";
+import { isSwapNav } from "../../lib/nav-flags.ts";
 
 /** Un valor de fila puede ser texto suelto o un destino al que se puede ir. */
 export type RowValue =
@@ -291,11 +291,14 @@ export default function TerminalHero({
   // El diálogo de apertura no es un caso especial: son dos trabajos encolados.
   useEffect(() => {
     // Sin tecleo en dos casos: cuando el visitante pidió menos movimiento, y
-    // al volver de un cambio de idioma, donde retipear todo el diálogo sería
-    // justo lo contrario de "solo cambiaron las palabras".
+    // cuando la vista llegó por el router de cliente. Eso cubre el cambio de
+    // idioma (retipear el diálogo sería lo contrario de "solo cambiaron las
+    // palabras") y también el volver al home desde otra página: ahí el swap es
+    // instantáneo, así que la terminal aparecería vacía para teclear de nuevo
+    // un diálogo ya visto, con sus pausas y todo.
     if (
       window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
-      isInstantNav()
+      isSwapNav()
     ) {
       setHistory(exchanges);
       setCycleCount(1);

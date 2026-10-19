@@ -17,6 +17,9 @@ propósito y el roadmap están en [`docs/project.md`](./docs/project.md).
 ## 2. Stack
 
 - **Astro 7** (SSG, estricto). Sitio 100% estático: sin backend, sin CMS, sin base de datos.
+- **Navegación** con el `<ClientRouter />` de Astro: entre páginas no se recarga
+  el documento, se reemplaza el `<body>`. Sigue siendo un sitio estático; esto
+  es solo la capa de cliente.
 - **React 19** en islas (`@astrojs/react`), solo donde hace falta estado o animación real.
 - **Tailwind CSS 4** con tokens en `src/styles/global.css`; CSS propio solo para efectos puntuales.
 - **Motion** (`motion/react`) dentro de las islas; micro-interacciones con CSS nativo.
@@ -55,6 +58,16 @@ navegación, el botón ES/EN y los `hreflang`.
   empaquetan aparte y no ven las props de Astro.
 - **Islas React**: `client:visible` por defecto. `client:load` solo con
   justificación above-the-fold (hoy la excepción es la terminal del hero).
+  `transition:persist` solo para la decoración que no debe reiniciarse al
+  navegar (el campo de estrellas y el cohete).
+- **Scripts de cliente**: con el router, un `<script>` de Astro corre **una
+  sola vez** en toda la sesión, no en cada página. Lo que dependa del DOM de la
+  página va dentro de `astro:page-load` (que también corre en la carga
+  inicial); lo que se suscriba a `window` o `document` se cuelga una sola vez
+  afuera, porque rehacerlo por página acumula listeners. Ver `AscentHud.astro`.
+- **Animaciones de entrada**: una carga de verdad anima; una navegación del
+  router no vuelve a representar lo ya visto. Lo marcan dos clases en `<html>`
+  (`src/lib/nav-flags.ts`), nunca se lee el estado de navegación desde una isla.
 - **Posts**: `summary` es obligatorio en el frontmatter — se usa como meta
   description y como descripción de Open Graph. El número `#N` de cada nota se
   calcula por fecha entre los posts no-draft, no es un campo del frontmatter.

@@ -46,15 +46,31 @@ html {
   background-attachment: fixed;
 }
 
-/* Cambio de idioma: la clase la pone un script inline del <head> antes del
-   primer pintado (ver lib/instant-nav.ts). Las secciones quedan en su estado
-   final, así que el texto se reemplaza de golpe en vez de volver a revelarse.
-   El !important es a propósito: gana sobre los estilos inline que escribe
-   Framer Motion. Dura toda esa vista de la página — después de un cambio de
-   idioma no hay animación de scroll hasta la siguiente navegación. */
-html.instant-nav [data-reveal] {
+/* Cambio de idioma: la clase la pone el script de navegación de BaseLayout al
+   terminar el swap y antes del primer pintado (ver lib/nav-flags.ts). Las
+   secciones quedan en su estado final, así que el texto se reemplaza de golpe
+   en vez de volver a revelarse. El !important es a propósito: gana sobre los
+   estilos inline que escribe Motion. Dura toda esa vista de la página —
+   después de un cambio de idioma no hay animación de scroll hasta la
+   siguiente navegación.
+
+   Las demás navegaciones del router SÍ vuelven a revelar: son medio segundo y
+   son lo que hace que el cambio de página se lea como un cambio de página y
+   no como un reemplazo abrupto de contenido. */
+html.nav-instant [data-reveal] {
   opacity: 1 !important;
   transform: none !important;
+}
+
+/* El router anima el cambio de página con las view transitions del navegador.
+   Astro ya apaga sus animaciones propias con menos movimiento, pero el morph
+   de un `transition:name` lo corre el navegador por su cuenta. */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
 }
 
 /* Sin fondo propio: lo pinta <html> (ver arriba). Si se le pone uno acá,

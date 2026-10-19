@@ -154,7 +154,15 @@ export default function BlogList({ posts, blogPath, strings }: BlogListProps) {
                 #{post.number}
               </span>
               <span className="min-w-0">
-                <span className="block font-display text-xl font-semibold leading-tight tracking-[-0.01em] text-zinc-100 transition-colors group-hover:text-accent">
+                {/* El mismo nombre lo lleva el <h1> del post (ver
+                    BlogPostLayout.astro), así que el navegador lleva este
+                    título hasta el otro al entrar a la nota. Va como estilo y
+                    no con `transition:name` porque esto es una isla React: la
+                    directiva es de Astro. El slug ya es único por nota. */}
+                <span
+                  style={{ viewTransitionName: `post-${post.slug}` }}
+                  className="block font-display text-xl font-semibold leading-tight tracking-[-0.01em] text-zinc-100 transition-colors group-hover:text-accent"
+                >
                   {post.title}
                 </span>
                 {post.summary && (
