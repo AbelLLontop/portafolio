@@ -49,7 +49,13 @@ const formattedDate = formatPostDate(date, lang);
         </div>
 
         <div class="post-title-sentinel" aria-hidden="true"></div>
-        <h1 class="post-title sticky top-16 z-40 mt-3 flex items-center font-display text-3xl font-bold tracking-[-0.02em] text-zinc-100 md:text-4xl">
+        {/* El mismo nombre lo lleva el título de esta nota en el listado
+            (ver BlogList.tsx), así que al entrar al post el navegador lleva
+            uno hasta el otro en vez de cortar a negro. */}
+        <h1
+          transition:name={`post-${post.id}`}
+          class="post-title sticky top-16 z-40 mt-3 flex items-center font-display text-3xl font-bold tracking-[-0.02em] text-zinc-100 md:text-4xl"
+        >
           <span class="post-title-number" aria-hidden="true">
             #{number}
           </span>

@@ -84,6 +84,10 @@ decisiones. Si cambiás una, actualizá la entrada en el mismo PR.
   hace que el cambio de página se lea como un cambio de página. Antes del router
   esto era un `sessionStorage` leído por un script inline del `<head>` antes del
   primer pintado; sin documento nuevo, basta con `astro:after-swap`.
+- **El morph entre páginas es uno solo: el título del post.** El mismo
+  `transition:name` lo llevan la fila del listado y el `<h1>` de la nota, así que
+  al entrar el navegador lleva uno hasta el otro. Un segundo elemento animado
+  compite con ese y el cambio de página se vuelve ruidoso.
 - **El acento se usa siempre desde el token**, nunca como hex suelto en un
   componente, para poder cambiarlo en un solo lugar.
 
