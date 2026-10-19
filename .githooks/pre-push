@@ -1,0 +1,31 @@
+#!/bin/sh
+# Ultima red local antes de subir: type-check. Instalado via core.hooksPath
+# (ver scripts/install-hooks.js).
+#
+# A proposito NO corre `npm run verify` completo: build + e2e tardan minutos y
+# un pre-push lento se termina salteando con --no-verify, que es peor que no
+# tenerlo. La puerta completa es el PR (.github/workflows/pr-checks.yml).
+
+# Nunca bloquear el borrado de una rama remota (git push origin :rama).
+while read -r _local_ref local_sha _remote_ref _remote_sha; do
+  case "$local_sha" in
+    0000000000000000000000000000000000000000) exit 0 ;;
+  esac
+done
+
+if [ ! -d node_modules ]; then
+  echo "⚠ pre-push: no hay node_modules, salteo el type-check." >&2
+  exit 0
+fi
+
+echo "pre-push: npm run check…" >&2
+
+if ! npm run check --silent; then
+  echo "" >&2
+  echo "✗ Push cancelado: 'npm run check' falla." >&2
+  echo "  Arreglalo y volve a intentar. La suite completa es 'npm run verify'." >&2
+  echo "" >&2
+  exit 1
+fi
+
+exit 0
