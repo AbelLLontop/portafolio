@@ -482,6 +482,7 @@ export default function TerminalHero({
     >
       <div
         data-cycle-count={cycleCount}
+        data-keep-dark
         className="w-full overflow-hidden rounded-xl backdrop-blur-md"
         style={{
           border: "1px solid var(--line)",

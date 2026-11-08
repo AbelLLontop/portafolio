@@ -72,6 +72,17 @@ navegación, el botón ES/EN y los `hreflang`.
   description y como descripción de Open Graph. El número `#N` de cada nota se
   calcula por fecha entre los posts no-draft, no es un campo del frontmatter.
   Los posts son siempre independientes entre sí, sin jerarquía ni relación.
+- **Tema claro/oscuro**: el oscuro es el original (ausencia de atributo) y el
+  claro se activa con `data-theme="light"` en `<html>`. Sin elección guardada
+  se sigue el tema del sistema (y claro si no se puede leer); el botón del
+  navbar guarda la elección en `localStorage`. `BaseLayout` lo fija antes del
+  primer pintado y lo copia al
+  documento nuevo en `astro:before-swap`). Los colores viven como tokens en
+  `global.css` (`--bg`, `--surface`, `--tint`, `--panel`, `--on-accent`…, y los
+  zinc se reasignan en el bloque claro): en un componente nunca un
+  `rgb(255 255 255 / …)` ni un hex de fondo, sino el token. Los bloques de
+  código y la consola del hero son paneles de terminal y siguen oscuros en
+  ambos temas (`.code-block`, `data-keep-dark`).
 - **Color de acento**: un solo acento, siempre desde el token, nunca un hex
   suelto en un componente.
 - **Tipografía**: tres familias con un rol cada una — Saira (`font-display`) en

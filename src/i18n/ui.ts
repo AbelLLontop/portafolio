@@ -17,6 +17,7 @@ const es = {
   "nav.openMenu": "Abrir el menú",
   "nav.closeMenu": "Cerrar el menú",
   "nav.language": "Idioma",
+  "nav.theme": "Cambiar entre tema claro y oscuro",
   // El nombre del idioma SIEMPRE en ese idioma, no traducido al de la página:
   // es lo que recomienda el W3C para un selector de idioma (quien busca la
   // versión inglesa reconoce "English", no "Inglés"). Por eso el enlace lo
@@ -202,6 +203,7 @@ const en: Record<UIKey, string> = {
   "nav.openMenu": "Open menu",
   "nav.closeMenu": "Close menu",
   "nav.language": "Language",
+  "nav.theme": "Switch between light and dark theme",
   "nav.langName": "English",
 
   // ---- SEO ---------------------------------------------------------------

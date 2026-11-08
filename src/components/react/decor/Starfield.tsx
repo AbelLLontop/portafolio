@@ -51,10 +51,31 @@ export default function Starfield() {
     ).matches;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    const accentColor =
-      getComputedStyle(document.documentElement)
-        .getPropertyValue("--color-accent")
-        .trim() || "#61dafb";
+    // Los colores salen de los tokens del tema. El campo persiste entre
+    // páginas, así que se relee cuando <html> cambia de tema.
+    let accentColor = "#61dafb";
+    let starColor = "#ffffff";
+    let shootRgb = "232,238,246";
+    const readTheme = () => {
+      const style = getComputedStyle(document.documentElement);
+      accentColor =
+        style.getPropertyValue("--color-accent").trim() || "#61dafb";
+      starColor = style.getPropertyValue("--star").trim() || "#ffffff";
+      shootRgb =
+        document.documentElement.dataset.theme === "light"
+          ? "82,82,91"
+          : "232,238,246";
+    };
+    readTheme();
+    const themeObserver = new MutationObserver(() => {
+      readTheme();
+      // Sin animación nadie vuelve a pintar: se redibuja una vez.
+      if (prefersReducedMotion) draw(0);
+    });
+    themeObserver.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-theme"],
+    });
 
     let width = window.innerWidth;
     let height = window.innerHeight;
@@ -120,7 +141,7 @@ export default function Starfield() {
           : 0.35 + 0.65 * Math.abs(Math.sin(time * 0.0007 + star.twinkle));
 
         ctx.globalAlpha = twinkle * (0.35 + star.z * 0.65);
-        ctx.fillStyle = star.accent ? accentColor : "#ffffff";
+        ctx.fillStyle = star.accent ? accentColor : starColor;
 
         if (warp > WARP_THRESHOLD) {
           ctx.fillRect(x, y, star.r, star.r + warp * star.z * WARP_LENGTH);
@@ -151,8 +172,8 @@ export default function Starfield() {
           shootingStar.x - SHOOTING_STAR_LENGTH,
           shootingStar.y - SHOOTING_STAR_LENGTH / 2,
         );
-        tail.addColorStop(0, "rgba(232,238,246,0.9)");
-        tail.addColorStop(1, "rgba(232,238,246,0)");
+        tail.addColorStop(0, `rgba(${shootRgb},0.9)`);
+        tail.addColorStop(1, `rgba(${shootRgb},0)`);
         ctx.strokeStyle = tail;
         ctx.lineWidth = 1.6;
         ctx.beginPath();
@@ -169,7 +190,10 @@ export default function Starfield() {
     if (prefersReducedMotion) {
       draw(0);
       window.addEventListener("resize", resize);
-      return () => window.removeEventListener("resize", resize);
+      return () => {
+        themeObserver.disconnect();
+        window.removeEventListener("resize", resize);
+      };
     }
 
     const handlePointerMove = (event: PointerEvent) => {
@@ -210,6 +234,7 @@ export default function Starfield() {
 
     return () => {
       running = false;
+      themeObserver.disconnect();
       cancelAnimationFrame(raf);
       window.removeEventListener("resize", resize);
       window.removeEventListener("pointermove", handlePointerMove);

@@ -45,7 +45,7 @@ const POSTS_PER_PAGE = 10;
 
 const CONTROL_STYLE = {
   borderColor: "var(--line)",
-  background: "rgb(255 255 255 / 0.02)",
+  background: "var(--tint)",
 };
 
 export default function BlogList({ posts, blogPath, strings }: BlogListProps) {
@@ -147,7 +147,7 @@ export default function BlogList({ posts, blogPath, strings }: BlogListProps) {
         className="group/search flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors focus-within:border-accent"
         style={{
           borderColor: "color-mix(in srgb, var(--faint) 45%, var(--line))",
-          background: "rgb(255 255 255 / 0.03)",
+          background: "var(--tint-2)",
         }}
       >
         <span
