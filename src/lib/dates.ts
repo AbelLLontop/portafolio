@@ -22,6 +22,31 @@ export function formatPostDate(date: Date, lang: Lang = DEFAULT_LANG): string {
   });
 }
 
+/** Clave de mes ("2026-10") para agrupar notas; en UTC por lo de arriba. */
+export function postMonthKey(date: Date): string {
+  return date.toISOString().slice(0, 7);
+}
+
+/** Mes y año ("octubre de 2026" / "October 2026"), para agrupar el listado. */
+export function formatPostMonth(date: Date, lang: Lang = DEFAULT_LANG): string {
+  return date.toLocaleDateString(LOCALES[lang], {
+    year: "numeric",
+    month: "long",
+    timeZone: TIME_ZONE,
+  });
+}
+
+/** Día y mes sin año ("12 oct" / "Oct 12"), para filas ya agrupadas por mes. */
+export function formatPostDay(date: Date, lang: Lang = DEFAULT_LANG): string {
+  return date
+    .toLocaleDateString(LOCALES[lang], {
+      month: "short",
+      day: "numeric",
+      timeZone: TIME_ZONE,
+    })
+    .replace(".", "");
+}
+
 /** Versión compacta, para espacios angostos como la consola del hero. */
 export function formatPostDateShort(
   date: Date,

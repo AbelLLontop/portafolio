@@ -9,7 +9,8 @@ vive en los documentos de la sección 8.
 Landing de portafolio de un desarrollador peruano, con el **blog técnico como
 pieza central**: notas propias, no pensadas para audiencia externa, pero con un
 tratamiento visual cuidado. Acompañan una sección de proyectos (hoy en
-construcción, sin proyectos inventados) y una página "Sobre mí".
+construcción, sin proyectos inventados) y una sección "Sobre mí" dentro de
+Inicio.
 
 El criterio de calidad es "hecho a medida": nada debe sentirse plantilla. El
 propósito y el roadmap están en [`docs/project.md`](./docs/project.md).
@@ -38,9 +39,8 @@ traducen; los de los posts no, porque los `.mdx` no se traducen.
 
 | Español | Inglés | Qué es |
 | :-- | :-- | :-- |
-| `/` | `/en/` | Hero con terminal interactiva, proyectos, contacto |
-| `/sobre-mi` | `/en/about` | Resumen profesional breve |
-| `/blog` | `/en/blog` | Listado de notas con búsqueda y paginación |
+| `/` | `/en/` | Banner (hero con terminal interactiva y carrusel de tecnologías), sobre mí, proyectos, contacto |
+| `/blog` | `/en/blog` | Bitácora de notas agrupada por mes, con búsqueda y paginación |
 | `/blog/<slug>` | `/en/blog/<slug>` | Nota individual |
 
 `src/i18n/routes.ts` es la única fuente de los paths: de ahí salen la
@@ -74,6 +74,35 @@ navegación, el botón ES/EN y los `hreflang`.
   Los posts son siempre independientes entre sí, sin jerarquía ni relación.
 - **Color de acento**: un solo acento, siempre desde el token, nunca un hex
   suelto en un componente.
+- **Tipografía**: tres familias con un rol cada una — Saira (`font-display`) en
+  titulares, JetBrains Mono (`font-mono`) en etiquetas, UI, fechas y código, y
+  el sans del sistema en párrafos. Los tamaños y el espaciado de letra salen de
+  una escala con nombre (definida en `tailwind.config.mjs`), nunca de un valor
+  suelto: mono pequeño `text-micro` (etiquetas, chips, metadatos) y `text-ui`
+  (navegación, botones, pie); espaciado `tracking-eyebrow` (etiqueta de
+  sección), `tracking-label` (resto de mayúsculas) y `tracking-ui` (mono en
+  minúsculas); párrafos y titulares, la escala de Tailwind. Si algo no encaja,
+  se elige el rol más cercano en vez de inventar 0.72rem.
+- **Colores de texto**: cuatro niveles — `text-zinc-100` (titulares y valores),
+  `text-zinc-300` (cuerpo que se lee), `text-dim` (descripciones secundarias) y
+  `text-faint` (metadatos y rótulos). Ningún otro gris.
+- **Espaciado vertical**: una sola unidad, `--section-y` (en `global.css`), que
+  es la mitad del hueco entre dos secciones. Cada sección de Inicio usa
+  `section-y` y los subbloques de una sección se separan con `var(--section-y)`;
+  nunca un `py-*` propio por componente, porque eso fue lo que dejó los huecos
+  desparejos. Para cambiar el aire de todo el sitio se toca ese valor.
+- **Marco y contenedores**: el panel con marco (`hull-panel`) es solo de
+  Proyectos y de la consola del hero. El resto de Inicio se estructura con
+  filetes finos, rótulos mono y, en el listado del blog, un riel con un punto
+  por nota. Repetir el marco en todas las secciones hizo que el sitio pareciera
+  plantilla.
+- **Fondo y cursor**: la rejilla es una capa fija (`SiteGrid.astro`), quieta y
+  tenue, en Inicio y en el listado del blog. El cohete y las estrellas ya son la
+  firma del cursor: no se agregan luces ni partículas que lo sigan. Los anillos
+  de acento de `data-spot` (chips y botones de contacto) los mueve `Spotlight`.
+- **Hover**: nunca cambia el tamaño ni la posición de nada; solo color, brillo
+  y fondo. Un estado en reposo que deba destacar (la última nota del listado) se
+  distingue por otra vía, no por el mismo estilo que el hover.
 - **SEO**: `src/lib/seo.ts` genera canonical, Open Graph y Twitter Cards. Cada
   página pasa su `title` y `description`.
 

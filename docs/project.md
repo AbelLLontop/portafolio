@@ -20,14 +20,17 @@ hero— existe para que el sitio se sienta hecho a medida.
 
 ## Qué ofrece el sitio
 
-- **Inicio**: hero con wordmark animado y una terminal que acepta comandos
-  reales (`whoami`, `stack`, `blog`, `contacto`, `help`). Las respuestas se
-  derivan de los mismos datos que renderiza el sitio, no de texto duplicado.
-- **Sobre mí**: resumen profesional breve. Sin foto personal y sin timeline de
-  empleos.
-- **Blog**: listado con búsqueda (por texto, o por número de nota si se escriben
-  solo dígitos) y paginación, todo en el navegador. Cada nota lleva su número
-  `#N`, fecha, código con syntax highlighting e índice.
+- **Inicio**: un banner con el hero (wordmark animado, cifras reales del sitio y
+  una terminal que acepta comandos reales: `whoami`, `stack`, `blog`, `proyectos`,
+  `contacto`, `help`) y, pegado a él, el carrusel de tecnologías. Las respuestas
+  de la terminal se derivan de los mismos datos que renderiza el sitio, no de
+  texto duplicado. Sigue un resumen profesional breve ("sobre mí", con una ficha
+  de datos y el stack por áreas), sin foto personal y sin timeline de empleos.
+- **Blog**: una bitácora de notas agrupada por mes, con búsqueda (por texto, o por
+  número de nota si se escriben solo dígitos; la tecla `/` la enfoca) y
+  paginación, todo en el navegador. Cada nota lleva su número `#N`, fecha, código
+  con syntax highlighting, índice, y un enlace para volver al listado arriba, en
+  la barra pegajosa del título y al final.
 - **Contacto**: GitHub y LinkedIn. El correo no se publica.
 
 ## Límites

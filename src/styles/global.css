@@ -2,15 +2,15 @@
 @config "../../tailwind.config.mjs";
 
 :root {
-  --color-accent: #61dafb;
+  --color-accent: #fb6161;
 
   /* tokens de "casco": neutrales y de estado, no acentos de marca.
      El acento sigue siendo uno solo (--color-accent). */
   --line: #1f2430;
   --hull: #0d1117;
   --hull-2: #141a24;
-  --dim: #8b95a7;
-  --faint: #596475;
+  --dim: #a0aabb;
+  --faint: #7d889a;
   --go: #5ee6a8;
 }
 
@@ -94,16 +94,95 @@ body {
   );
 }
 
+/* Ritmo vertical del inicio, una sola unidad. --section-y es la MITAD del
+   espacio entre dos secciones: cada sección pone esa mitad arriba y abajo, así
+   el hueco entre contenidos es siempre 2 × --section-y. El hero y todo lo
+   demás se mide con ella; si el espacio se ve desparejo, se cambia aquí y
+   no en cada componente. */
+:root {
+  --section-y: 3.5rem;
+}
+
+@media (min-width: 768px) {
+  :root {
+    --section-y: 5rem;
+  }
+}
+
+.section-y {
+  padding-block: var(--section-y);
+}
+
 .section-label {
-  @apply flex items-center gap-3 font-mono text-[0.68rem] uppercase tracking-[0.3em];
+  @apply flex items-center gap-3 font-mono text-micro uppercase tracking-eyebrow;
   color: var(--faint);
 }
 
+/* El filete arranca con un tramo corto de acento y se apaga en --line: el
+   mismo detalle en todas las etiquetas del sitio. */
 .section-label::after {
   content: "";
   flex: 1;
   height: 1px;
-  background: var(--line);
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-accent) 55%, var(--line)),
+    var(--line) 3.5rem
+  );
+}
+
+/* El filete se dibuja de izquierda a derecha al entrar la etiqueta en
+   pantalla. Solo con scroll-driven animations (donde no existen, queda
+   dibujado entero) y sin preferencia de menos movimiento. */
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .section-label::after {
+      transform-origin: left;
+      animation: rule-draw linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 80%;
+    }
+  }
+}
+
+@keyframes rule-draw {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+/* Luz de cursor: Spotlight.astro escribe --sx/--sy (posición del puntero
+   relativa al elemento) y este anillo de 1px, recortado por máscara, solo se
+   enciende cerca del cursor. Sin puntero (táctil) no se pinta. */
+[data-spot] {
+  position: relative;
+}
+
+[data-spot]::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: radial-gradient(
+    110px circle at var(--sx, -999px) var(--sy, -999px),
+    color-mix(in srgb, var(--color-accent) 90%, transparent),
+    transparent 70%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box exclude,
+    linear-gradient(#000 0 0);
+}
+
+@media (hover: none) {
+  [data-spot]::before {
+    display: none;
+  }
 }
 
 /* La rejilla misma es el borde: gap de 1px sobre el color de linea,
@@ -137,7 +216,7 @@ body {
 }
 
 .post-chip {
-  @apply rounded-full px-2.5 py-1 font-mono text-[0.68rem] uppercase tracking-[0.2em];
+  @apply rounded-full px-2.5 py-1 font-mono text-micro uppercase tracking-label;
   border: 1px solid color-mix(in srgb, var(--color-accent) 30%, var(--line));
   background: color-mix(in srgb, var(--color-accent) 8%, transparent);
   color: var(--color-accent);
@@ -159,7 +238,7 @@ body {
 
 /* Entradilla: el primer parrafo arranca mas claro, no mas grande. */
 .prose-post-body > p:first-child {
-  @apply text-zinc-200;
+  @apply text-zinc-100;
 }
 
 .prose-post-body h2,
@@ -305,7 +384,7 @@ body {
 }
 
 .prose-post-body th {
-  @apply whitespace-nowrap px-4 py-2.5 font-mono text-[0.68rem] font-medium uppercase tracking-[0.16em];
+  @apply whitespace-nowrap px-4 py-2.5 font-mono text-micro font-medium uppercase tracking-label;
   /* Transparente: la cabecera comparte el fondo del marco, como la barra de
      los bloques de codigo. */
   background: transparent;
@@ -421,7 +500,7 @@ body {
 }
 
 .code-lang {
-  @apply ml-1.5 truncate font-mono text-[0.63rem] uppercase tracking-[0.16em];
+  @apply ml-1.5 truncate font-mono text-micro uppercase tracking-label;
   color: var(--faint);
 }
 
@@ -508,7 +587,7 @@ body {
    queda solo con el icono, como en cualquier consola moderna. */
 .code-copy::after {
   content: attr(data-tip);
-  @apply pointer-events-none absolute right-0 top-[calc(100%+0.4rem)] z-10 whitespace-nowrap rounded px-2 py-1 font-mono text-[0.68rem] uppercase tracking-[0.14em] opacity-0 transition-opacity duration-150;
+  @apply pointer-events-none absolute right-0 top-[calc(100%+0.4rem)] z-10 whitespace-nowrap rounded px-2 py-1 font-mono text-micro uppercase tracking-label opacity-0 transition-opacity duration-150;
   border: 1px solid var(--line);
   background: #0c0c10;
   color: var(--dim);
@@ -538,9 +617,9 @@ body {
   content: "";
   @apply absolute left-[-1px] top-0 w-px;
   height: var(--toc-fill, 0px);
-  background: var(--color-accent);
-  box-shadow: 0 0 8px var(--color-accent);
-  transition: height 0.2s ease;
+  /* background: var(--color-accent); */
+  /* box-shadow: 0 0 8px var(--color-accent); */
+  /* transition: height 0.2s ease; */
 }
 
 /* text-sm, igual que el resumen de cada fila del listado: el indice ya no
@@ -569,7 +648,7 @@ body {
 /* Pip sobre el espinazo: marca donde va la lectura, igual que el del HUD. */
 .toc-link.is-active::before {
   content: "";
-  @apply absolute left-[-5px] top-1/2 block h-[6px] w-[6px] -translate-y-1/2 rounded-full;
+  @apply absolute left-[-4px] top-1/2 block h-[6px] w-[6px] -translate-y-1/2 rounded-full;
   background: var(--color-accent);
   box-shadow: 0 0 10px var(--color-accent);
 }

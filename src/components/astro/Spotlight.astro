@@ -1,0 +1,47 @@
+---
+// Luz de cursor compartida: cada elemento con `data-spot` recibe la posición
+// del puntero relativa a sí mismo en --sx y --sy, y global.css pinta con eso un
+// borde de acento que solo se ve cerca del cursor. Un único listener para todo
+// el sitio, por eso vive acá y no en cada componente.
+---
+
+<script>
+  let x = -1;
+  let y = -1;
+  let queued = false;
+
+  const paint = () => {
+    queued = false;
+    document.querySelectorAll<HTMLElement>("[data-spot]").forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      el.style.setProperty("--sx", `${x - rect.left}px`);
+      el.style.setProperty("--sy", `${y - rect.top}px`);
+    });
+  };
+
+  const queue = () => {
+    if (queued) return;
+    queued = true;
+    requestAnimationFrame(paint);
+  };
+
+  // Se cuelga una sola vez a window/document (ver AGENTS.md, scripts de
+  // cliente). Al hacer scroll el cursor queda quieto pero los elementos se
+  // mueven, así que también se recalcula ahí.
+  document.addEventListener(
+    "pointermove",
+    (event) => {
+      x = event.clientX;
+      y = event.clientY;
+      queue();
+    },
+    { passive: true },
+  );
+  window.addEventListener(
+    "scroll",
+    () => {
+      if (x >= 0) queue();
+    },
+    { passive: true },
+  );
+</script>

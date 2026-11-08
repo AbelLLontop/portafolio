@@ -5,13 +5,12 @@
 // el otro idioma (no al inicio), y emitir los <link rel="alternate" hreflang>.
 //
 // El espaniol va sin prefijo para no mover ninguna URL ya publicada; el ingles
-// vive bajo /en/. Los slugs se traducen (`/sobre-mi` ↔ `/en/about`), que es lo
-// que espera un lector en cada idioma.
+// vive bajo /en/. Los slugs se traducen, que es lo que espera un lector en
+// cada idioma.
 import type { Lang } from "./index.ts";
 
 export const PATHS = {
   home: { es: "/", en: "/en/" },
-  about: { es: "/sobre-mi", en: "/en/about" },
   blog: { es: "/blog", en: "/en/blog" },
 } as const;
 
@@ -24,7 +23,6 @@ export type Route = StaticRoute | "post";
 /** Las entradas de la navegacion, en orden. El label sale del diccionario. */
 export const NAV_ROUTES = [
   "home",
-  "about",
   "blog",
 ] as const satisfies readonly StaticRoute[];
 

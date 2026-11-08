@@ -2,9 +2,12 @@
 // El cuerpo del inicio vive acá y no en la página para que las dos rutas
 // (`/` y `/en/`) compartan el mismo markup y solo cambie el idioma.
 import Hero from "../astro/Hero.astro";
+import AboutSection from "../astro/AboutSection.astro";
 import TechMarquee from "../astro/TechMarquee.astro";
 import ProjectsSection from "../astro/ProjectsSection.astro";
 import ContactSection from "../astro/ContactSection.astro";
+import Spotlight from "../astro/Spotlight.astro";
+import SiteGrid from "../astro/SiteGrid.astro";
 import ScrollReveal from "../react/ScrollReveal.tsx";
 import type { Lang } from "../../i18n/index.ts";
 
@@ -15,9 +18,21 @@ interface Props {
 const { lang } = Astro.props;
 ---
 
-<Hero lang={lang} />
-<ScrollReveal client:visible y={16}>
-  <TechMarquee lang={lang} />
+<Spotlight />
+<SiteGrid />
+{/* Banner: el hero y el carrusel de logos son un solo grupo, centrado
+    verticalmente en la pantalla (menos el header, 4rem) pero con un tope de
+    50rem: en pantallas altas el aire sobrante no crece sin límite. Es un mínimo y
+    no un alto fijo: en pantallas bajas o en móvil, donde el contenido ya es más
+    alto, no recorta nada. */}
+<div class="flex min-h-[min(calc(100svh-4rem),50rem)] flex-col justify-center">
+  <Hero lang={lang} />
+  <ScrollReveal client:visible y={16} className="pb-6 md:pb-8">
+    <TechMarquee lang={lang} />
+  </ScrollReveal>
+</div>
+<ScrollReveal client:visible y={32}>
+  <AboutSection lang={lang} />
 </ScrollReveal>
 <ScrollReveal client:visible y={32}>
   <ProjectsSection lang={lang} />

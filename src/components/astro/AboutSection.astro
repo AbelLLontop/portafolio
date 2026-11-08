@@ -1,0 +1,180 @@
+---
+// Bio corta del inicio. Antes era una página propia; vive acá porque el
+// sitio no necesita una página aparte para esto.
+import TechBadge from "./TechBadge.astro";
+import {
+  STACK,
+  STACK_GROUPS,
+  YEARS_OF_EXPERIENCE,
+  type StackGroupKey,
+} from "../../lib/profile.ts";
+import { interpolate, useTranslations, type Lang } from "../../i18n/index.ts";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const groups = (Object.keys(STACK_GROUPS) as StackGroupKey[]).map((key) => ({
+  key,
+  label: t(`stack.group.${key}`),
+  techs: STACK.filter((tech) => STACK_GROUPS[key].includes(tech.name)),
+}));
+
+// La ficha resume en datos sueltos lo que la bio cuenta en prosa. Todo sale de
+// lo que ya dice el sitio (hero, bio y perfil), nada se escribe aparte.
+const facts = [
+  {
+    label: t("about.fact.locationLabel"),
+    value: t("about.fact.locationValue"),
+  },
+  { label: t("about.fact.studiesLabel"), value: t("about.fact.studiesValue") },
+  {
+    label: t("about.fact.experienceLabel"),
+    value: interpolate(t("about.fact.experienceValue"), {
+      years: YEARS_OF_EXPERIENCE,
+    }),
+  },
+  { label: t("about.fact.focusLabel"), value: t("about.fact.focusValue") },
+  { label: t("about.fact.toolsLabel"), value: t("about.fact.toolsValue") },
+];
+---
+
+<section class="section-y mx-auto max-w-5xl px-4">
+  <p class="section-label">{t("about.label")}</p>
+
+  <div class="mt-10 grid gap-12 md:grid-cols-[minmax(0,1fr)_17rem] md:gap-16">
+    <div class="min-w-0">
+      <h2 class="about-headline font-display text-3xl font-bold leading-[1.05] tracking-[-0.02em] text-zinc-100 md:text-4xl">
+        {t("about.headlineName")}
+        <br />
+        <span class="about-role">{t("about.headlineRole")}</span>
+      </h2>
+      <p class="mt-6 leading-relaxed" style="color: var(--dim);">
+        {t("about.intro")}
+      </p>
+      <p class="mt-4 leading-relaxed" style="color: var(--dim);">
+        {t("about.body")}
+      </p>
+    </div>
+
+    <!-- Ficha: en vez de una decoración sin significado, el lado derecho dice
+         algo. Filas con filete y rótulo mono, sin contenedor. -->
+    <dl class="facts self-start md:mt-2">
+      {facts.map((fact) => (
+        <div class="fact border-t border-[var(--line)] py-4 last:border-b">
+          <dt
+            class="fact-label font-mono text-micro uppercase tracking-label transition-colors duration-200"
+            style="color: var(--faint);"
+          >
+            {fact.label}
+          </dt>
+          <dd class="mt-1 text-sm leading-snug text-zinc-100">{fact.value}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+
+  <!-- Stack agrupado en filas con filete, sin contenedores: la estructura la
+       dan la línea y el rótulo mono, igual que el resto de etiquetas. -->
+  <div class="mt-[var(--section-y)]">
+    <p class="section-label">{t("about.stackLabel")}</p>
+    <h3 class="mt-3 font-display text-2xl font-semibold tracking-[-0.01em] text-zinc-100">
+      {t("about.stackTitle")}
+    </h3>
+    <div class="stack-rows mt-8 border-b border-[var(--line)]">
+      {groups.map((group) => (
+        <div class="stack-row grid gap-3 border-t border-[var(--line)] py-5 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:items-center">
+          <p
+            class="stack-label font-mono text-micro uppercase tracking-label transition-colors duration-200"
+            style="color: var(--faint);"
+          >
+            {group.label}
+          </p>
+          <ul class="flex flex-wrap gap-2">
+            {group.techs.map((tech) => (
+              <TechBadge name={tech.name} iconKey={tech.iconKey} />
+            ))}
+          </ul>
+        </div>
+      ))}
+      <!-- La frase de cierre es la última fila de la tabla y no un párrafo
+           suelto debajo: mismo rótulo, mismo filete, misma columna. -->
+      <div class="stack-row grid gap-3 border-t border-[var(--line)] py-5 sm:grid-cols-[8.5rem_minmax(0,1fr)] sm:items-center">
+        <p
+          class="stack-label font-mono text-micro uppercase tracking-label transition-colors duration-200"
+          style="color: var(--faint);"
+        >
+          {t("about.nowLabel")}
+        </p>
+        <div class="flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-6">
+          <p class="max-w-prose" style="color: var(--dim);">
+            {t("about.closing")}
+          </p>
+          <span class="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-accent/40 px-3 py-1 font-mono text-micro uppercase tracking-label text-accent">
+            <span class="h-1.5 w-1.5 animate-pulse rounded-full bg-accent"></span>
+            {t("about.badge")}
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* Mismo titular que las demás secciones (text-3xl/4xl, bold): el tamaño y el
+     peso ya no son propios de esta. Solo queda el balanceo de las dos líneas. */
+  .about-headline {
+    text-wrap: balance;
+  }
+
+  /* Un destello recorre el rol una vez cada pocos segundos: mismo color que
+     antes (--dim), con una franja clara que pasa por encima. */
+  .about-role {
+    background: linear-gradient(
+      100deg,
+      var(--dim) 38%,
+      #f4f4f5 50%,
+      var(--dim) 62%
+    );
+    background-size: 260% 100%;
+    background-position: 100% 0;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: role-sheen 8s ease-in-out infinite;
+  }
+
+  @keyframes role-sheen {
+    0%,
+    35% {
+      background-position: 100% 0;
+    }
+    75%,
+    100% {
+      background-position: -100% 0;
+    }
+  }
+
+  /* Al leer una fila las demás bajan de intensidad: guía la vista sin cajas. */
+  .stack-row {
+    transition: opacity 0.25s ease;
+  }
+
+  .stack-rows:has(.stack-row:hover) .stack-row:not(:hover) {
+    opacity: 0.45;
+  }
+
+  .stack-row:hover .stack-label,
+  .fact:hover .fact-label {
+    color: var(--color-accent);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .about-role {
+      animation: none;
+    }
+  }
+</style>

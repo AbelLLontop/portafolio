@@ -46,6 +46,18 @@ const formattedDate = formatPostDate(date, lang);
             {interpolate(t("post.chip"), { number })}
           </span>
           <span class="h-px flex-1" style="background: var(--line);"></span>
+          {/* Vuelta al listado sin esperar al final de la nota. Misma voz que
+              la etiqueta de al lado (mono pequeño en mayúsculas) y en el gris
+              más tenue, para que se lea como migas de pan y no como un botón.
+              El enlace de abajo se queda: ahí sirve al terminar de leer. */}
+          <a
+            href={pathFor("blog", lang)}
+            aria-label={t("post.back")}
+            class="shrink-0 font-mono text-micro uppercase tracking-label text-faint transition-colors hover:text-accent"
+          >
+            <span aria-hidden="true">&#8592;</span>
+            {t("nav.blog")}
+          </a>
         </div>
 
         <div class="post-title-sentinel" aria-hidden="true"></div>
@@ -60,10 +72,26 @@ const formattedDate = formatPostDate(date, lang);
             #{number}
           </span>
           {title}
+          {/* Vuelta al listado dentro de la barra: solo existe mientras el
+              título está pegado (ver .post-title-back), que es justo cuando la
+              fila de arriba ya salió de pantalla. En móvil, solo la flecha,
+              para que la barra no gane una línea más. Fuera de ese estado va
+              con visibility: hidden, así que tampoco recibe el foco. */}
+          <a
+            href={pathFor("blog", lang)}
+            aria-label={t("post.back")}
+            class="post-title-back font-mono text-micro uppercase tracking-label text-faint hover:text-accent"
+          >
+            <span aria-hidden="true">&#8592;</span>
+            <span class="hidden sm:inline" aria-hidden="true">
+              {" "}
+              {t("nav.blog")}
+            </span>
+          </a>
         </h1>
 
         <p
-          class="post-date mt-3 mb-6 pb-6 font-mono text-xs tracking-[0.08em]"
+          class="post-date mt-3 mb-6 pb-6 font-mono text-ui tracking-ui"
           style="color: var(--faint);"
         >
           {formattedDate}
@@ -97,7 +125,7 @@ const formattedDate = formatPostDate(date, lang);
         <footer class="mt-14 border-t pt-6" style="border-color: var(--line);">
           <a
             href={pathFor("blog", lang)}
-            class="inline-flex items-center gap-2 font-mono text-xs tracking-[0.08em] transition-colors hover:text-accent"
+            class="inline-flex items-center gap-2 font-mono text-ui tracking-ui transition-colors hover:text-accent"
             style="color: var(--dim);"
           >
             <span aria-hidden="true">&#8592;</span> {t("post.back")}
@@ -148,7 +176,7 @@ const formattedDate = formatPostDate(date, lang);
 
   .post-title.is-stuck {
     padding: 0.65rem 0;
-    font-size: 1.05rem;
+    font-size: 1rem;
     line-height: 1.4;
     border-bottom-color: var(--line);
     background-color: color-mix(in srgb, var(--color-accent) 6%, #0c0c10 94%);
@@ -182,6 +210,41 @@ const formattedDate = formatPostDate(date, lang);
     margin-right: 0.5rem;
   }
 
+  /* Vuelta al listado: misma técnica que el número. Ocupa 0 hasta que la barra
+     queda pegada; entonces se despliega a la derecha (margin-left: auto lo
+     empuja al borde) y se vuelve alcanzable. El padding también parte de 0:
+     con box-sizing border-box, un padding fijo impediría que el ancho llegara
+     a cero. */
+  .post-title-back {
+    flex-shrink: 0;
+    margin-left: auto;
+    padding-left: 0;
+    overflow: hidden;
+    max-width: 0;
+    opacity: 0;
+    visibility: hidden;
+    white-space: nowrap;
+    font-weight: 400;
+    transition:
+      max-width 0.22s ease-out,
+      padding 0.22s ease-out,
+      margin 0.22s ease-out,
+      opacity 0.22s ease-out,
+      visibility 0.22s,
+      color 0.2s ease;
+  }
+
+  /* Área táctil: la flecha sola mide ~20px, muy poco para un dedo. El padding
+     la agranda a ~44px de alto y los márgenes negativos lo compensan, así que
+     no cambia ni el alto de la barra ni dónde cae el texto. */
+  .post-title.is-stuck .post-title-back {
+    max-width: 7rem;
+    padding: 0.9rem 0.5rem 0.9rem 1rem;
+    margin: -0.9rem -0.5rem -0.9rem auto;
+    opacity: 1;
+    visibility: visible;
+  }
+
   /* En mobile la banda llega a los bordes como el nav: -1rem es justo el
      px-4 del <main>. El padding horizontal devuelve el texto a su sitio.
      Arriba de 768px el titulo ya coincide con la columna del post por si
@@ -196,7 +259,8 @@ const formattedDate = formatPostDate(date, lang);
 
   @media (prefers-reduced-motion: reduce) {
     .post-title,
-    .post-title-number {
+    .post-title-number,
+    .post-title-back {
       transition: none;
     }
   }

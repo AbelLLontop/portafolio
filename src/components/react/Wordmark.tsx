@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
 interface WordmarkProps {
-  size?: "sm" | "lg";
+  size?: "sm" | "lg" | "xl";
 }
 
 const WORD = "abelitolll";
@@ -126,12 +126,15 @@ export default function Wordmark({ size = "sm" }: WordmarkProps) {
   }, [lCount]);
 
   const sizeClasses =
-    size === "lg"
-      ? "text-5xl sm:text-6xl md:text-7xl font-extrabold"
-      : "text-lg font-semibold";
+    size === "xl"
+      ? "text-5xl sm:text-6xl md:text-7xl lg:text-[4.5rem] font-extrabold"
+      : size === "lg"
+        ? "text-5xl sm:text-6xl md:text-7xl font-extrabold"
+        : "text-lg font-semibold";
 
-  const shift = size === "lg" ? 8 : 2;
-  const shake = size === "lg" ? 10 : 3;
+  const big = size !== "sm";
+  const shift = big ? 8 : 2;
+  const shake = big ? 10 : 3;
   const subtleShift = shift * 0.3;
   const subtleShake = shake * 0.3;
 

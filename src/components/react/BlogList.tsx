@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { interpolate } from "../../i18n/interpolate.ts";
 
 export interface BlogListPost {
@@ -6,7 +6,11 @@ export interface BlogListPost {
   title: string;
   summary?: string;
   tags: string[];
-  formattedDate: string;
+  /** Día y mes abreviado ("12 oct"), para filas ya agrupadas por mes. */
+  shortDate: string;
+  /** Clave del mes ("2026-10") y su rótulo ("octubre de 2026"). */
+  monthKey: string;
+  monthLabel: string;
   number: number;
 }
 
@@ -27,6 +31,7 @@ export interface BlogListStrings {
   "blog.noResultsHint": string;
   "blog.prev": string;
   "blog.next": string;
+  "blog.latest": string;
 }
 
 interface BlogListProps {
@@ -47,6 +52,32 @@ export default function BlogList({ posts, blogPath, strings }: BlogListProps) {
   const [query, setQuery] = useState("");
   const [page, setPage] = useState(1);
   const topRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLInputElement>(null);
+
+  // "/" lleva el foco al buscador, como en una consola o en un repositorio. Se
+  // ignora si ya se está escribiendo en otro campo o si hay una tecla
+  // modificadora, para no pisar atajos del navegador.
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key !== "/" || event.metaKey || event.ctrlKey || event.altKey) {
+        return;
+      }
+      const target = event.target as HTMLElement | null;
+      if (
+        target &&
+        (target.tagName === "INPUT" ||
+          target.tagName === "TEXTAREA" ||
+          target.isContentEditable)
+      ) {
+        return;
+      }
+      event.preventDefault();
+      searchRef.current?.focus();
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   const filtered = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -75,6 +106,20 @@ export default function BlogList({ posts, blogPath, strings }: BlogListProps) {
     currentPage * POSTS_PER_PAGE,
   );
 
+  // Las notas llegan de la más nueva a la más vieja, así que las de un mismo mes
+  // son consecutivas: basta con abrir un grupo nuevo cuando cambia la clave.
+  const groups: { key: string; label: string; items: BlogListPost[] }[] = [];
+  for (const post of paged) {
+    const last = groups[groups.length - 1];
+    if (last && last.key === post.monthKey) last.items.push(post);
+    else
+      groups.push({
+        key: post.monthKey,
+        label: post.monthLabel,
+        items: [post],
+      });
+  }
+
   function updateQuery(value: string) {
     setQuery(value);
     setPage(1);
@@ -95,22 +140,46 @@ export default function BlogList({ posts, blogPath, strings }: BlogListProps) {
   return (
     // scroll-mt-24: el header es sticky, sin margen taparia la primera nota.
     <div ref={topRef} className="scroll-mt-24">
-      {/* text-base en mobile: por debajo de 16px iOS hace zoom al enfocar */}
-      <input
-        type="search"
-        aria-label={strings["blog.searchLabel"]}
-        value={query}
-        onChange={(e) => updateQuery(e.target.value)}
-        placeholder={strings["blog.searchPlaceholder"]}
-        style={CONTROL_STYLE}
-        className="w-full rounded-lg border px-4 py-2.5 font-mono text-base text-zinc-100 caret-accent outline-none transition-colors placeholder:text-zinc-600 focus:border-accent sm:text-sm"
-      />
+      {/* text-base en mobile: por debajo de 16px iOS hace zoom al enfocar. El
+          buscador lleva el ">" de la consola del inicio y una tecla "/" que lo
+          enfoca; el campo tiene fondo y borde propios para que se note. */}
+      <label
+        className="group/search flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors focus-within:border-accent"
+        style={{
+          borderColor: "color-mix(in srgb, var(--faint) 45%, var(--line))",
+          background: "rgb(255 255 255 / 0.03)",
+        }}
+      >
+        <span
+          aria-hidden="true"
+          className="font-mono text-base text-accent sm:text-sm"
+        >
+          &gt;
+        </span>
+        <input
+          ref={searchRef}
+          type="search"
+          aria-label={strings["blog.searchLabel"]}
+          aria-keyshortcuts="/"
+          value={query}
+          onChange={(e) => updateQuery(e.target.value)}
+          placeholder={strings["blog.searchPlaceholder"]}
+          className="w-full bg-transparent font-mono text-base text-zinc-100 caret-accent outline-none placeholder:text-dim sm:text-sm"
+        />
+        <kbd
+          aria-hidden="true"
+          className="hidden shrink-0 rounded border px-1.5 py-0.5 font-mono text-micro transition-opacity duration-150 group-focus-within/search:opacity-0 sm:inline-block"
+          style={{ borderColor: "var(--line)", color: "var(--faint)" }}
+        >
+          /
+        </kbd>
+      </label>
 
       {/* aria-live aqui y no en un bloque aparte: asi tambien se anuncia la
           busqueda sin resultados, no solo cuando quedan notas. */}
       <p
         aria-live="polite"
-        className="mt-5 font-mono text-[0.68rem] uppercase tracking-[0.16em]"
+        className="mt-5 font-mono text-micro uppercase tracking-label"
         style={{ color: "var(--faint)" }}
       >
         {filtered.length === posts.length
@@ -137,52 +206,123 @@ export default function BlogList({ posts, blogPath, strings }: BlogListProps) {
           </p>
         </div>
       ) : (
-        <div className="mt-3 flex flex-col">
-          {paged.map((post) => (
-            // Misma gramatica que las entradas de la consola del hero: el
-            // numero manda, el borde izquierdo se enciende y la fila se corre.
-            <a
-              key={post.slug}
-              href={`${blogPath}/${post.slug}`}
-              className="group -ml-3 grid grid-cols-[3.4rem_1fr] gap-x-3 rounded-lg border-l-2 border-transparent py-5 pl-3 transition-all hover:border-accent hover:bg-[color-mix(in_srgb,var(--color-accent)_5%,transparent)] hover:pl-4 sm:grid-cols-[4.2rem_1fr]"
-              style={{ borderBottom: "1px solid var(--line)" }}
-            >
-              <span
-                className="pt-1 font-mono text-sm transition-colors group-hover:text-accent"
-                style={{ color: "var(--faint)" }}
-              >
-                #{post.number}
-              </span>
-              <span className="min-w-0">
-                {/* El mismo nombre lo lleva el <h1> del post (ver
-                    BlogPostLayout.astro), así que el navegador lleva este
-                    título hasta el otro al entrar a la nota. Va como estilo y
-                    no con `transition:name` porque esto es una isla React: la
-                    directiva es de Astro. El slug ya es único por nota. */}
-                <span
-                  style={{ viewTransitionName: `post-${post.slug}` }}
-                  className="block font-display text-xl font-semibold leading-tight tracking-[-0.01em] text-zinc-100 transition-colors group-hover:text-accent"
-                >
-                  {post.title}
-                </span>
-                {post.summary && (
-                  <span
-                    className="mt-2 line-clamp-2 block text-sm leading-relaxed"
-                    style={{ color: "var(--dim)" }}
+        // La bitácora: un riel vertical con un punto por nota, agrupadas por mes.
+        // Es el mismo lenguaje del índice de las notas y del HUD de altitud, y
+        // la nota de más arriba es la más reciente.
+        <div className="relative mt-2 before:absolute before:bottom-0 before:left-[7px] before:top-0 before:w-px before:bg-[var(--line)]">
+          {groups.map((group, groupIndex) => (
+            <section key={group.key} aria-label={group.label}>
+              <h2 className="relative pb-1 pl-10 pt-8 font-mono text-micro uppercase tracking-label text-dim before:absolute before:left-[7px] before:top-[2.35rem] before:h-px before:w-6 before:bg-[var(--faint)]">
+                {group.label}
+              </h2>
+
+              {group.items.map((post, index) => {
+                // Solo en la primera página y sin búsqueda: con un filtro activo
+                // la primera fila ya no es "la última nota".
+                const isLatest =
+                  groupIndex === 0 &&
+                  index === 0 &&
+                  currentPage === 1 &&
+                  query === "";
+
+                return (
+                  // Nada cambia de tamaño ni de posición al pasar el cursor: solo
+                  // color, brillo y fondo. La última nota se distingue en
+                  // reposo por otra vía (tamaño, etiqueta y un punto que
+                  // pulsa) y NO por el fondo ni el color del título, que son
+                  // justo lo que cambia el hover: así los dos estados se leen
+                  // distinto. Las filas no llevan filete: el riel y el aire ya
+                  // las separan.
+                  <a
+                    key={post.slug}
+                    href={`${blogPath}/${post.slug}`}
+                    className="group relative grid grid-cols-[3.75rem_minmax(0,1fr)] gap-x-3 rounded-lg py-4 pl-10 pr-3 transition-colors duration-200 hover:bg-[color-mix(in_srgb,var(--color-accent)_4%,transparent)] sm:grid-cols-[4.5rem_minmax(0,1fr)]"
                   >
-                    {post.summary}
-                  </span>
-                )}
-                <span
-                  className="mt-2.5 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[0.68rem]"
-                  style={{ color: "var(--faint)" }}
-                >
-                  <span>{post.formattedDate}</span>
-                  {post.tags.length > 0 && <span aria-hidden="true">·</span>}
-                  <span>{post.tags.join(" · ")}</span>
-                </span>
-              </span>
-            </a>
+                    {/* Punto sobre el riel, a la altura de la fecha. Hueco en
+                        reposo; en hover se llena de acento con brillo. El de la
+                        última nota va siempre lleno y con un anillo que pulsa,
+                        como el punto de "abierto a oportunidades". */}
+                    {isLatest && (
+                      <span
+                        aria-hidden="true"
+                        className="absolute left-[3px] top-[1.3rem] h-[9px] w-[9px] animate-ping rounded-full bg-accent opacity-50 motion-reduce:animate-none"
+                      />
+                    )}
+                    <span
+                      aria-hidden="true"
+                      className={`absolute left-[3px] top-[1.3rem] h-[9px] w-[9px] rounded-full border transition-all duration-200 group-hover:border-accent group-hover:bg-accent group-hover:shadow-[0_0_12px_var(--color-accent)] ${
+                        isLatest
+                          ? "border-accent bg-accent shadow-[0_0_12px_var(--color-accent)]"
+                          : "bg-[var(--hull)]"
+                      }`}
+                      style={
+                        isLatest ? undefined : { borderColor: "var(--faint)" }
+                      }
+                    />
+
+                    {/* Marca de tiempo de la bitácora: día y número de nota. */}
+                    <span
+                      className="font-mono text-micro uppercase leading-5 tracking-label"
+                      style={{ color: "var(--faint)" }}
+                    >
+                      <span className="block text-zinc-300 transition-colors duration-200 group-hover:text-accent">
+                        {post.shortDate}
+                      </span>
+                      <span className="block">#{post.number}</span>
+                    </span>
+
+                    <span className="min-w-0">
+                      {isLatest && (
+                        <span className="mb-1.5 block font-mono text-micro uppercase leading-5 tracking-label text-accent">
+                          {strings["blog.latest"]}
+                        </span>
+                      )}
+
+                      {/* El mismo nombre lo lleva el <h1> del post (ver
+                          BlogPostLayout.astro), así que el navegador lleva este
+                          título hasta el otro al entrar a la nota. Va como estilo
+                          y no con `transition:name` porque esto es una isla
+                          React: la directiva es de Astro. El slug ya es único
+                          por nota. */}
+                      <span
+                        style={{ viewTransitionName: `post-${post.slug}` }}
+                        className={`block font-display font-semibold leading-tight tracking-[-0.01em] text-zinc-100 transition-colors duration-200 group-hover:text-accent ${
+                          isLatest
+                            ? "text-2xl md:text-3xl"
+                            : "text-lg md:text-xl"
+                        }`}
+                      >
+                        {post.title}
+                      </span>
+
+                      {post.summary && (
+                        <span
+                          className={`mt-2 block text-sm leading-relaxed ${
+                            isLatest
+                              ? "max-w-[75ch]"
+                              : "line-clamp-2 md:line-clamp-1"
+                          }`}
+                          style={{ color: "var(--dim)" }}
+                        >
+                          {post.summary}
+                        </span>
+                      )}
+
+                      {/* Las etiquetas solo en la última nota: en cada fila
+                          sumaban una línea más de ruido. Siguen en la nota. */}
+                      {isLatest && post.tags.length > 0 && (
+                        <span
+                          className="mt-2 block font-mono text-micro"
+                          style={{ color: "var(--faint)" }}
+                        >
+                          {post.tags.join(" · ")}
+                        </span>
+                      )}
+                    </span>
+                  </a>
+                );
+              })}
+            </section>
           ))}
         </div>
       )}
@@ -194,7 +334,7 @@ export default function BlogList({ posts, blogPath, strings }: BlogListProps) {
             onClick={() => goToPage(Math.max(1, currentPage - 1))}
             disabled={currentPage === 1}
             style={CONTROL_STYLE}
-            className="rounded-lg border px-3.5 py-2 font-mono text-xs tracking-[0.06em] text-zinc-300 transition-colors disabled:opacity-35 enabled:hover:border-accent enabled:hover:text-accent"
+            className="rounded-lg border px-3.5 py-2 font-mono text-ui tracking-ui text-zinc-300 transition-colors disabled:opacity-35 enabled:hover:border-accent enabled:hover:text-accent"
           >
             {strings["blog.prev"]}
           </button>
@@ -203,7 +343,7 @@ export default function BlogList({ posts, blogPath, strings }: BlogListProps) {
             onClick={() => goToPage(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage === totalPages}
             style={CONTROL_STYLE}
-            className="rounded-lg border px-3.5 py-2 font-mono text-xs tracking-[0.06em] text-zinc-300 transition-colors disabled:opacity-35 enabled:hover:border-accent enabled:hover:text-accent"
+            className="rounded-lg border px-3.5 py-2 font-mono text-ui tracking-ui text-zinc-300 transition-colors disabled:opacity-35 enabled:hover:border-accent enabled:hover:text-accent"
           >
             {strings["blog.next"]}
           </button>

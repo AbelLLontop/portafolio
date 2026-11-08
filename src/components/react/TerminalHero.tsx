@@ -120,7 +120,7 @@ function visibleBlocks(blocks: Block[], progress: Progress): Block[] {
 
 function RowValueView({ value }: { value: RowValue }) {
   if (typeof value === "string") {
-    return <span className="break-words text-zinc-200">{value}</span>;
+    return <span className="break-words text-zinc-100">{value}</span>;
   }
 
   return (
@@ -190,7 +190,7 @@ function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
                   }}
                 >
                   <span
-                    className="shrink-0 text-zinc-400 transition-colors group-hover:text-accent [&>svg]:h-5 [&>svg]:w-5"
+                    className="shrink-0 text-dim transition-colors group-hover:text-accent [&>svg]:h-5 [&>svg]:w-5"
                     dangerouslySetInnerHTML={{ __html: channel.icon }}
                   />
                   <span className="min-w-0">
@@ -198,7 +198,7 @@ function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
                       {channel.label}
                     </span>
                     <span
-                      className="block truncate text-[0.7rem]"
+                      className="block truncate text-micro"
                       style={{ color: "var(--faint)" }}
                       title={channel.display}
                     >
@@ -232,14 +232,14 @@ function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
                     </span>
                     {entry.summary && (
                       <span
-                        className="mt-1 block line-clamp-2 text-[0.78rem] leading-[1.6]"
+                        className="mt-1 block line-clamp-2 text-ui leading-[1.6]"
                         style={{ color: "var(--dim)" }}
                       >
                         {entry.summary}
                       </span>
                     )}
                     <span
-                      className="mt-1 block text-[0.7rem]"
+                      className="mt-1 block text-micro"
                       style={{ color: "var(--faint)" }}
                     >
                       {entry.date}
@@ -493,7 +493,7 @@ export default function TerminalHero({
         }}
       >
         <div
-          className="flex items-center gap-2.5 px-3.5 py-2.5 font-mono text-[0.63rem] uppercase tracking-[0.16em]"
+          className="flex items-center gap-2.5 px-3.5 py-2.5 font-mono text-micro uppercase tracking-label"
           style={{
             borderBottom: "1px solid var(--line)",
             color: "var(--faint)",
@@ -520,7 +520,7 @@ export default function TerminalHero({
         <div
           ref={bodyRef}
           aria-live="polite"
-          className="h-[22rem] overflow-y-auto px-4 py-4 font-mono text-[0.84rem] leading-[1.75] sm:h-[26rem]"
+          className="h-[17rem] overflow-y-auto px-4 py-4 font-mono text-sm leading-[1.75] sm:h-[24rem]"
         >
           {history.map((entry, index) => (
             <div key={index} className="mb-3">
@@ -577,7 +577,10 @@ export default function TerminalHero({
         </div>
 
         <form
-          className="flex items-baseline gap-2 px-4 pb-3 pt-2 font-mono"
+          // El campo no lleva outline (la consola es una línea de comandos), así
+          // que el foco se marca en la fila entera con un tinte de acento: sin
+          // esto quien navega con teclado solo veía el cursor parpadear.
+          className="flex items-baseline gap-2 px-4 pb-3 pt-2 font-mono transition-colors duration-200 focus-within:bg-[color-mix(in_srgb,var(--color-accent)_6%,transparent)]"
           onSubmit={(event) => {
             event.preventDefault();
             run(input);
@@ -597,7 +600,7 @@ export default function TerminalHero({
             placeholder={
               busy ? strings["console.busy"] : strings["console.placeholder"]
             }
-            className="min-w-0 flex-1 bg-transparent p-0 text-base text-zinc-100 caret-accent outline-none transition-opacity placeholder:text-zinc-600 disabled:opacity-40 sm:text-[0.84rem]"
+            className="min-w-0 flex-1 bg-transparent p-0 text-base text-zinc-100 caret-accent outline-none transition-opacity placeholder:text-faint disabled:opacity-40 sm:text-sm"
           />
         </form>
 
@@ -611,7 +614,7 @@ export default function TerminalHero({
                 run(name);
                 inputRef.current?.focus();
               }}
-              className="rounded-full border px-2.5 py-1 font-mono text-[0.68rem] tracking-[0.06em] transition-all disabled:cursor-not-allowed disabled:opacity-35 enabled:hover:border-accent enabled:hover:text-accent"
+              className="rounded-full border px-2.5 py-1 font-mono text-micro tracking-ui transition-all disabled:cursor-not-allowed disabled:opacity-35 enabled:hover:border-accent enabled:hover:text-accent"
               style={{
                 borderColor: "var(--line)",
                 color: "var(--dim)",
