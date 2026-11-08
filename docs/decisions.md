@@ -99,6 +99,19 @@ decisiones. Si cambiás una, actualizá la entrada en el mismo PR.
   tamaño hace que el contenido se mueva bajo el cursor; solo cambian color, brillo
   y fondo. Los controles que cambian de aspecto al enfocarse (el buscador del
   blog) no pueden cambiar de tamaño: se oculta con opacidad, no con `display`.
+- **Los experimentos son una sección aparte, no parte de Proyectos.** Proyectos
+  es software real y la regla es no inventar ninguno; un grupo musical ficticio
+  hecho con IA es una prueba creativa, no un proyecto. Mezclarlos habría obligado
+  a elegir entre desdibujar qué es cada cosa o dejar el experimento sin lugar.
+  Cada experimento tiene su propia página en vez de una tarjeta con enlaces,
+  porque lo que lo hace interesante (cómo se hizo, los videos, el diseño) no cabe
+  en una tarjeta.
+- **Los videos y el audio se incrustan con una fachada, no con el iframe
+  directo.** Seis iframes de YouTube al abrir la página descargan sus scripts y
+  les avisan a sus servidores aunque nadie les dé play, y en el celular pesa.
+  `EmbedFacade` muestra una imagen con un botón y monta el iframe (en
+  `youtube-nocookie.com`) solo al reproducir. El costo: un clic más para ver un
+  video. TikTok queda como enlace: su embed es pesado e inestable.
 
 ## Técnicas
 

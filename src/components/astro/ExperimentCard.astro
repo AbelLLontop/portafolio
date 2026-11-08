@@ -1,0 +1,64 @@
+---
+import { Image } from "astro:assets";
+import { formatPostDate } from "../../lib/dates.ts";
+import type { Experiment } from "../../lib/experiments.ts";
+import { useTranslations, type Lang } from "../../i18n/index.ts";
+import { pathFor } from "../../i18n/routes.ts";
+
+interface Props {
+  experiment: Experiment;
+  lang: Lang;
+}
+
+const { experiment, lang } = Astro.props;
+const t = useTranslations(lang);
+const { title, summary, date, tags, ai, banner, bannerAlt, avatar } =
+  experiment.data;
+---
+
+<a
+  href={pathFor("experiment", lang, experiment.id)}
+  class="experiment-card group block overflow-hidden rounded-lg border transition-colors hover:border-accent"
+  style="border-color: var(--line);"
+>
+  <div class="relative aspect-[16/9] overflow-hidden">
+    <Image
+      src={banner}
+      alt={bannerAlt}
+      width={800}
+      class="h-full w-full object-cover"
+    />
+    <Image
+      src={avatar}
+      alt=""
+      width={96}
+      height={96}
+      class="absolute bottom-3 left-3 h-12 w-12 rounded-full border-2 object-cover"
+      style="border-color: var(--bg);"
+    />
+  </div>
+  <div class="p-5">
+    <p class="font-mono text-micro uppercase tracking-label text-faint">
+      {formatPostDate(date, lang)}
+    </p>
+    <h2 class="mt-1.5 font-display text-xl font-semibold text-zinc-100 transition-colors group-hover:text-accent">
+      {title}
+    </h2>
+    <p class="mt-2 text-sm leading-relaxed text-dim">{summary}</p>
+    <ul class="mt-4 flex flex-wrap items-center gap-2">
+      {tags.map((tag) => (
+        <li
+          class="rounded-full border px-2.5 py-0.5 font-mono text-micro text-dim"
+          style="border-color: var(--line);"
+        >
+          {tag}
+        </li>
+      ))}
+      {ai && (
+        <li class="rounded-full border border-accent/40 px-2.5 py-0.5 font-mono text-micro text-accent">
+          {t("experiments.aiChip")}
+        </li>
+      )}
+    </ul>
+  </div>
+</a>

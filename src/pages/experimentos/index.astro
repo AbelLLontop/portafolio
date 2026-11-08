@@ -1,0 +1,18 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ExperimentsIndexBody from "../../components/pages/ExperimentsIndexBody.astro";
+import { pageTitle } from "../../lib/seo.ts";
+import { useTranslations } from "../../i18n/index.ts";
+
+const lang = "es" as const;
+const t = useTranslations(lang);
+---
+
+<BaseLayout
+  title={pageTitle(t("seo.experiments.title"))}
+  description={t("seo.experiments.description")}
+  lang={lang}
+  route="experiments"
+>
+  <ExperimentsIndexBody lang={lang} />
+</BaseLayout>

@@ -1,0 +1,57 @@
+---
+// El cuerpo del listado vive acá y no en la página para que las dos rutas
+// (`/experimentos` y `/en/experiments`) compartan el mismo markup.
+import ExperimentCard from "../astro/ExperimentCard.astro";
+import ScrollReveal from "../react/ScrollReveal.tsx";
+import { getPublishedExperiments } from "../../lib/experiments.ts";
+import { useTranslations, type Lang } from "../../i18n/index.ts";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const experiments = await getPublishedExperiments();
+---
+
+<main class="mx-auto max-w-5xl px-4 py-12">
+  <ScrollReveal client:visible>
+    <p class="section-label">{t("experiments.label")}</p>
+    <h1 class="mt-3 font-display text-4xl font-bold tracking-[-0.02em] text-zinc-100 md:text-5xl">
+      {t("experiments.title")}
+    </h1>
+    <p class="mt-3 max-w-[52ch] leading-relaxed" style="color: var(--dim);">
+      {t("experiments.intro")}
+    </p>
+    {/* Los .mdx no se traducen: se avisa antes de entrar a uno. */}
+    {lang !== "es" && (
+      <p class="mt-4 flex items-center gap-2 font-mono text-micro tracking-ui text-faint">
+        <span
+          aria-hidden="true"
+          class="h-px w-5"
+          style="background: var(--line);"
+        ></span>
+        {t("experiments.spanishNotice")}
+      </p>
+    )}
+  </ScrollReveal>
+
+  <ScrollReveal client:visible delay={0.05} className="mt-10">
+    <div class="grid gap-5 sm:grid-cols-2">
+      {experiments.map((experiment) => (
+        <ExperimentCard experiment={experiment} lang={lang} />
+      ))}
+      <div
+        class="flex min-h-48 flex-col items-center justify-center gap-1 rounded-lg border border-dashed p-6 text-center"
+        style="border-color: var(--line);"
+      >
+        <p class="font-mono text-micro uppercase tracking-label text-faint">
+          {t("experiments.soonLabel")}
+        </p>
+        <p class="text-sm text-dim">{t("experiments.soon")}</p>
+      </div>
+    </div>
+  </ScrollReveal>
+</main>

@@ -1,0 +1,206 @@
+---
+// Contenido de terceros (YouTube, SoundCloud) detras de un boton: la pagina
+// carga solo una imagen, y el iframe recien se arma cuando la persona le da
+// play. Asi abrir la pagina no manda a nadie a servidores ajenos ni descarga
+// sus scripts, y en el celular pesa lo mismo con un video que con seis.
+//
+// El iframe lo monta el <script> de abajo; esta pieza solo deja en `data-*` lo
+// que hace falta (el script se empaqueta aparte y no ve las props).
+import { Image } from "astro:assets";
+import type { ImageMetadata } from "astro";
+
+interface Props {
+  /** URL del iframe que se monta al reproducir. */
+  src: string;
+  /** Titulo accesible del iframe y del boton. */
+  title: string;
+  /** Texto del boton para lectores de pantalla, ya traducido. */
+  label: string;
+  /** Miniatura remota (YouTube). */
+  thumb?: string;
+  /** Imagen local para la portada (SoundCloud). */
+  cover?: ImageMetadata;
+  coverAlt?: string;
+  /** `video` mantiene 16:9; `audio` es una franja compacta. */
+  kind: "video" | "audio";
+  /** Alto del iframe de audio una vez cargado. */
+  audioHeight?: number;
+}
+
+const {
+  src,
+  title,
+  label,
+  thumb,
+  cover,
+  coverAlt = "",
+  kind,
+  audioHeight = 380,
+} = Astro.props;
+---
+
+<div
+  class:list={["embed", kind === "video" ? "embed-video" : "embed-audio"]}
+  data-embed
+  data-src={src}
+  data-title={title}
+  data-height={kind === "audio" ? audioHeight : undefined}
+>
+  <button type="button" class="embed-play" aria-label={label}>
+    {kind === "video" && thumb && (
+      <img src={thumb} alt="" loading="lazy" class="embed-thumb" />
+    )}
+    {kind === "audio" && cover && (
+      <Image
+        src={cover}
+        alt={coverAlt}
+        width={160}
+        height={160}
+        class="embed-cover"
+      />
+    )}
+    <span class="embed-title">{title}</span>
+    <span class="embed-icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="currentColor">
+        <path d="M8 5v14l11-7z"></path>
+      </svg>
+    </span>
+  </button>
+</div>
+
+<style>
+  .embed {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: var(--surface);
+  }
+
+  .embed-video {
+    aspect-ratio: 16 / 9;
+  }
+
+  .embed-play {
+    all: unset;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: flex;
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    gap: 1rem;
+    position: relative;
+  }
+
+  .embed-play:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: -2px;
+  }
+
+  /* El borde de acento al pasar el mouse es el unico hover: nada se mueve. */
+  .embed:hover {
+    border-color: var(--color-accent);
+  }
+
+  .embed-video .embed-thumb {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .embed-video .embed-title {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 1.5rem 3.5rem 0.7rem 0.8rem;
+    font-size: 0.8rem;
+    line-height: 1.3;
+    color: #fff;
+    background: linear-gradient(transparent, rgb(0 0 0 / 0.75));
+  }
+
+  /* Los controles sobre una imagen no siguen el tema: son siempre claros
+     sobre oscuro, como el resto de los paneles que van sobre media. */
+  .embed-icon {
+    display: grid;
+    place-items: center;
+    width: 2.4rem;
+    height: 2.4rem;
+    border-radius: 50%;
+    background: rgb(0 0 0 / 0.65);
+    color: #fff;
+    transition: background-color 0.2s ease;
+  }
+
+  .embed-icon svg {
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-left: 2px;
+  }
+
+  .embed:hover .embed-icon {
+    background: var(--color-accent);
+    color: var(--on-accent);
+  }
+
+  .embed-video .embed-icon {
+    position: absolute;
+    right: 0.7rem;
+    bottom: 0.6rem;
+  }
+
+  .embed-audio .embed-play {
+    padding: 0.9rem 1rem;
+  }
+
+  .embed-audio .embed-cover {
+    width: 4.5rem;
+    height: 4.5rem;
+    flex: none;
+    border-radius: 0.25rem;
+  }
+
+  .embed-audio .embed-title {
+    flex: 1;
+    min-width: 0;
+    font-size: 0.95rem;
+    color: var(--color-zinc-100);
+  }
+
+  .embed :global(iframe) {
+    display: block;
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+</style>
+
+<script>
+  // Con el router de cliente este modulo corre una sola vez en toda la sesion,
+  // y los embeds son markup nuevo en cada pagina. Por eso un unico listener en
+  // `document` (que sobrevive al swap) en vez de uno por boton.
+  document.addEventListener("click", (event) => {
+    const target = event.target as Element | null;
+    const button = target?.closest<HTMLButtonElement>(".embed-play");
+    const embed = button?.closest<HTMLElement>("[data-embed]");
+    if (!button || !embed?.dataset.src) return;
+
+    const iframe = document.createElement("iframe");
+    iframe.src = embed.dataset.src;
+    iframe.title = embed.dataset.title ?? "";
+    iframe.allow = "autoplay; encrypted-media; fullscreen; picture-in-picture";
+    iframe.allowFullscreen = true;
+    iframe.referrerPolicy = "strict-origin-when-cross-origin";
+
+    // Un video conserva su 16:9; el reproductor de audio necesita un alto fijo.
+    const height = embed.dataset.height;
+    if (height) embed.style.height = `${height}px`;
+
+    button.replaceWith(iframe);
+    iframe.focus();
+  });
+</script>

@@ -14,6 +14,7 @@ const es = {
   // ---- Navegacion --------------------------------------------------------
   "nav.home": "Inicio",
   "nav.blog": "Blog",
+  "nav.experiments": "Experimentos",
   "nav.openMenu": "Abrir el menú",
   "nav.closeMenu": "Cerrar el menú",
   "nav.language": "Idioma",
@@ -30,6 +31,9 @@ const es = {
   "seo.home.title": "abelitolll — Desarrollador de software",
   "seo.blog.title": "Blog",
   "seo.blog.description": "Artículos y notas técnicas de abelitolll.",
+  "seo.experiments.title": "Experimentos",
+  "seo.experiments.description":
+    "Pruebas creativas con IA y código: música, videos y personajes que no existen.",
 
   // ---- Hero --------------------------------------------------------------
   "hero.eyebrow": "Lima · Perú · desarrollador de software",
@@ -145,6 +149,29 @@ const es = {
     "Hoy sigo en eso: aprendiendo por mi cuenta, construyendo mis propias cosas y abierto a nuevas oportunidades.",
   "about.badge": "construyendo cosas nuevas",
 
+  // ---- Experimentos ------------------------------------------------------
+  "experiments.label": "Cosas que pruebo",
+  "experiments.title": "Experimentos",
+  "experiments.intro":
+    "Ideas que no son un producto ni una nota técnica: pruebas creativas con herramientas nuevas, para ver hasta dónde llegan. Cada una tiene su propia página.",
+  "experiments.spanishNotice": "Los experimentos están escritos en español.",
+  "experiments.aiChip": "hecho con IA",
+  "experiments.open": "ver experimento",
+  "experiments.soonLabel": "próximamente",
+  "experiments.soon": "El siguiente experimento va acá.",
+  "experiment.back": "volver a los experimentos",
+  "experiment.about": "De qué trata",
+  "experiment.facts": "Ficha",
+  "experiment.links": "En otras plataformas",
+  "experiment.listen": "Escuchar",
+  "experiment.videos": "Videos",
+  "experiment.design": "Diseño",
+  "experiment.play": "Reproducir {title}",
+  "experiment.playSoundcloud": "Cargar el reproductor de SoundCloud",
+  "experiment.embedNotice":
+    "El contenido se carga desde {service} solo cuando le das play.",
+  "experiment.watchOn": "ver en {service}",
+
   // ---- Listado del blog --------------------------------------------------
   "blog.label": "Notas técnicas",
   "blog.title": "Blog",
@@ -200,6 +227,7 @@ const en: Record<UIKey, string> = {
   // ---- Navegacion --------------------------------------------------------
   "nav.home": "Home",
   "nav.blog": "Blog",
+  "nav.experiments": "Experiments",
   "nav.openMenu": "Open menu",
   "nav.closeMenu": "Close menu",
   "nav.language": "Language",
@@ -212,6 +240,9 @@ const en: Record<UIKey, string> = {
   "seo.home.title": "abelitolll — Software developer",
   "seo.blog.title": "Blog",
   "seo.blog.description": "Articles and technical notes by abelitolll.",
+  "seo.experiments.title": "Experiments",
+  "seo.experiments.description":
+    "Creative tests with AI and code: music, videos and characters that do not exist.",
 
   // ---- Hero --------------------------------------------------------------
   "hero.eyebrow": "Lima · Peru · software developer",
@@ -325,6 +356,29 @@ const en: Record<UIKey, string> = {
   "about.closing":
     "That is still what I am doing: learning on my own, building my own things and open to new opportunities.",
   "about.badge": "building new things",
+
+  // ---- Experiments -------------------------------------------------------
+  "experiments.label": "Things I try",
+  "experiments.title": "Experiments",
+  "experiments.intro":
+    "Ideas that are neither a product nor a technical note: creative tests with new tools, to see how far they go. Each one has its own page.",
+  "experiments.spanishNotice": "The experiments are written in Spanish.",
+  "experiments.aiChip": "made with AI",
+  "experiments.open": "see experiment",
+  "experiments.soonLabel": "coming soon",
+  "experiments.soon": "The next experiment goes here.",
+  "experiment.back": "back to the experiments",
+  "experiment.about": "What it is about",
+  "experiment.facts": "Details",
+  "experiment.links": "On other platforms",
+  "experiment.listen": "Listen",
+  "experiment.videos": "Videos",
+  "experiment.design": "Design",
+  "experiment.play": "Play {title}",
+  "experiment.playSoundcloud": "Load the SoundCloud player",
+  "experiment.embedNotice":
+    "The content loads from {service} only when you press play.",
+  "experiment.watchOn": "watch on {service}",
 
   // ---- Listado del blog --------------------------------------------------
   "blog.label": "Technical notes",

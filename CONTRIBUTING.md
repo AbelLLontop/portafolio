@@ -79,6 +79,17 @@ Si el cambio toca interfaz, miralo en el navegador en escritorio y en móvil
    partes de ejemplo. El dominio del sitio y el usuario Unix `abel` no son
    secretos. Ante la duda, preguntá antes de publicar.
 
+## Agregar un experimento
+
+1. Poné las imágenes en `src/assets/experiments/<slug>/` y creá
+   `src/content/experiments/<slug>.mdx`.
+2. El frontmatter lo valida `content.config.ts`: portada y avatar con su texto
+   alternativo, ficha, enlaces, y opcionalmente SoundCloud, videos (solo el id de
+   YouTube de 11 caracteres) y galería. El cuerpo es el texto de la página.
+3. Si usa IA, `ai: true`, y decilo en el texto.
+4. Nada se carga de terceros al abrir la página: los reproductores son
+   `EmbedFacade` y recién se montan al dar play.
+
 ## Agregar una página
 
 1. Agregá la ruta a `src/i18n/routes.ts` (y a `NAV_ROUTES` si va en el nav). De

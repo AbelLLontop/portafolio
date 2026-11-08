@@ -1,0 +1,41 @@
+---
+import { getImage } from "astro:assets";
+import { render } from "astro:content";
+import BaseLayout from "../../../layouts/BaseLayout.astro";
+import ExperimentBody from "../../../components/pages/ExperimentBody.astro";
+import { getPublishedExperiments } from "../../../lib/experiments.ts";
+import { pageTitle } from "../../../lib/seo.ts";
+
+export async function getStaticPaths() {
+  const experiments = await getPublishedExperiments();
+
+  return experiments.map((experiment) => ({
+    params: { slug: experiment.id },
+    props: { experiment },
+  }));
+}
+
+const lang = "en" as const;
+const { experiment } = Astro.props;
+const { Content } = await render(experiment);
+
+// La portada hace de imagen al compartir el enlace (Open Graph).
+const share = await getImage({
+  src: experiment.data.banner,
+  width: 1200,
+  format: "jpg",
+});
+---
+
+<BaseLayout
+  title={pageTitle(experiment.data.title)}
+  description={experiment.data.summary}
+  lang={lang}
+  route="experiment"
+  slug={experiment.id}
+  image={share.src}
+>
+  <ExperimentBody experiment={experiment} lang={lang}>
+    <Content />
+  </ExperimentBody>
+</BaseLayout>
