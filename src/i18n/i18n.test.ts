@@ -72,11 +72,6 @@ describe("rutas", () => {
     expect(pathFor("blog", "en")).toBe("/en/blog");
   });
 
-  it("traduce el slug de las paginas fijas", () => {
-    expect(pathFor("about", "es")).toBe("/sobre-mi");
-    expect(pathFor("about", "en")).toBe("/en/about");
-  });
-
   it("una nota usa el mismo slug en los dos idiomas", () => {
     expect(pathFor("post", "es", "una-nota")).toBe("/blog/una-nota");
     expect(pathFor("post", "en", "una-nota")).toBe("/en/blog/una-nota");

@@ -22,9 +22,9 @@ describe("buildSeoMeta", () => {
   });
 
   it("el hreflang por defecto apunta al espaniol", () => {
-    const meta = buildSeoMeta({ title: "x", url, lang: "en", route: "about" });
+    const meta = buildSeoMeta({ title: "x", url, lang: "en", route: "blog" });
 
-    expect(meta.defaultHref).toBe(`${SITE_URL}/sobre-mi/`);
+    expect(meta.defaultHref).toBe(`${SITE_URL}/blog/`);
   });
 
   it("incluye el slug en los alternates de una nota", () => {

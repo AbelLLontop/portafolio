@@ -1,0 +1,32 @@
+---
+// Fondo de plano técnico para toda la home: una rejilla fija al viewport (como
+// el campo de estrellas), quieta y muy tenue. Es una capa propia y no parte de
+// una sección para que nada la recorte: se queda en su lugar mientras el
+// contenido pasa por encima. Sin luz de cursor a propósito: el cohete y las
+// estrellas ya son la firma del puntero y esto no debe competir con ellos.
+---
+
+<div class="site-grid" aria-hidden="true"></div>
+
+<style>
+  /* Entre el campo de estrellas (-z-10) y el veil de la base (z -5). Las líneas
+     usan el token --line y la máscara las apaga hacia los bordes para que no
+     compitan con el texto. */
+  .site-grid {
+    position: fixed;
+    inset: 0;
+    z-index: -7;
+    pointer-events: none;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 56px 56px;
+    opacity: 0.4;
+    -webkit-mask-image: radial-gradient(
+      90% 85% at 50% 35%,
+      #000,
+      transparent 85%
+    );
+    mask-image: radial-gradient(90% 85% at 50% 35%, #000, transparent 85%);
+  }
+</style>

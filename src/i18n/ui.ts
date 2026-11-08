@@ -13,7 +13,6 @@
 const es = {
   // ---- Navegacion --------------------------------------------------------
   "nav.home": "Inicio",
-  "nav.about": "Sobre mí",
   "nav.blog": "Blog",
   "nav.openMenu": "Abrir el menú",
   "nav.closeMenu": "Cerrar el menú",
@@ -28,9 +27,6 @@ const es = {
   "seo.description":
     "abelitolll — página personal de Abel Llontop, desarrollador de software peruano. Backend, aplicaciones web y notas técnicas.",
   "seo.home.title": "abelitolll — Desarrollador de software",
-  "seo.about.title": "Sobre mí",
-  "seo.about.description":
-    "Sobre abelitolll: desarrollador de software peruano, su enfoque y stack principal.",
   "seo.blog.title": "Blog",
   "seo.blog.description": "Artículos y notas técnicas de abelitolll.",
 
@@ -38,6 +34,12 @@ const es = {
   "hero.eyebrow": "Lima · Perú · desarrollador de software",
   "hero.tagline":
     "Construyo con apoyo de herramientas de IA y dejo notas técnicas en el camino — cada paso, incluyendo lo que se rompió.",
+  "hero.status": "Abierto a nuevas oportunidades",
+  "hero.ctaBlog": "Leer el blog",
+  "hero.ctaContact": "Contacto",
+  "hero.statNotes": "notas publicadas",
+  "hero.statYears": "años de experiencia",
+  "hero.statStack": "tecnologías",
 
   // ---- Consola: nombres de los comandos ----------------------------------
   // Son lo que el visitante teclea, asi que se traducen igual que el resto.
@@ -82,11 +84,10 @@ const es = {
   "answer.stack.intro": "Esto es lo que uso en el día a día:",
   "answer.stack.key": "día a día",
   "answer.projects.intro":
-    "Todavía no tengo proyectos publicados. El primero está en construcción: una app Node + PostgreSQL dockerizada, detrás de Nginx y con HTTPS que se renueva solo.",
+    "Todavía no tengo proyectos publicados. Estoy construyendo cosas y pronto las vas a ver en la sección de proyectos; mientras tanto, el blog tiene notas reales de lo que voy aprendiendo.",
   "answer.projects.publishedKey": "publicados",
-  "answer.projects.buildingKey": "en construcción",
   "answer.projects.statusKey": "estado",
-  "answer.projects.statusValue": "en integración",
+  "answer.projects.statusValue": "en construcción",
   "answer.blog.intro": "Tengo {count} notas publicadas. Las últimas:",
   "answer.blog.allKey": "todas",
   "answer.blog.allValue": "ver el blog completo →",
@@ -120,6 +121,23 @@ const es = {
     "Aprender y crear es lo que más me gusta. Cada cosa nueva que aparece me despierta la curiosidad y las ganas de entender cómo funciona.",
   "about.body":
     "Llevo algunos años trabajando como desarrollador en áreas distintas, así que sé un poco de todo: aplicaciones, automatización de procesos y sistemas de negocio, con el grado de bachiller en Ingeniería de Sistemas e Informática de base. Hoy me apoyo en herramientas de IA para sacarme de encima lo repetitivo y avanzar a una velocidad que antes no era posible. Me gusta conversar de tecnología y de lo que va saliendo, y sobre todo divertirme aprendiendo.",
+  "about.nowLabel": "Ahora",
+  "stack.group.backend": "Backend",
+  "stack.group.frontend": "Frontend",
+  "stack.group.data": "Datos",
+  "stack.group.infra": "Infraestructura",
+  "stack.group.ai": "IA",
+  "about.fact.locationLabel": "Ubicación",
+  "about.fact.locationValue": "Lima, Perú",
+  "about.fact.studiesLabel": "Formación",
+  "about.fact.studiesValue":
+    "Bachiller en Ingeniería de Sistemas e Informática",
+  "about.fact.experienceLabel": "Experiencia",
+  "about.fact.experienceValue": "{years} años como desarrollador",
+  "about.fact.focusLabel": "Enfoque",
+  "about.fact.focusValue": "Aplicaciones, automatización y sistemas de negocio",
+  "about.fact.toolsLabel": "Herramientas",
+  "about.fact.toolsValue": "IA como apoyo del día a día",
   "about.stackLabel": "Stack principal",
   "about.stackTitle": "Las tecnologías que uso en el día a día",
   "about.closing":
@@ -142,6 +160,7 @@ const es = {
   "blog.noResultsHint": "Prueba con otras palabras.",
   "blog.prev": "← anterior",
   "blog.next": "siguiente →",
+  "blog.latest": "Última nota",
   // Solo se muestra en la version inglesa (los posts no se traducen), pero la
   // clave existe en los dos idiomas para que el diccionario quede parejo.
   "blog.spanishNotice": "Las notas están escritas en español.",
@@ -179,7 +198,6 @@ export type UIKey = keyof typeof es;
 const en: Record<UIKey, string> = {
   // ---- Navegacion --------------------------------------------------------
   "nav.home": "Home",
-  "nav.about": "About",
   "nav.blog": "Blog",
   "nav.openMenu": "Open menu",
   "nav.closeMenu": "Close menu",
@@ -190,9 +208,6 @@ const en: Record<UIKey, string> = {
   "seo.description":
     "abelitolll — personal site of Abel Llontop, a Peruvian software developer. Backend, web apps and technical notes.",
   "seo.home.title": "abelitolll — Software developer",
-  "seo.about.title": "About",
-  "seo.about.description":
-    "About abelitolll: a Peruvian software developer, how he works and his main stack.",
   "seo.blog.title": "Blog",
   "seo.blog.description": "Articles and technical notes by abelitolll.",
 
@@ -200,6 +215,12 @@ const en: Record<UIKey, string> = {
   "hero.eyebrow": "Lima · Peru · software developer",
   "hero.tagline":
     "I build with AI tools alongside me and leave technical notes on the way — every step, including whatever broke.",
+  "hero.status": "Open to new opportunities",
+  "hero.ctaBlog": "Read the blog",
+  "hero.ctaContact": "Contact",
+  "hero.statNotes": "published notes",
+  "hero.statYears": "years of experience",
+  "hero.statStack": "technologies",
 
   // ---- Consola: nombres de los comandos ----------------------------------
   "cmd.whoami": "whoami",
@@ -243,11 +264,10 @@ const en: Record<UIKey, string> = {
   "answer.stack.intro": "This is what I use day to day:",
   "answer.stack.key": "day to day",
   "answer.projects.intro":
-    "I have no published projects yet. The first one is in progress: a dockerised Node + PostgreSQL app behind Nginx, with HTTPS that renews itself.",
+    "I have no published projects yet. I am building things and you will see them in the projects section soon; meanwhile, the blog has real notes on what I am learning.",
   "answer.projects.publishedKey": "published",
-  "answer.projects.buildingKey": "in progress",
   "answer.projects.statusKey": "status",
-  "answer.projects.statusValue": "integrating",
+  "answer.projects.statusValue": "in progress",
   "answer.blog.intro": "I have {count} notes published. The latest ones:",
   "answer.blog.allKey": "all",
   "answer.blog.allValue": "see the whole blog →",
@@ -281,6 +301,23 @@ const en: Record<UIKey, string> = {
     "Learning and building is what I enjoy most. Every new thing that shows up makes me curious to understand how it works.",
   "about.body":
     "I have spent a few years working as a developer across different areas, so I know a bit of everything: applications, process automation and business systems, with a bachelor's degree in Systems and Computer Engineering behind it. These days I lean on AI tools to take the repetitive work off my hands and move at a speed that was not possible before. I like talking about technology and whatever is coming out, and above all having fun learning.",
+  "about.nowLabel": "Now",
+  "stack.group.backend": "Backend",
+  "stack.group.frontend": "Frontend",
+  "stack.group.data": "Data",
+  "stack.group.infra": "Infrastructure",
+  "stack.group.ai": "AI",
+  "about.fact.locationLabel": "Location",
+  "about.fact.locationValue": "Lima, Peru",
+  "about.fact.studiesLabel": "Education",
+  "about.fact.studiesValue":
+    "Bachelor's degree in Systems and Computer Engineering",
+  "about.fact.experienceLabel": "Experience",
+  "about.fact.experienceValue": "{years} years as a developer",
+  "about.fact.focusLabel": "Focus",
+  "about.fact.focusValue": "Applications, automation and business systems",
+  "about.fact.toolsLabel": "Tools",
+  "about.fact.toolsValue": "AI as a day-to-day helper",
   "about.stackLabel": "Main stack",
   "about.stackTitle": "The tech I use day to day",
   "about.closing":
@@ -303,6 +340,7 @@ const en: Record<UIKey, string> = {
   "blog.noResultsHint": "Try other words.",
   "blog.prev": "← previous",
   "blog.next": "next →",
+  "blog.latest": "Latest note",
   "blog.spanishNotice": "The notes are written in Spanish.",
 
   // ---- Post --------------------------------------------------------------

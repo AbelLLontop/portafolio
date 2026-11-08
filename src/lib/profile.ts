@@ -33,6 +33,27 @@ export const STACK: Tech[] = [
   { name: "Claude", iconKey: "claude" },
 ];
 
+// Cómo se agrupa STACK en Sobre mí. Cada nombre debe existir en STACK; el
+// título de cada grupo vive en el diccionario (`stack.group.<clave>`).
+export type StackGroupKey = "backend" | "frontend" | "data" | "infra" | "ai";
+
+export const STACK_GROUPS: Record<StackGroupKey, string[]> = {
+  backend: [
+    "Node.js",
+    "NestJS",
+    "Express",
+    "Java",
+    "Spring Boot",
+    "Go",
+    "Python",
+    ".NET",
+  ],
+  frontend: ["TypeScript", "React", "Angular", "Astro", "Tailwind"],
+  data: ["PostgreSQL", "SQL Server", "MongoDB"],
+  infra: ["Docker", "Nginx", "Git", "AWS"],
+  ai: ["Claude"],
+};
+
 export const YEARS_OF_EXPERIENCE = 3;
 
 export interface Contact {

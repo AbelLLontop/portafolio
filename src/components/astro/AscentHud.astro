@@ -44,13 +44,13 @@ const clockLocale = lang === "es" ? "es-PE" : "en-GB";
   <div class="flex flex-col gap-1 font-mono uppercase">
     <span
       id="ascent-km"
-      class="text-[1.05rem] tracking-[0.02em] text-zinc-100 [font-variant-numeric:tabular-nums]"
+      class="text-base text-zinc-100 [font-variant-numeric:tabular-nums]"
     >
       0.0 km
     </span>
     <span
       id="ascent-phase"
-      class="max-w-[5.5rem] text-[0.6rem] leading-tight tracking-[0.14em] text-accent"
+      class="max-w-[5.5rem] text-micro leading-tight tracking-label text-accent"
       data-phases={JSON.stringify(phases)}
     >
       {phases[0][1]}
@@ -59,7 +59,7 @@ const clockLocale = lang === "es" ? "es-PE" : "en-GB";
 </div>
 
 <div
-  class="pointer-events-none fixed right-[18px] top-[84px] z-40 hidden flex-col items-end gap-0.5 font-mono text-[0.6rem] uppercase leading-[1.9] tracking-[0.14em] xl:flex"
+  class="pointer-events-none fixed right-[18px] top-[84px] z-40 hidden flex-col items-end gap-0.5 font-mono text-micro uppercase leading-[1.9] tracking-label xl:flex"
   style="color: var(--faint);"
   aria-hidden="true"
 >

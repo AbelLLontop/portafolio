@@ -12,6 +12,12 @@ decisiones. Si cambiás una, actualizá la entrada en el mismo PR.
   mantenimiento que hoy no aporta nada.
 - **El correo no se publica.** Es un dato personal; el contacto es GitHub y
   LinkedIn. Tampoco van foto personal ni timeline de empleos.
+- **"Sobre mí" no es una página propia, vive dentro de Inicio.** Era muy corta
+  para justificar una ruta separada y un clic extra. `/sobre-mi` y `/en/about`
+  se eliminaron; el contenido (incluido el listado de stack con `TechBadge`)
+  quedó intacto como sección de `HomeBody.astro` (`AboutSection.astro`). El
+  carrusel de tecnologías (`TechMarquee`) es un adorno propio de Inicio, no
+  parte de Sobre mí, así que los dos conviven sin que uno reemplace al otro.
 - **Los proyectos no se inventan.** Mientras no haya proyectos reales listos, la
   sección queda "en construcción" con un placeholder de la misma calidad visual.
   Un demo de relleno presentado como real es peor que una sección vacía.
@@ -45,7 +51,54 @@ decisiones. Si cambiás una, actualizá la entrada en el mismo PR.
   posts completos o un backend.
 - **No hay filtro por tag.** La lista de tags crece con cada nota y termina
   pesando más en pantalla que los propios posts. Los tags se siguen mostrando
-  como metadata.
+  como metadata, pero en el listado solo en la última nota: en cada fila
+  sumaban una línea de ruido que hacía sentir el listado saturado.
+- **El listado del blog es una bitácora.** Las notas se agrupan por mes (el mes
+  se calcula en UTC, ver `src/lib/dates.ts`: en zona local Perú movería una nota
+  del 1 de octubre a septiembre), con la fecha como marca de tiempo a la izquierda
+  y un riel con un punto por nota. La última nota se distingue en reposo por
+  tamaño, etiqueta y un punto que pulsa, y **no** por el color del título ni el
+  fondo, que es justo lo que cambia el hover: con el mismo estilo los dos estados
+  eran indistinguibles. El hover nunca mueve nada (antes corría la fila).
+- **Desde una nota se vuelve al listado por tres sitios:** la fila de la etiqueta
+  de arriba, la barra pegajosa del título (solo mientras está pegada, y con área
+  táctil ampliada) y el enlace del final. Estando a la mitad de una nota larga el
+  de abajo queda lejos, y esa es la situación en la que más falta hace.
+
+## Diseño
+
+- **Una sola unidad de espaciado vertical (`--section-y`).** Cada sección ponía
+  su propio `py-*` y los huecos salían de 96 a 224 px sin criterio: el carrusel
+  quedaba a 100 px por un lado y 160 por el otro. Ahora el hueco entre secciones
+  es siempre 2 × `--section-y` y los subbloques usan 1 ×. Si el aire se ve mal,
+  se cambia esa variable, no cada componente.
+- **El marco con borde es solo de Proyectos y de la consola.** Se probó ponerlo
+  en Sobre mí, el stack y Contacto y el sitio pasó a parecer una plantilla con
+  tarjetas en todos lados: quitaba lo especial que tenía en un solo sitio. El
+  resto usa filetes y rótulos mono.
+- **Tipografía con escala nombrada.** Había 10 tamaños pequeños, 9 espaciados de
+  letra y 7 grises que se distinguían por décimas de píxel y daban sensación de
+  desorden. Ahora hay `text-micro` y `text-ui`, tres roles de espaciado y cuatro
+  niveles de gris (ver AGENTS.md). Cada valor suelto es una oportunidad de volver
+  a abrir la deriva; se elige el rol más cercano.
+- **La rejilla de fondo es fija, quieta y sin luz de cursor.** Primero vivía
+  dentro del hero y su luz se cortaba en el borde de la sección; al pasarla a una
+  capa fija de toda la página era demasiado brusca, y suavizada seguía compitiendo
+  con el cohete y las estrellas, que ya son la firma del cursor. Se quitó la luz
+  en vez de apilar un tercer efecto (tampoco partículas).
+- **El hero y el carrusel son un solo grupo, centrado, con tope de alto.** Un
+  banner de `100svh` dejaba más de 240 px de aire en pantallas altas y el carrusel
+  clavado al fondo se leía separado del hero. El grupo se centra en
+  `min(100svh − header, 50rem)`: el aire no crece sin límite y en pantallas bajas
+  o móvil el alto lo manda el contenido (es un mínimo, no un alto fijo).
+- **El stack son filas con filete dentro de Sobre mí.** No es una sección aparte
+  (una tabla en su propia sección se sentía suelta) ni una nube de chips con
+  filtros por área: se probó y se rechazó, parecía un diseño ajeno pegado sin
+  criterio. La frase "sigo aprendiendo" es la última fila de la misma tabla.
+- **Hover sin desplazamiento y estados distintos.** Un hover que cambia padding o
+  tamaño hace que el contenido se mueva bajo el cursor; solo cambian color, brillo
+  y fondo. Los controles que cambian de aspecto al enfocarse (el buscador del
+  blog) no pueden cambiar de tamaño: se oculta con opacidad, no con `display`.
 
 ## Técnicas
 

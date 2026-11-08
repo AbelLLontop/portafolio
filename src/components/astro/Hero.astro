@@ -24,6 +24,13 @@ const t = useTranslations(lang);
 const posts = await getPublishedPosts();
 const numbers = await getPostNumbers();
 
+// Cifras reales: salen de la colección y del perfil, nunca escritas a mano.
+const stats = [
+  { value: posts.length, label: t("hero.statNotes") },
+  { value: YEARS_OF_EXPERIENCE, label: t("hero.statYears") },
+  { value: STACK.length, label: t("hero.statStack") },
+];
+
 // El diálogo de apertura se escribe solo al cargar; no es un caso especial
 // dentro de la isla, es un intercambio más que se le pasa ya traducido.
 const exchanges: Exchange[] = [
@@ -72,7 +79,6 @@ const commands: Record<string, Block[]> = {
       kind: "rows",
       rows: [
         [t("answer.projects.publishedKey"), "0"],
-        [t("answer.projects.buildingKey"), "1"],
         [t("answer.projects.statusKey"), t("answer.projects.statusValue")],
       ],
     },
@@ -145,37 +151,221 @@ const strings = pickStrings(lang, [
 ] as const);
 ---
 
-<section class="mx-auto flex max-w-5xl flex-col gap-8 px-4 pb-12 pt-12 md:pb-14 md:pt-16">
-  <div class="flex flex-col gap-5">
-    <p
-      class="font-mono text-[0.68rem] uppercase tracking-[0.3em]"
-      style="color: var(--faint);"
-    >
-      {t("hero.eyebrow")}
-    </p>
+<section class="relative isolate mx-auto w-full max-w-5xl px-4 py-10 [overflow-x:clip] md:py-12">
+  <!-- Resplandor de acento detrás de la consola. La rejilla y la luz del
+       cursor ya no viven acá: son la capa fija de SiteGrid.astro, para que no
+       las corte el borde de la sección. -->
+  <div class="hero-aurora" aria-hidden="true"></div>
 
-    <h1 class="flex items-center gap-4">
-      <Wordmark size="lg" client:visible />
-      <img
-        src="/images/abelitolll-rocket.svg"
-        alt=""
-        width="96"
-        height="96"
-        class="hidden h-16 w-16 shrink-0 sm:block md:h-20 md:w-20"
+  <div class="grid w-full items-center gap-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.12fr)] lg:gap-10">
+    <div class="flex flex-col gap-7">
+      <div class="flex flex-col gap-4">
+        <span
+          class="hero-rise inline-flex w-fit items-center gap-2 rounded-full border px-3 py-1 font-mono text-micro uppercase tracking-label"
+          style="--d: 0ms; border-color: color-mix(in srgb, var(--go) 35%, var(--line)); background: color-mix(in srgb, var(--go) 8%, transparent); color: var(--go);"
+        >
+          <span class="relative flex h-1.5 w-1.5">
+            <span
+              class="absolute inline-flex h-full w-full animate-ping rounded-full opacity-70"
+              style="background: var(--go);"
+            ></span>
+            <span
+              class="relative inline-flex h-1.5 w-1.5 rounded-full"
+              style="background: var(--go);"
+            ></span>
+          </span>
+          {t("hero.status")}
+        </span>
+
+        <p
+          class="hero-rise font-mono text-micro uppercase tracking-eyebrow"
+          style="--d: 80ms; color: var(--faint);"
+        >
+          {t("hero.eyebrow")}
+        </p>
+
+        <h1 class="hero-rise flex items-center gap-4" style="--d: 160ms;">
+          <Wordmark size="xl" client:visible />
+        </h1>
+      </div>
+
+      <p
+        class="hero-rise max-w-[36ch] text-lg leading-relaxed text-zinc-300 md:text-xl"
+        style="--d: 240ms;"
+      >
+        {t("hero.tagline")}
+      </p>
+
+      <div
+        class="hero-rise flex flex-wrap items-center gap-3"
+        style="--d: 320ms;"
+      >
+        <a
+          href={pathFor("blog", lang)}
+          class="group inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-mono text-ui font-semibold uppercase tracking-label text-zinc-950 transition-transform duration-200 hover:-translate-y-0.5"
+          style="box-shadow: 0 12px 40px -14px var(--color-accent);"
+        >
+          {t("hero.ctaBlog")}
+          <span
+            aria-hidden="true"
+            class="transition-transform duration-200 group-hover:translate-x-1"
+          >
+            →
+          </span>
+        </a>
+        <a
+          href="#contact"
+          class="inline-flex items-center rounded-full border px-6 py-3 font-mono text-ui uppercase tracking-label transition-colors hover:border-accent hover:text-accent"
+          style="border-color: var(--line); color: var(--dim);"
+        >
+          {t("hero.ctaContact")}
+        </a>
+      </div>
+
+      <div class="hero-rise hull-grid grid-cols-3" style="--d: 400ms;">
+        {stats.map((stat) => (
+          <div class="hull-cell flex flex-col gap-1">
+            <span
+              data-count={stat.value}
+              class="font-display text-3xl font-bold leading-none tabular-nums text-zinc-100"
+            >
+              {stat.value}
+            </span>
+            <span
+              class="font-mono text-micro uppercase leading-snug tracking-label"
+              style="color: var(--faint);"
+            >
+              {stat.label}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+
+    <div class="hero-rise hero-frame" style="--d: 200ms;">
+      <!-- client:load: above-the-fold, único caso justificado fuera de client:visible -->
+      <TerminalHero
+        exchanges={exchanges}
+        commands={commands}
+        help={help}
+        strings={strings}
+        client:load
       />
-    </h1>
-
-    <p class="max-w-[46ch] leading-relaxed" style="color: var(--dim);">
-      {t("hero.tagline")}
-    </p>
+    </div>
   </div>
-
-  <!-- client:load: above-the-fold, único caso justificado fuera de client:visible -->
-  <TerminalHero
-    exchanges={exchanges}
-    commands={commands}
-    help={help}
-    strings={strings}
-    client:load
-  />
 </section>
+
+<style>
+  @property --hero-angle {
+    syntax: "<angle>";
+    inherits: false;
+    initial-value: 0deg;
+  }
+
+  .hero-aurora {
+    position: absolute;
+    top: 6%;
+    right: -6%;
+    z-index: -2;
+    width: 62%;
+    height: 78%;
+    pointer-events: none;
+    filter: blur(48px);
+    background: radial-gradient(
+      closest-side,
+      color-mix(in srgb, var(--color-accent) 24%, transparent),
+      transparent
+    );
+    animation: hero-drift 14s ease-in-out infinite alternate;
+  }
+
+  @keyframes hero-drift {
+    to {
+      transform: translate3d(-4%, 6%, 0) scale(1.08);
+    }
+  }
+
+  /* Borde de acento que da la vuelta a la consola: un anillo de 1px hecho
+     con un degradado cónico recortado por máscara (solo se ve el borde). */
+  .hero-frame {
+    position: relative;
+    border-radius: 0.75rem;
+  }
+
+  .hero-frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    pointer-events: none;
+    background: conic-gradient(
+      from var(--hero-angle),
+      transparent 0deg 210deg,
+      color-mix(in srgb, var(--color-accent) 90%, transparent) 300deg,
+      transparent 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box exclude,
+      linear-gradient(#000 0 0);
+    animation: hero-spin 8s linear infinite;
+  }
+
+  @keyframes hero-spin {
+    to {
+      --hero-angle: 360deg;
+    }
+  }
+
+  /* Entrada escalonada solo en una carga de verdad: con el router (clase
+     nav-swap en <html>) lo ya visto no se vuelve a representar. */
+  :global(html:not(.nav-swap)) .hero-rise {
+    animation: hero-rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: var(--d, 0ms);
+  }
+
+  @keyframes hero-rise {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-aurora,
+    .hero-frame::after,
+    :global(html:not(.nav-swap)) .hero-rise {
+      animation: none;
+    }
+  }
+</style>
+
+<script>
+  // Las cifras cuentan desde 0 solo en una carga de verdad: con el router
+  // (nav-swap) lo ya visto no se vuelve a representar. Arranca algo después
+  // de la entrada escalonada para que se vea contar, no ya contado.
+  document.addEventListener("astro:page-load", () => {
+    const skip =
+      document.documentElement.classList.contains("nav-swap") ||
+      matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (skip) return;
+
+    document.querySelectorAll<HTMLElement>("[data-count]").forEach((el) => {
+      const target = Number(el.dataset.count);
+      const begin = performance.now() + 500;
+      const duration = 1100;
+      el.textContent = "0";
+
+      const tick = (now: number) => {
+        const progress = Math.min(Math.max((now - begin) / duration, 0), 1);
+        el.textContent = String(Math.round(target * (1 - (1 - progress) ** 3)));
+        if (progress < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+  });
+</script>
