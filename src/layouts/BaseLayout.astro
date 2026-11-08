@@ -45,6 +45,41 @@ const seo = buildSeoMeta({
       rel="stylesheet"
     />
     <meta name="viewport" content="width=device-width" />
+    {/* El tema se fija antes del primer pintado para evitar un destello del
+        otro. Prioridad: la elección guardada con el botón, luego el tema del
+        sistema, y si el navegador no permite leerlo, claro. El oscuro es la
+        ausencia de atributo. Mientras no haya elección guardada, el sitio
+        sigue los cambios del sistema en vivo. */}
+    <script is:inline>
+      (function () {
+        var root = document.documentElement;
+        var saved = null;
+        try {
+          saved = localStorage.getItem("theme");
+        } catch (_) {}
+        var query = window.matchMedia
+          ? window.matchMedia("(prefers-color-scheme: dark)")
+          : null;
+        var apply = function (theme) {
+          if (theme === "dark") delete root.dataset.theme;
+          else root.dataset.theme = "light";
+        };
+        if (saved === "light" || saved === "dark") {
+          apply(saved);
+        } else if (query && query.media !== "not all") {
+          apply(query.matches ? "dark" : "light");
+          query.addEventListener("change", function (event) {
+            var chosen = null;
+            try {
+              chosen = localStorage.getItem("theme");
+            } catch (_) {}
+            if (!chosen) apply(event.matches ? "dark" : "light");
+          });
+        } else {
+          apply("light");
+        }
+      })();
+    </script>
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
 
@@ -104,6 +139,17 @@ const seo = buildSeoMeta({
       // el <body>, pero no vuelve a ejecutar los scripts ya cargados. Por eso
       // los listeners van sobre `document`, que sobrevive al swap.
       let instant = false;
+
+      // El router reemplaza los atributos de <html> por los del documento
+      // nuevo, que llega sin data-theme: se le copia el tema vigente antes del
+      // swap para que no parpadee al otro tema en cada navegación.
+      document.addEventListener("astro:before-swap", (event) => {
+        const theme = document.documentElement.dataset.theme;
+        const next = (event as unknown as { newDocument: Document }).newDocument
+          .documentElement;
+        if (theme) next.dataset.theme = theme;
+        else delete next.dataset.theme;
+      });
 
       document.addEventListener("astro:before-preparation", (event) => {
         // `sourceElement` es el elemento que disparó la navegación, así que el

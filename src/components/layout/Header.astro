@@ -36,7 +36,7 @@ const navLinks = NAV_ROUTES.map((key) => ({
         alt=""
         width="32"
         height="32"
-        class="h-8 w-8 shrink-0"
+        class="brand-mark h-8 w-8 shrink-0"
       />
       <Wordmark size="sm" client:visible />
     </a>
@@ -77,6 +77,46 @@ const navLinks = NAV_ROUTES.map((key) => ({
         slug={slug}
         class="lang-switch-desktop"
       />
+
+      {/* Visible también en móvil: es un control de un toque, no cabe mejor
+          escondido dentro del menú. El icono muestra el tema al que se pasa. */}
+      <button
+        type="button"
+        class="theme-toggle"
+        data-theme-toggle
+        aria-label={t("nav.theme")}
+        title={t("nav.theme")}
+      >
+        <svg
+          class="icon-sun"
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <circle cx="12" cy="12" r="4"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"></path>
+        </svg>
+        <svg
+          class="icon-moon"
+          viewBox="0 0 24 24"
+          width="16"
+          height="16"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.8"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"></path>
+        </svg>
+      </button>
 
       <button
         type="button"
@@ -126,6 +166,55 @@ const navLinks = NAV_ROUTES.map((key) => ({
 </header>
 
 <style>
+  /* La cabeza del logo es crema: sobre fondo claro se pierde, así que en el
+     tema claro va sobre una ficha oscura. En oscuro va suelta. */
+  :global(html[data-theme="light"]) .brand-mark {
+    box-sizing: border-box;
+    padding: 3px;
+    border-radius: 8px;
+    background: #09090b;
+  }
+
+  .theme-toggle {
+    display: grid;
+    height: 2rem;
+    width: 2rem;
+    flex-shrink: 0;
+    place-items: center;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--tint-2);
+    color: var(--dim);
+    cursor: pointer;
+    transition:
+      color 0.2s ease,
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .theme-toggle:hover {
+    color: var(--color-accent);
+    border-color: color-mix(in srgb, var(--color-accent) 40%, var(--line));
+  }
+
+  /* En oscuro se ofrece el sol (pasar a claro); en claro, la luna. Ambos
+     ocupan el mismo sitio, así que el botón no cambia de tamaño. */
+  .theme-toggle svg {
+    grid-area: 1 / 1;
+  }
+
+  .theme-toggle .icon-moon {
+    display: none;
+  }
+
+  :global(html[data-theme="light"]) .theme-toggle .icon-sun {
+    display: none;
+  }
+
+  :global(html[data-theme="light"]) .theme-toggle .icon-moon {
+    display: block;
+  }
+
   /* La visibilidad va aca y no con utilidades `sm:hidden`: el estilo con
      scope de Astro gana en especificidad y dejaria el boton visible. */
   .nav-toggle {
@@ -180,7 +269,7 @@ const navLinks = NAV_ROUTES.map((key) => ({
     right: 0;
     top: 100%;
     border-bottom: 1px solid var(--line);
-    background: #0b0b0f;
+    background: var(--surface);
     backdrop-filter: blur(8px);
   }
 
@@ -224,6 +313,22 @@ const navLinks = NAV_ROUTES.map((key) => ({
     button.setAttribute("aria-label", label ?? "");
     menu.hidden = !open;
   };
+
+  // Cambio de tema: delegado en `document` por la misma razón de arriba. El
+  // atributo lo lee el CSS y el script de BaseLayout lo repone al navegar.
+  document.addEventListener("click", (event) => {
+    const target = event.target as Element;
+    if (!target.closest("[data-theme-toggle]")) return;
+    const root = document.documentElement;
+    const next = root.dataset.theme === "light" ? "dark" : "light";
+    if (next === "light") root.dataset.theme = "light";
+    else delete root.dataset.theme;
+    try {
+      localStorage.setItem("theme", next);
+    } catch {
+      // Sin almacenamiento el tema vale solo para esta sesión.
+    }
+  });
 
   document.addEventListener("click", (event) => {
     const button = toggle();

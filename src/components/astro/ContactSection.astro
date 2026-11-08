@@ -30,7 +30,7 @@ const contacts = CONTACTS.map((contact) => ({
         href={contact.href}
         data-spot
         class="inline-flex items-center gap-2.5 rounded-lg border px-4 py-3 font-mono text-ui tracking-ui text-zinc-100 transition-colors hover:border-accent hover:text-accent"
-        style="border-color: var(--line); background: rgb(255 255 255 / 0.02);"
+        style="border-color: var(--line); background: var(--tint);"
         target={contact.external ? "_blank" : undefined}
         rel={contact.external ? "noreferrer" : undefined}
       >

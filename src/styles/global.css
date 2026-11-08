@@ -12,6 +12,72 @@
   --dim: #a0aabb;
   --faint: #7d889a;
   --go: #5ee6a8;
+
+  /* Superficies y velos que antes eran valores sueltos en cada componente. */
+  --bg: #09090b;
+  --bg-top: #0c0c10;
+  --bg-bottom: #0a0a0d;
+  --surface: #0c0c10;
+  --tint: rgb(255 255 255 / 0.02);
+  --tint-2: rgb(255 255 255 / 0.03);
+  --panel: rgb(8 12 19 / 0.82);
+  --panel-shadow:
+    0 30px 80px -40px rgb(0 0 0 / 0.95), inset 0 1px 0 rgb(255 255 255 / 0.04);
+  --sheen: #f4f4f5;
+  --star: #ffffff;
+  --on-accent: #09090b;
+}
+
+/* Tema claro: se activa con data-theme="light" en <html> (lo escribe el script
+   de BaseLayout antes del primer pintado). El oscuro es el de siempre y no
+   necesita atributo. Los grises zinc se reasignan en vez de tocar cada
+   componente: text-zinc-100 sigue siendo "el texto más fuerte" y pasa a ser
+   casi negro. */
+html[data-theme="light"] {
+  --color-accent: #d4343c;
+  --line: #dfe2e9;
+  --hull: #ffffff;
+  --hull-2: #f1f2f6;
+  --dim: #505a6b;
+  --faint: #667082;
+  --go: #0f9f6e;
+
+  --bg: #f6f7f9;
+  --bg-top: #ffffff;
+  --bg-bottom: #eff1f5;
+  --surface: #ffffff;
+  --tint: rgb(0 0 0 / 0.025);
+  --tint-2: rgb(0 0 0 / 0.04);
+  --panel: rgb(255 255 255 / 0.85);
+  --panel-shadow:
+    0 24px 60px -36px rgb(30 40 70 / 0.35), inset 0 1px 0 rgb(255 255 255 / 0.9);
+  --sheen: #09090b;
+  --star: #52525b;
+  --on-accent: #ffffff;
+
+  --color-zinc-100: #18181b;
+  --color-zinc-300: #3f3f46;
+  --color-zinc-800: #dfe2e9;
+  --color-zinc-950: #f6f7f9;
+}
+
+/* Los bloques de código y la consola del inicio son paneles de terminal: se
+   quedan oscuros en el tema claro (el tema de Shiki es oscuro), así que
+   recuperan aquí los tokens oscuros para todo lo que llevan dentro. */
+html[data-theme="light"] :is(.code-block, [data-keep-dark]) {
+  --color-accent: #fb6161;
+  --line: #1f2430;
+  --hull: #0d1117;
+  --hull-2: #141a24;
+  --dim: #a0aabb;
+  --faint: #7d889a;
+  --go: #5ee6a8;
+  --surface: #0c0c10;
+  --tint: rgb(255 255 255 / 0.02);
+  --tint-2: rgb(255 255 255 / 0.03);
+  --color-zinc-100: #f4f4f5;
+  --color-zinc-300: #d4d4d8;
+  color: var(--color-zinc-300);
 }
 
 /* El fondo va en <html> y no en <body> a propósito, y los dos motivos
@@ -30,7 +96,7 @@
    propagación se corta. Declarándolo acá quedan las dos a propósito. */
 html {
   color-scheme: dark;
-  background-color: #09090b;
+  background-color: var(--bg);
   background-image:
     radial-gradient(
       ellipse 80% 50% at 15% 0%,
@@ -42,8 +108,17 @@ html {
       color-mix(in srgb, var(--color-accent) 6%, transparent),
       transparent
     ),
-    linear-gradient(180deg, #0c0c10 0%, #09090b 40%, #0a0a0d 100%);
+    linear-gradient(
+      180deg,
+      var(--bg-top) 0%,
+      var(--bg) 40%,
+      var(--bg-bottom) 100%
+    );
   background-attachment: fixed;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
 }
 
 /* Cambio de idioma: la clase la pone el script de navegación de BaseLayout al
@@ -212,7 +287,7 @@ body {
 
 ::selection {
   background-color: var(--color-accent);
-  color: #09090b;
+  color: var(--on-accent);
 }
 
 .post-chip {
@@ -372,11 +447,9 @@ body {
   @apply my-6 overflow-x-auto rounded-xl;
   border: 1px solid var(--line);
   /* Mismo panel que los bloques de codigo y la consola del inicio. */
-  background: rgb(8 12 19 / 0.82);
+  background: var(--panel);
   backdrop-filter: blur(12px);
-  box-shadow:
-    0 30px 80px -40px rgb(0 0 0 / 0.95),
-    inset 0 1px 0 rgb(255 255 255 / 0.04);
+  box-shadow: var(--panel-shadow);
 }
 
 .prose-post-body table {
@@ -431,6 +504,7 @@ body {
   box-shadow:
     0 30px 80px -40px rgb(0 0 0 / 0.95),
     inset 0 1px 0 rgb(255 255 255 / 0.04);
+  color: #f4f4f5;
   transition: border-color 0.25s ease;
   scrollbar-width: thin;
   scrollbar-color: color-mix(in srgb, var(--color-accent) 30%, transparent)
@@ -589,7 +663,7 @@ body {
   content: attr(data-tip);
   @apply pointer-events-none absolute right-0 top-[calc(100%+0.4rem)] z-10 whitespace-nowrap rounded px-2 py-1 font-mono text-micro uppercase tracking-label opacity-0 transition-opacity duration-150;
   border: 1px solid var(--line);
-  background: #0c0c10;
+  background: var(--surface);
   color: var(--dim);
 }
 

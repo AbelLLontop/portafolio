@@ -179,7 +179,11 @@ const formattedDate = formatPostDate(date, lang);
     font-size: 1rem;
     line-height: 1.4;
     border-bottom-color: var(--line);
-    background-color: color-mix(in srgb, var(--color-accent) 6%, #0c0c10 94%);
+    background-color: color-mix(
+      in srgb,
+      var(--color-accent) 6%,
+      var(--surface) 94%
+    );
     box-shadow: 0 4px 12px -4px rgb(0 0 0 / 0.4);
     backdrop-filter: blur(8px);
   }
