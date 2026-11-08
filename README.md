@@ -38,6 +38,7 @@ src/
 │   ├── pages/     el cuerpo de cada página, con `lang` como prop
 │   └── react/     islas interactivas (terminal, listado, decoración)
 ├── content/blog/  las notas, en .mdx
+├── content/experiments/  los experimentos, en .mdx
 ├── i18n/          diccionario de copy y mapa de rutas
 ├── layouts/       BaseLayout y BlogPostLayout
 ├── lib/           lógica pura (es lo único que se testea)

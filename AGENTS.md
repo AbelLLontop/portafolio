@@ -9,8 +9,8 @@ vive en los documentos de la sección 8.
 Landing de portafolio de un desarrollador peruano, con el **blog técnico como
 pieza central**: notas propias, no pensadas para audiencia externa, pero con un
 tratamiento visual cuidado. Acompañan una sección de proyectos (hoy en
-construcción, sin proyectos inventados) y una sección "Sobre mí" dentro de
-Inicio.
+construcción, sin proyectos inventados), una sección de experimentos (pruebas
+creativas con su propia página) y una sección "Sobre mí" dentro de Inicio.
 
 El criterio de calidad es "hecho a medida": nada debe sentirse plantilla. El
 propósito y el roadmap están en [`docs/project.md`](./docs/project.md).
@@ -42,6 +42,8 @@ traducen; los de los posts no, porque los `.mdx` no se traducen.
 | `/` | `/en/` | Banner (hero con terminal interactiva y carrusel de tecnologías), sobre mí, proyectos, contacto |
 | `/blog` | `/en/blog` | Bitácora de notas agrupada por mes, con búsqueda y paginación |
 | `/blog/<slug>` | `/en/blog/<slug>` | Nota individual |
+| `/experimentos` | `/en/experiments` | Listado de experimentos: pruebas creativas, cada una con su página |
+| `/experimentos/<slug>` | `/en/experiments/<slug>` | Página de un experimento (portada, texto, reproductores, galería, enlaces) |
 
 `src/i18n/routes.ts` es la única fuente de los paths: de ahí salen la
 navegación, el botón ES/EN y los `hreflang`.
@@ -68,6 +70,15 @@ navegación, el botón ES/EN y los `hreflang`.
 - **Animaciones de entrada**: una carga de verdad anima; una navegación del
   router no vuelve a representar lo ya visto. Lo marcan dos clases en `<html>`
   (`src/lib/nav-flags.ts`), nunca se lee el estado de navegación desde una isla.
+- **Experimentos**: colección `experiments` (`src/content/experiments/*.mdx`),
+  validada en `content.config.ts`. El cuerpo del `.mdx` es el texto; la portada,
+  los videos de YouTube (solo el id), el reproductor de SoundCloud, la galería,
+  la ficha y los enlaces van en el frontmatter, así todos comparten diseño. El
+  contenido de terceros se incrusta con `EmbedFacade.astro`: una imagen con
+  botón, y el iframe recién se monta al dar play (nada de YouTube ni SoundCloud
+  se carga al abrir la página). Las URLs de los embeds salen de
+  `src/lib/embeds.ts`. Si el experimento usa IA, `ai: true` lo declara en la
+  tarjeta y en la página; nunca se presenta como obra humana.
 - **Posts**: `summary` es obligatorio en el frontmatter — se usa como meta
   description y como descripción de Open Graph. El número `#N` de cada nota se
   calcula por fecha entre los posts no-draft, no es un campo del frontmatter.

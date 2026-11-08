@@ -31,6 +31,11 @@ hero— existe para que el sitio se sienta hecho a medida.
   paginación, todo en el navegador. Cada nota lleva su número `#N`, fecha, código
   con syntax highlighting, índice, y un enlace para volver al listado arriba, en
   la barra pegajosa del título y al final.
+- **Experimentos**: pruebas creativas que no son un producto ni una nota
+  técnica. Un listado de tarjetas y, por cada una, su propia página con portada,
+  texto, reproductores incrustados bajo demanda, galería de diseño y enlaces. El
+  primero es Los Vecinos de Enfrente, un grupo ficticio con música generada con
+  IA. Si algo está hecho con IA, la página lo dice.
 - **Contacto**: GitHub y LinkedIn. El correo no se publica.
 
 ## Límites
