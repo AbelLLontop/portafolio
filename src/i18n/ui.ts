@@ -28,16 +28,31 @@ const es = {
 
   // ---- SEO ---------------------------------------------------------------
   "seo.description":
-    "abelitolll — página personal de Abel Llontop, desarrollador de software peruano. Backend, aplicaciones web y notas técnicas.",
+    "Página personal de Abel Llontop, desarrollador de software.",
   "seo.home.title": "abelitolll — Desarrollador de software",
+  "seo.notFound.title": "404 — Página no encontrada",
+  "seo.notFound.description":
+    "La página que buscas no existe o cambió de lugar.",
+  "seo.imageAlt":
+    "abelitolll, página personal de Abel Llontop, desarrollador de software, con una consola y un cohete.",
   "seo.blog.title": "Blog",
-  "seo.blog.description": "Artículos y notas técnicas de abelitolll.",
+  "seo.blog.description":
+    "Notas y artículos de Abel Llontop, desarrollador de software.",
   "seo.projects.title": "Proyectos",
   "seo.projects.description":
     "Proyectos de abelitolll: lo que construyo, con su stack, su código y cómo está hecho.",
   "seo.experiments.title": "Experimentos",
   "seo.experiments.description":
     "Pruebas creativas con IA y código: música, videos y personajes que no existen.",
+
+  // ---- Página no encontrada (404) -----------------------------------------
+  "notFound.label": "Error 404",
+  "notFound.title": "Esta ruta no existe",
+  "notFound.text":
+    "La dirección que abriste no existe o la moví de lugar. Desde aquí puedes volver a cualquier sección del sitio.",
+  "notFound.ctaHome": "Volver al inicio",
+  "notFound.console": "abel llontop · consola",
+  "notFound.noSuchDir": "No existe el archivo o el directorio",
 
   // ---- Hero --------------------------------------------------------------
   "hero.eyebrow": "Lima · Perú · desarrollador de software",
@@ -257,17 +272,31 @@ const en: Record<UIKey, string> = {
   "nav.langName": "English",
 
   // ---- SEO ---------------------------------------------------------------
-  "seo.description":
-    "abelitolll — personal site of Abel Llontop, a Peruvian software developer. Backend, web apps and technical notes.",
+  "seo.description": "Personal site of Abel Llontop, software developer.",
   "seo.home.title": "abelitolll — Software developer",
+  "seo.notFound.title": "404 — Page not found",
+  "seo.notFound.description":
+    "The page you are looking for does not exist or has moved.",
+  "seo.imageAlt":
+    "abelitolll, personal site of Abel Llontop, software developer, with a console and a rocket.",
   "seo.blog.title": "Blog",
-  "seo.blog.description": "Articles and technical notes by abelitolll.",
+  "seo.blog.description":
+    "Notes and articles by Abel Llontop, software developer.",
   "seo.projects.title": "Projects",
   "seo.projects.description":
     "Projects by abelitolll: what I build, with its stack, its code and how it is made.",
   "seo.experiments.title": "Experiments",
   "seo.experiments.description":
     "Creative tests with AI and code: music, videos and characters that do not exist.",
+
+  // ---- Page not found (404) ----------------------------------------------
+  "notFound.label": "Error 404",
+  "notFound.title": "This page does not exist",
+  "notFound.text":
+    "The address you opened does not exist or I moved it. From here you can head back to any section of the site.",
+  "notFound.ctaHome": "Back to home",
+  "notFound.console": "abel llontop · console",
+  "notFound.noSuchDir": "No such file or directory",
 
   // ---- Hero --------------------------------------------------------------
   "hero.eyebrow": "Lima · Peru · software developer",

@@ -67,6 +67,55 @@ describe("buildSeoMeta", () => {
     expect(meta.image.startsWith("https://")).toBe(true);
   });
 
+  it("elige la imagen de cada idioma y declara su tamaño y alt", () => {
+    const es = buildSeoMeta({ title: "x", url, lang: "es", route: "home" });
+    const en = buildSeoMeta({ title: "x", url, lang: "en", route: "home" });
+
+    expect(es.image).toBe(`${SITE_URL}/og-image.png`);
+    expect(en.image).toBe(`${SITE_URL}/og-image-en.png`);
+    expect(es.imageSize).toEqual({ width: 1200, height: 630 });
+    expect(es.imageAlt).toBe(ui.es["seo.imageAlt"]);
+    expect(en.imageAlt).toBe(ui.en["seo.imageAlt"]);
+  });
+
+  it("con imagen propia no inventa el tamaño y usa su alt (o el titulo)", () => {
+    const withAlt = buildSeoMeta({
+      title: "x",
+      url,
+      lang: "es",
+      route: "project",
+      slug: "p",
+      image: "/_astro/cover.jpg",
+      imageAlt: "Captura del proyecto",
+    });
+    const noAlt = buildSeoMeta({
+      title: "Mi proyecto",
+      url,
+      lang: "es",
+      route: "project",
+      slug: "p",
+      image: "/_astro/cover.jpg",
+    });
+
+    expect(withAlt.imageSize).toBeUndefined();
+    expect(withAlt.imageAlt).toBe("Captura del proyecto");
+    expect(noAlt.imageAlt).toBe("Mi proyecto");
+  });
+
+  it("marca las notas como article y el resto como website", () => {
+    const post = buildSeoMeta({
+      title: "x",
+      url,
+      lang: "es",
+      route: "post",
+      slug: "una-nota",
+    });
+    const blog = buildSeoMeta({ title: "x", url, lang: "es", route: "blog" });
+
+    expect(post.type).toBe("article");
+    expect(blog.type).toBe("website");
+  });
+
   it("usa el locale completo de cada idioma, no el codigo corto", () => {
     expect(
       buildSeoMeta({ title: "x", url, lang: "es", route: "home" }).locale,

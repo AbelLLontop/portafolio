@@ -20,7 +20,8 @@ export const PATHS = {
 export type StaticRoute = keyof typeof PATHS;
 
 /** `post` y `experiment` son las rutas dinamicas: necesitan su slug. */
-export type Route = StaticRoute | "post" | "experiment" | "project";
+export type Route =
+  StaticRoute | "post" | "experiment" | "project" | "notFound";
 
 /** Las entradas de la navegacion, en orden. El label sale del diccionario. */
 export const NAV_ROUTES = [
@@ -63,6 +64,9 @@ export function pathFor(route: Route, lang: Lang, slug?: string): string {
     }
     return `${PATHS.projects[lang]}/${slug}`;
   }
+
+  // El 404 no tiene URL propia: el selector de idioma lo manda al inicio.
+  if (route === "notFound") return PATHS.home[lang];
 
   return PATHS[route][lang];
 }

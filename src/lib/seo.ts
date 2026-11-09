@@ -3,7 +3,14 @@ import { pathFor, type Route } from "../i18n/routes.ts";
 
 export const SITE_NAME = "abelitolll";
 export const SITE_URL = "https://abelitolll.com";
-export const SITE_OG_IMAGE = "/og-image.png";
+// Una imagen por idioma (el texto va dibujado): se generan con
+// `node scripts/og-image.mjs`. 1200x630 es la proporcion 1.91:1 que piden
+// Facebook, LinkedIn, WhatsApp y X para la tarjeta grande.
+export const SITE_OG_IMAGES: Record<Lang, string> = {
+  es: "/og-image.png",
+  en: "/og-image-en.png",
+};
+export const OG_IMAGE_SIZE = { width: 1200, height: 630 } as const;
 
 // Open Graph pide el locale completo, no el codigo corto del <html lang>.
 export const SITE_LOCALES: Record<Lang, string> = {
@@ -15,6 +22,12 @@ export interface SeoMeta {
   title: string;
   description: string;
   image: string;
+  /** Texto alternativo de la imagen (og:image:alt / twitter:image:alt). */
+  imageAlt: string;
+  /** Solo se conoce en la imagen por defecto; en las demas se omite. */
+  imageSize?: { width: number; height: number };
+  /** `article` para las notas, `website` para el resto. */
+  type: "website" | "article";
   url: string;
   locale: string;
   /** Un alternate por idioma, para que cada version se indexe en la suya. */
@@ -52,6 +65,7 @@ export function buildSeoMeta(params: {
   slug?: string;
   description?: string;
   image?: string;
+  imageAlt?: string;
 }): SeoMeta {
   const { lang, route, slug } = params;
   const t = useTranslations(lang);
@@ -67,10 +81,16 @@ export function buildSeoMeta(params: {
     ).toString(),
   }));
 
+  const isDefaultImage = params.image === undefined;
+
   return {
     title: params.title,
     description: params.description ?? t("seo.description"),
-    image: new URL(params.image ?? SITE_OG_IMAGE, params.url).toString(),
+    image: new URL(params.image ?? SITE_OG_IMAGES[lang], params.url).toString(),
+    imageAlt:
+      params.imageAlt ?? (isDefaultImage ? t("seo.imageAlt") : params.title),
+    imageSize: isDefaultImage ? OG_IMAGE_SIZE : undefined,
+    type: route === "post" ? "article" : "website",
     url: params.url.toString(),
     locale: SITE_LOCALES[lang],
     alternates,

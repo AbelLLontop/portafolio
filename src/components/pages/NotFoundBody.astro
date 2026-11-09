@@ -1,0 +1,163 @@
+---
+// Cuerpo del 404. Vercel sirve un único `404.html` para cualquier ruta que no
+// existe, sea `/loquesea` o `/en/loquesea`, así que el idioma no se conoce al
+// construir: se renderizan los dos bloques y un script deja visible el que
+// corresponde al prefijo de la URL. Sin JS queda el español, que es el
+// idioma por defecto del sitio.
+import SiteGrid from "../astro/SiteGrid.astro";
+import { LANGS, useTranslations, type Lang } from "../../i18n/index.ts";
+import { NAV_ROUTES, pathFor } from "../../i18n/routes.ts";
+
+const blocks = LANGS.map((lang: Lang) => {
+  const t = useTranslations(lang);
+  return {
+    lang,
+    t,
+    home: pathFor("home", lang),
+    blog: pathFor("blog", lang),
+    listing: NAV_ROUTES.map((key) => ({
+      href: pathFor(key, lang),
+      label: t(`nav.${key}`),
+    })),
+  };
+});
+---
+
+<SiteGrid />
+
+<main class="mx-auto max-w-5xl px-4 py-12 md:py-20">
+  {blocks.map(({ lang, t, home, blog, listing }) => (
+    <div data-nf-lang={lang} hidden={lang !== "es"}>
+      <p class="section-label">{t("notFound.label")}</p>
+
+      <div class="mt-8 grid items-center gap-10 lg:grid-cols-[1fr_26rem] lg:gap-14">
+        <div>
+          <p
+            aria-hidden="true"
+            class="font-mono text-[6rem] font-extrabold leading-none tracking-[-0.04em] text-zinc-100 sm:text-[8rem] md:text-[10rem]"
+          >
+            4<span class="text-accent">0</span>4
+          </p>
+          <h1 class="mt-6 font-display text-3xl font-bold tracking-[-0.02em] text-zinc-100 md:text-4xl">
+            {t("notFound.title")}
+          </h1>
+          <p
+            class="mt-3 max-w-[46ch] leading-relaxed"
+            style="color: var(--dim);"
+          >
+            {t("notFound.text")}
+          </p>
+
+          <div class="mt-8 flex flex-wrap items-center gap-3">
+            <a
+              href={home}
+              class="group inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-mono text-ui font-semibold uppercase tracking-label text-[var(--on-accent)] transition-transform duration-200 hover:-translate-y-0.5"
+              style="box-shadow: 0 12px 40px -14px var(--color-accent);"
+            >
+              {t("notFound.ctaHome")}
+              <span
+                aria-hidden="true"
+                class="transition-transform duration-200 group-hover:translate-x-1"
+              >
+                →
+              </span>
+            </a>
+            <a
+              href={blog}
+              class="inline-flex items-center rounded-full border px-6 py-3 font-mono text-ui uppercase tracking-label transition-colors hover:border-accent hover:text-accent"
+              style="border-color: var(--line); color: var(--dim);"
+            >
+              {t("hero.ctaBlog")}
+            </a>
+          </div>
+        </div>
+
+        {/* La consola del hero, a propósito: un `cd` a la ruta pedida que falla
+            y un `ls` con las secciones que sí existen. Es un panel de
+            terminal, así que sigue oscuro en los dos temas. */}
+        <div
+          data-keep-dark
+          class="hull-panel overflow-hidden rounded-xl border font-mono text-ui"
+          style="border-color: var(--line);"
+        >
+          <div
+            class="flex items-center gap-2 border-b px-4 py-3"
+            style="border-color: var(--line);"
+          >
+            <span
+              class="h-2.5 w-2.5 rounded-full"
+              style="background: var(--go);"
+            />
+            <span
+              class="h-2.5 w-2.5 rounded-full"
+              style="background: var(--line);"
+            />
+            <span
+              class="h-2.5 w-2.5 rounded-full"
+              style="background: var(--line);"
+            />
+            <span class="ml-2 text-micro uppercase tracking-label text-faint">
+              {t("notFound.console")}
+            </span>
+          </div>
+          <div class="space-y-1.5 px-5 py-5 leading-relaxed">
+            <p class="text-zinc-100">
+              <span class="text-accent">&gt;</span> cd{" "}
+              <span class="break-all" data-nf-path>
+                /
+              </span>
+            </p>
+            <p class="break-words text-dim">
+              cd:{" "}
+              <span class="break-all" data-nf-path>
+                /
+              </span>
+              : {t("notFound.noSuchDir")}
+            </p>
+            <p class="pt-3 text-zinc-100">
+              <span class="text-accent">&gt;</span> ls
+            </p>
+            <p class="flex flex-wrap gap-x-5 gap-y-1">
+              {listing.map((item) => (
+                <a
+                  href={item.href}
+                  class="text-zinc-300 transition-colors hover:text-accent"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </p>
+            <p class="pt-3 text-zinc-100">
+              <span class="text-accent">&gt;</span>
+              <span
+                aria-hidden="true"
+                class="ml-1 inline-block h-[1.1em] w-2 translate-y-[0.2em] animate-pulse bg-zinc-100"
+              ></span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  ))}
+</main>
+
+<script>
+  // Corre en la carga inicial y en cada navegación del router (que también
+  // puede aterrizar aquí). Solo toca el DOM de esta página.
+  document.addEventListener("astro:page-load", () => {
+    const blocks = document.querySelectorAll<HTMLElement>("[data-nf-lang]");
+    if (blocks.length === 0) return;
+
+    const path = window.location.pathname;
+    const lang = path === "/en" || path.startsWith("/en/") ? "en" : "es";
+
+    blocks.forEach((block) => {
+      block.hidden = block.dataset.nfLang !== lang;
+    });
+    document.documentElement.lang = lang;
+    // textContent y no innerHTML: la ruta la escribe quien visita.
+    document
+      .querySelectorAll<HTMLElement>("[data-nf-path]")
+      .forEach((el) => (el.textContent = path));
+  });
+</script>
