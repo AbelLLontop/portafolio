@@ -11,6 +11,7 @@ import type { Lang } from "./index.ts";
 
 export const PATHS = {
   home: { es: "/", en: "/en/" },
+  projects: { es: "/proyectos", en: "/en/projects" },
   blog: { es: "/blog", en: "/en/blog" },
   experiments: { es: "/experimentos", en: "/en/experiments" },
 } as const;
@@ -19,11 +20,12 @@ export const PATHS = {
 export type StaticRoute = keyof typeof PATHS;
 
 /** `post` y `experiment` son las rutas dinamicas: necesitan su slug. */
-export type Route = StaticRoute | "post" | "experiment";
+export type Route = StaticRoute | "post" | "experiment" | "project";
 
 /** Las entradas de la navegacion, en orden. El label sale del diccionario. */
 export const NAV_ROUTES = [
   "home",
+  "projects",
   "blog",
   "experiments",
 ] as const satisfies readonly StaticRoute[];
@@ -31,6 +33,7 @@ export const NAV_ROUTES = [
 /** Las entradas del pie, mas cortas que las del header. */
 export const FOOTER_ROUTES = [
   "home",
+  "projects",
   "blog",
   "experiments",
 ] as const satisfies readonly StaticRoute[];
@@ -52,6 +55,13 @@ export function pathFor(route: Route, lang: Lang, slug?: string): string {
       throw new Error("pathFor('experiment') necesita el slug del experimento");
     }
     return `${PATHS.experiments[lang]}/${slug}`;
+  }
+
+  if (route === "project") {
+    if (slug === undefined) {
+      throw new Error("pathFor('project') necesita el slug del proyecto");
+    }
+    return `${PATHS.projects[lang]}/${slug}`;
   }
 
   return PATHS[route][lang];

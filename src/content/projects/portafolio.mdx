@@ -1,0 +1,43 @@
+---
+title: abelitolll.com
+summary: Este mismo sitio, un portafolio con blog técnico, experimentos y terminal interactiva, hecho a medida sobre Astro.
+date: 2026-11-08
+status: live
+stack: [Astro, React, Tailwind, TypeScript, Vercel]
+cover: ../../assets/projects/portafolio/portada-inicio.png
+coverAlt: Inicio de abelitolll.com con la terminal interactiva, el carrusel de tecnologías y un fondo de estrellas.
+facts:
+  - label: Estado
+    value: en producción
+  - label: Tipo
+    value: sitio estático
+  - label: Idiomas
+    value: español e inglés
+  - label: Deploy
+    value: Vercel
+repoUrl: https://github.com/AbelLLontop/portafolio
+liveUrl: https://abelitolll.com
+gallery:
+  - src: ../../assets/projects/portafolio/blog.png
+    alt: El listado del blog agrupado por mes, con un riel de puntos y un buscador.
+    caption: El blog, agrupado por mes, con búsqueda y paginación.
+  - src: ../../assets/projects/portafolio/blog-post.png
+    alt: Una nota del blog abierta, con su índice lateral y un bloque de código.
+    caption: Una nota abierta, con índice lateral y bloques de código.
+  - src: ../../assets/projects/portafolio/experimentos.png
+    alt: El listado de experimentos con sus tarjetas.
+    caption: La sección de experimentos, donde cada prueba tiene su propia página.
+  - src: ../../assets/projects/portafolio/experimento.png
+    alt: La página de un experimento con su portada, el texto y la ficha lateral.
+    caption: La página de un experimento, con portada, ficha y enlaces.
+---
+
+Este sitio es mi portafolio, pero no quise que se sintiera como una plantilla. Lo armé a medida: cada detalle, desde la terminal del inicio hasta el cohete que sigue al cursor, está pensado para que se vea y se sienta propio.
+
+El centro es el blog técnico. Son notas para mí, escritas mientras aprendo, con un tratamiento visual cuidado. Alrededor hay una sección de experimentos, una de proyectos (la que estás leyendo) y un "Sobre mí" dentro del inicio.
+
+## Cómo está hecho
+
+Es un sitio 100% estático con Astro: sin backend, sin CMS y sin base de datos. El contenido vive en Content Collections validadas con zod, y React aparece solo en las islas que de verdad necesitan estado o animación. Los estilos salen de Tailwind 4 con tokens propios, así el tema claro y el oscuro comparten los mismos colores.
+
+También tiene español e inglés, navegación sin recargar el documento y un flujo de trabajo con ramas protegidas, Conventional Commits y CI que revisa lint, tests y build en cada Pull Request.

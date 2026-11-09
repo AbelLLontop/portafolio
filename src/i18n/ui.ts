@@ -13,6 +13,7 @@
 const es = {
   // ---- Navegacion --------------------------------------------------------
   "nav.home": "Inicio",
+  "nav.projects": "Proyectos",
   "nav.blog": "Blog",
   "nav.experiments": "Experimentos",
   "nav.openMenu": "Abrir el menú",
@@ -31,6 +32,9 @@ const es = {
   "seo.home.title": "abelitolll — Desarrollador de software",
   "seo.blog.title": "Blog",
   "seo.blog.description": "Artículos y notas técnicas de abelitolll.",
+  "seo.projects.title": "Proyectos",
+  "seo.projects.description":
+    "Proyectos de abelitolll: lo que construyo, con su stack, su código y cómo está hecho.",
   "seo.experiments.title": "Experimentos",
   "seo.experiments.description":
     "Pruebas creativas con IA y código: música, videos y personajes que no existen.",
@@ -88,11 +92,11 @@ const es = {
     "Me divierte investigar, encontrar los problemas y resolverlos. Y me gusta anotar lo que aprendo y compartirlo — por eso existe esta página.",
   "answer.stack.intro": "Esto es lo que uso en el día a día:",
   "answer.stack.key": "día a día",
-  "answer.projects.intro":
-    "Todavía no tengo proyectos publicados. Estoy construyendo cosas y pronto las vas a ver en la sección de proyectos; mientras tanto, el blog tiene notas reales de lo que voy aprendiendo.",
-  "answer.projects.publishedKey": "publicados",
-  "answer.projects.statusKey": "estado",
-  "answer.projects.statusValue": "en construcción",
+  "answer.projects.intro": "Esto es lo que tengo publicado hasta ahora:",
+  "answer.projects.empty":
+    "Todavía no tengo proyectos publicados; mientras tanto, el blog tiene notas reales de lo que voy aprendiendo.",
+  "answer.projects.allKey": "todos",
+  "answer.projects.allValue": "ver todos los proyectos →",
   "answer.blog.intro": "Tengo {count} notas publicadas. Las últimas:",
   "answer.blog.allKey": "todas",
   "answer.blog.allValue": "ver el blog completo →",
@@ -111,6 +115,23 @@ const es = {
   "projects.meanwhileBefore": "Mientras tanto, el",
   "projects.meanwhileLink": "blog",
   "projects.meanwhileAfter": "tiene notas reales de lo que voy aprendiendo.",
+  "projects.intro":
+    "Lo que construyo y se puede abrir: con su stack, su código y cómo está hecho. Cada proyecto tiene su propia página.",
+  "projects.spanishNotice": "Los proyectos están escritos en español.",
+  "projects.viewAll": "ver todos los proyectos",
+  "projects.statusLive": "en producción",
+  "projects.statusBuilding": "en construcción",
+  "projects.open": "ver proyecto",
+  "projects.soonLabel": "próximamente",
+  "projects.soon": "El siguiente proyecto va acá.",
+  "project.back": "volver a los proyectos",
+  "project.about": "De qué trata",
+  "project.facts": "Ficha",
+  "project.links": "Enlaces",
+  "project.repo": "Código en GitHub",
+  "project.live": "Ver en vivo",
+  "project.stack": "Stack",
+  "project.gallery": "Cómo se ve",
 
   // ---- Seccion contacto --------------------------------------------------
   "contact.label": "Dónde encontrarme",
@@ -226,6 +247,7 @@ export type UIKey = keyof typeof es;
 const en: Record<UIKey, string> = {
   // ---- Navegacion --------------------------------------------------------
   "nav.home": "Home",
+  "nav.projects": "Projects",
   "nav.blog": "Blog",
   "nav.experiments": "Experiments",
   "nav.openMenu": "Open menu",
@@ -240,6 +262,9 @@ const en: Record<UIKey, string> = {
   "seo.home.title": "abelitolll — Software developer",
   "seo.blog.title": "Blog",
   "seo.blog.description": "Articles and technical notes by abelitolll.",
+  "seo.projects.title": "Projects",
+  "seo.projects.description":
+    "Projects by abelitolll: what I build, with its stack, its code and how it is made.",
   "seo.experiments.title": "Experiments",
   "seo.experiments.description":
     "Creative tests with AI and code: music, videos and characters that do not exist.",
@@ -296,11 +321,11 @@ const en: Record<UIKey, string> = {
     "I enjoy digging in, finding the problems and solving them. And I like writing down what I learn and sharing it — that is why this site exists.",
   "answer.stack.intro": "This is what I use day to day:",
   "answer.stack.key": "day to day",
-  "answer.projects.intro":
-    "I have no published projects yet. I am building things and you will see them in the projects section soon; meanwhile, the blog has real notes on what I am learning.",
-  "answer.projects.publishedKey": "published",
-  "answer.projects.statusKey": "status",
-  "answer.projects.statusValue": "in progress",
+  "answer.projects.intro": "This is what I have published so far:",
+  "answer.projects.empty":
+    "I have no published projects yet; meanwhile, the blog has real notes on what I am learning.",
+  "answer.projects.allKey": "all",
+  "answer.projects.allValue": "see all projects →",
   "answer.blog.intro": "I have {count} notes published. The latest ones:",
   "answer.blog.allKey": "all",
   "answer.blog.allValue": "see the whole blog →",
@@ -319,6 +344,23 @@ const en: Record<UIKey, string> = {
   "projects.meanwhileBefore": "Meanwhile, the",
   "projects.meanwhileLink": "blog",
   "projects.meanwhileAfter": "has real notes on what I am learning.",
+  "projects.intro":
+    "What I build and you can open: with its stack, its code and how it is made. Each project has its own page.",
+  "projects.spanishNotice": "The projects are written in Spanish.",
+  "projects.viewAll": "see all projects",
+  "projects.statusLive": "live",
+  "projects.statusBuilding": "in progress",
+  "projects.open": "see project",
+  "projects.soonLabel": "coming soon",
+  "projects.soon": "The next project goes here.",
+  "project.back": "back to the projects",
+  "project.about": "What it is about",
+  "project.facts": "Details",
+  "project.links": "Links",
+  "project.repo": "Code on GitHub",
+  "project.live": "See it live",
+  "project.stack": "Stack",
+  "project.gallery": "How it looks",
 
   // ---- Seccion contacto --------------------------------------------------
   "contact.label": "Where to find me",

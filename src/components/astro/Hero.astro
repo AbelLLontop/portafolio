@@ -6,6 +6,7 @@ import { CONTACTS, STACK, YEARS_OF_EXPERIENCE } from "../../lib/profile.ts";
 import { formatPostDateShort } from "../../lib/dates.ts";
 import { CONTACT_ICONS } from "../../lib/contact-icons.ts";
 import { getPostNumbers, getPublishedPosts } from "../../lib/posts.ts";
+import { getPublishedProjects } from "../../lib/projects.ts";
 import {
   interpolate,
   pickStrings,
@@ -23,6 +24,7 @@ const t = useTranslations(lang);
 
 const posts = await getPublishedPosts();
 const numbers = await getPostNumbers();
+const projects = await getPublishedProjects();
 
 // Cifras reales: salen de la colección y del perfil, nunca escritas a mano.
 const stats = [
@@ -74,13 +76,35 @@ const commands: Record<string, Block[]> = {
     },
   ],
   [t("cmd.projects")]: [
-    { kind: "prose", text: t("answer.projects.intro") },
+    {
+      kind: "prose",
+      text:
+        projects.length > 0
+          ? t("answer.projects.intro")
+          : t("answer.projects.empty"),
+    },
+    {
+      kind: "entries",
+      entries: projects.map((project, index) => ({
+        number: index + 1,
+        marker: String(index + 1).padStart(2, "0"),
+        title: project.data.title,
+        summary: project.data.summary,
+        date: formatPostDateShort(project.data.date, lang),
+        href: pathFor("project", lang, project.id),
+      })),
+    },
     {
       kind: "rows",
       rows: [
-        [t("answer.projects.publishedKey"), "0"],
-        [t("answer.projects.statusKey"), t("answer.projects.statusValue")],
-      ],
+        [
+          t("answer.projects.allKey"),
+          {
+            text: t("answer.projects.allValue"),
+            href: pathFor("projects", lang),
+          },
+        ],
+      ] as [string, RowValue][],
     },
   ],
   [t("cmd.blog")]: [

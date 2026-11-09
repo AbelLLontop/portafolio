@@ -13,15 +13,38 @@ const blog = defineCollection({
   }),
 });
 
+// Un proyecto es algo que construyo y se puede usar o leer el codigo (no una
+// prueba creativa ni una nota). Como los experimentos, el cuerpo del .mdx es el
+// texto de la pagina y lo demas va en el frontmatter para compartir diseno.
 const projects = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/projects" }),
-  schema: z.object({
-    name: z.string(),
-    description: z.string(),
-    stack: z.array(z.string()),
-    githubUrl: z.url().optional(),
-    liveUrl: z.url().optional(),
-  }),
+  loader: glob({ pattern: "**/*.mdx", base: "./src/content/projects" }),
+  schema: ({ image }) =>
+    z.object({
+      title: z.string(),
+      summary: z.string(),
+      date: z.coerce.date(),
+      /** "live" ya esta en uso; "building" sigue en construccion. */
+      status: z.enum(["live", "building"]),
+      /** Nombres tal cual los entiende TechBadge (react, astro, ...). */
+      stack: z.array(z.string()),
+      draft: z.boolean().default(false),
+      cover: image(),
+      coverAlt: z.string(),
+      /** Ficha lateral: pares etiqueta/valor. */
+      facts: z.array(z.object({ label: z.string(), value: z.string() })),
+      repoUrl: z.url().optional(),
+      liveUrl: z.url().optional(),
+      gallery: z
+        .array(
+          z.object({
+            src: image(),
+            alt: z.string(),
+            caption: z.string(),
+            wide: z.boolean().default(false),
+          }),
+        )
+        .default([]),
+    }),
 });
 
 // Un experimento es una prueba creativa con su propia pagina (no un producto

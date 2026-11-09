@@ -1,0 +1,207 @@
+---
+// La página de un proyecto. El texto (el cuerpo del .mdx) entra por el slot;
+// todo lo demás sale del frontmatter, así todos los proyectos comparten diseño.
+import { Image } from "astro:assets";
+import githubIconRaw from "simple-icons/icons/github.svg?raw";
+import TechBadge from "../astro/TechBadge.astro";
+import ScrollReveal from "../react/ScrollReveal.tsx";
+import { formatPostDate } from "../../lib/dates.ts";
+import type { Project } from "../../lib/projects.ts";
+import { useTranslations, type Lang } from "../../i18n/index.ts";
+import { pathFor } from "../../i18n/routes.ts";
+
+interface Props {
+  project: Project;
+  lang: Lang;
+}
+
+const { project, lang } = Astro.props;
+const t = useTranslations(lang);
+const {
+  title,
+  summary,
+  date,
+  status,
+  stack,
+  cover,
+  coverAlt,
+  facts,
+  repoUrl,
+  liveUrl,
+  gallery,
+} = project.data;
+
+const githubIcon = githubIconRaw.replace("<svg ", '<svg fill="currentColor" ');
+// "AbelLLontop/portafolio", sacado de la URL para no repetirlo en el .mdx.
+const liveHost = liveUrl ? new URL(liveUrl).hostname : "";
+const repoName = repoUrl ? new URL(repoUrl).pathname.slice(1) : "";
+---
+
+<main class="mx-auto max-w-4xl px-4 py-10">
+  <a
+    href={pathFor("projects", lang)}
+    class="inline-flex items-center gap-2 font-mono text-ui tracking-ui transition-colors hover:text-accent"
+    style="color: var(--dim);"
+  >
+    <span aria-hidden="true">&#8592;</span>
+    {t("project.back")}
+  </a>
+
+  <ScrollReveal client:visible y={0}>
+    <header class="mt-8">
+      <p class="flex flex-wrap items-center gap-3 font-mono text-micro uppercase tracking-label text-faint">
+        <span>{formatPostDate(date, lang)}</span>
+        <span
+          class:list={[
+            "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5",
+            status === "live" ? "border-accent/40 text-accent" : "text-dim",
+          ]}
+          style={status === "live" ? undefined : "border-color: var(--line);"}
+        >
+          <span
+            class:list={[
+              "h-1.5 w-1.5 rounded-full",
+              status === "live" ? "bg-accent" : "bg-zinc-500",
+            ]}
+          ></span>
+          {t(
+            status === "live"
+              ? "projects.statusLive"
+              : "projects.statusBuilding",
+          )}
+        </span>
+        {lang !== "es" && (
+          <span class="normal-case tracking-ui">
+            {t("projects.spanishNotice")}
+          </span>
+        )}
+      </p>
+      <h1 class="mt-3 font-display text-4xl font-bold tracking-[-0.02em] text-zinc-100 md:text-6xl">
+        {title}
+      </h1>
+      <p class="mt-4 max-w-[60ch] text-lg leading-relaxed text-zinc-300">
+        {summary}
+      </p>
+
+      {/* El código es lo principal de un proyecto: va junto al título, no en un
+          panel lateral. */}
+      <div class="mt-7 flex flex-wrap items-stretch gap-3">
+        {repoUrl && (
+          <a
+            href={repoUrl}
+            target="_blank"
+            rel="noreferrer"
+            class="group flex items-center gap-3 rounded-lg border px-4 py-3 transition-colors hover:border-accent"
+            style="border-color: var(--line); background: var(--tint);"
+          >
+            <span
+              class="text-zinc-100 transition-colors group-hover:text-accent [&>svg]:h-7 [&>svg]:w-7"
+              set:html={githubIcon}
+            />
+            <span class="flex flex-col">
+              <span class="font-mono text-micro uppercase tracking-label text-faint">
+                {t("project.repo")}
+              </span>
+              <span class="font-mono text-ui tracking-ui text-zinc-100">
+                {repoName}
+              </span>
+            </span>
+            <span aria-hidden="true" class="ml-2 text-dim">
+              &#8599;
+            </span>
+          </a>
+        )}
+        {liveUrl && (
+          <a
+            href={liveUrl}
+            target="_blank"
+            rel="noreferrer"
+            class="group flex items-center gap-3 rounded-lg bg-accent px-5 py-3 text-[var(--on-accent)] transition-[filter] hover:brightness-110"
+          >
+            <span class="flex flex-col">
+              <span class="font-mono text-micro font-semibold uppercase tracking-label opacity-70">
+                {t("project.live")}
+              </span>
+              <span class="font-mono text-ui font-semibold tracking-ui">
+                {liveHost}
+              </span>
+            </span>
+            <span aria-hidden="true" class="ml-2 text-lg">
+              &#8599;
+            </span>
+          </a>
+        )}
+      </div>
+    </header>
+
+    <div
+      class="mt-10 overflow-hidden rounded-lg border"
+      style="border-color: var(--line);"
+    >
+      <Image
+        src={cover}
+        alt={coverAlt}
+        width={1400}
+        class="h-auto w-full"
+        loading="eager"
+      />
+    </div>
+
+    {/* La ficha va en una tira horizontal, no en una barra lateral. */}
+    <dl
+      class="mt-6 grid grid-cols-2 border-y sm:grid-cols-4"
+      style="border-color: var(--line);"
+    >
+      {facts.map((fact) => (
+        <div class="py-4 pr-4">
+          <dt class="font-mono text-micro uppercase tracking-label text-faint">
+            {fact.label}
+          </dt>
+          <dd class="mt-1 text-zinc-300">{fact.value}</dd>
+        </div>
+      ))}
+    </dl>
+  </ScrollReveal>
+
+  <section style="margin-top: var(--section-y);">
+    <p class="section-label">{t("project.about")}</p>
+    <div class="prose-post-body mt-4 max-w-[68ch]">
+      <slot />
+    </div>
+  </section>
+
+  <section style="margin-top: var(--section-y);">
+    <p class="section-label">{t("project.stack")}</p>
+    <ul class="mt-4 flex flex-wrap gap-2.5">
+      {stack.map((tech) => (
+        <TechBadge name={tech} size="md" />
+      ))}
+    </ul>
+  </section>
+
+  {gallery.length > 0 && (
+    <section style="margin-top: var(--section-y);">
+      <p class="section-label">{t("project.gallery")}</p>
+      <div class="mt-4 grid gap-6">
+        {gallery.map((item) => (
+          <figure>
+            <div
+              class="overflow-hidden rounded-lg border"
+              style="border-color: var(--line);"
+            >
+              <Image
+                src={item.src}
+                alt={item.alt}
+                width={1200}
+                class="h-auto w-full"
+              />
+            </div>
+            <figcaption class="mt-2 text-sm leading-relaxed text-dim">
+              {item.caption}
+            </figcaption>
+          </figure>
+        ))}
+      </div>
+    </section>
+  )}
+</main>

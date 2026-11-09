@@ -1,0 +1,41 @@
+---
+import { getImage } from "astro:assets";
+import { render } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import ProjectBody from "../../components/pages/ProjectBody.astro";
+import { getPublishedProjects } from "../../lib/projects.ts";
+import { pageTitle } from "../../lib/seo.ts";
+
+export async function getStaticPaths() {
+  const projects = await getPublishedProjects();
+
+  return projects.map((project) => ({
+    params: { slug: project.id },
+    props: { project },
+  }));
+}
+
+const lang = "es" as const;
+const { project } = Astro.props;
+const { Content } = await render(project);
+
+// La captura de portada hace de imagen al compartir el enlace (Open Graph).
+const share = await getImage({
+  src: project.data.cover,
+  width: 1200,
+  format: "jpg",
+});
+---
+
+<BaseLayout
+  title={pageTitle(project.data.title)}
+  description={project.data.summary}
+  lang={lang}
+  route="project"
+  slug={project.id}
+  image={share.src}
+>
+  <ProjectBody project={project} lang={lang}>
+    <Content />
+  </ProjectBody>
+</BaseLayout>

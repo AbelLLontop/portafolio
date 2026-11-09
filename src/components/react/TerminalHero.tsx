@@ -7,9 +7,14 @@ import { isSwapNav } from "../../lib/nav-flags.ts";
 export type RowValue =
   string | { text: string; href: string; external?: boolean };
 
-/** Una nota del blog, tal como la muestra el listado: numero, titulo y resumen. */
+/**
+ * Una entrada enlazable de la consola: una nota del blog (numero, titulo y
+ * resumen) o un proyecto, que lleva su propia marca en vez del #N.
+ */
 export interface PostEntry {
   number: number;
+  /** Reemplaza al `#N`, para entradas que no son notas (ej. "01"). */
+  marker?: string;
   title: string;
   summary?: string;
   date: string;
@@ -224,7 +229,7 @@ function AnswerBlocks({ blocks, caret }: { blocks: Block[]; caret: boolean }) {
                     className="pt-px transition-colors group-hover:text-accent"
                     style={{ color: "var(--faint)" }}
                   >
-                    #{entry.number}
+                    {entry.marker ?? `#${entry.number}`}
                   </span>
                   <span className="min-w-0">
                     <span className="block font-semibold text-zinc-100 transition-colors group-hover:text-accent">
