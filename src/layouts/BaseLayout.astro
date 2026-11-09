@@ -19,9 +19,13 @@ interface Props {
   slug?: string;
   description?: string;
   image?: string;
+  imageAlt?: string;
+  /** Páginas que no deben indexarse ni declarar canonical (el 404). */
+  noindex?: boolean;
 }
 
-const { title, lang, route, slug, description, image } = Astro.props;
+const { title, lang, route, slug, description, image, imageAlt, noindex } =
+  Astro.props;
 const seo = buildSeoMeta({
   title,
   url: Astro.url,
@@ -30,6 +34,7 @@ const seo = buildSeoMeta({
   slug,
   description,
   image,
+  imageAlt,
 });
 ---
 
@@ -38,6 +43,7 @@ const seo = buildSeoMeta({
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -45,6 +51,17 @@ const seo = buildSeoMeta({
       rel="stylesheet"
     />
     <meta name="viewport" content="width=device-width" />
+    {/* Color de la barra del navegador en móvil, según el tema del sistema. */}
+    <meta
+      name="theme-color"
+      content="#09090b"
+      media="(prefers-color-scheme: dark)"
+    />
+    <meta
+      name="theme-color"
+      content="#f6f7f9"
+      media="(prefers-color-scheme: light)"
+    />
     {/* El tema se fija antes del primer pintado para evitar un destello del
         otro. Prioridad: la elección guardada con el botón, luego el tema del
         sistema, y si el navegador no permite leerlo, claro. El oscuro es la
@@ -89,20 +106,24 @@ const seo = buildSeoMeta({
     <ClientRouter />
 
     <meta name="description" content={seo.description} />
-    <link rel="canonical" href={seo.url} />
+    {noindex && <meta name="robots" content="noindex" />}
+    {!noindex && <link rel="canonical" href={seo.url} />}
 
     {/* Cada idioma declara al otro, y x-default manda al español (el sitio
         por defecto) cuando el navegador no matchea ninguno. */}
-    {seo.alternates.map((alternate) => (
-      <link
-        rel="alternate"
-        hreflang={alternate.hreflang}
-        href={alternate.href}
-      />
-    ))}
-    <link rel="alternate" hreflang="x-default" href={seo.defaultHref} />
+    {!noindex &&
+      seo.alternates.map((alternate) => (
+        <link
+          rel="alternate"
+          hreflang={alternate.hreflang}
+          href={alternate.href}
+        />
+      ))}
+    {!noindex && (
+      <link rel="alternate" hreflang="x-default" href={seo.defaultHref} />
+    )}
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={seo.type} />
     <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:locale" content={seo.locale} />
     <meta
@@ -112,12 +133,24 @@ const seo = buildSeoMeta({
     <meta property="og:title" content={title} />
     <meta property="og:description" content={seo.description} />
     <meta property="og:image" content={seo.image} />
+    <meta property="og:image:alt" content={seo.imageAlt} />
+    {seo.imageSize && (
+      <>
+        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image:width" content={String(seo.imageSize.width)} />
+        <meta
+          property="og:image:height"
+          content={String(seo.imageSize.height)}
+        />
+      </>
+    )}
     <meta property="og:url" content={seo.url} />
 
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={seo.description} />
     <meta name="twitter:image" content={seo.image} />
+    <meta name="twitter:image:alt" content={seo.imageAlt} />
   </head>
   <body class="flex min-h-screen flex-col">
     <div class="veil"></div>

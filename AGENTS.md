@@ -46,6 +46,7 @@ traducen; los de los posts no, porque los `.mdx` no se traducen.
 | `/proyectos/<slug>` | `/en/projects/<slug>` | Página de un proyecto (título, enlaces al código y al sitio, captura, ficha, texto, stack, galería) |
 | `/experimentos` | `/en/experiments` | Listado de experimentos: pruebas creativas, cada una con su página |
 | `/experimentos/<slug>` | `/en/experiments/<slug>` | Página de un experimento (portada, texto, reproductores, galería, enlaces) |
+| cualquier otra | cualquier otra | 404 (`src/pages/404.astro`): un solo `404.html` para los dos idiomas; el script de `NotFoundBody.astro` elige el idioma por el prefijo `/en/`. Va con `noindex` y sin canonical ni hreflang |
 
 `src/i18n/routes.ts` es la única fuente de los paths: de ahí salen la
 navegación, el botón ES/EN y los `hreflang`.
@@ -138,6 +139,12 @@ navegación, el botón ES/EN y los `hreflang`.
   distingue por otra vía, no por el mismo estilo que el hover.
 - **SEO**: `src/lib/seo.ts` genera canonical, Open Graph y Twitter Cards. Cada
   página pasa su `title` y `description`.
+  La imagen al compartir el enlace es `public/og-image.png` (es) y
+  `og-image-en.png` (en), de 1200x630, y se generan con
+  `node scripts/og-image.mjs` (HTML con los tokens del sitio, rasterizado con
+  Edge/Chrome headless): si cambia el diseño o el copy, se edita el script y se
+  regenera, no se retoca el PNG. Proyectos y experimentos usan su propia
+  portada, con su texto alternativo.
 
 ## 5. Reglas de trabajo (personas y agentes)
 

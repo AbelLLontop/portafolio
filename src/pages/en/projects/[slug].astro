@@ -34,6 +34,7 @@ const share = await getImage({
   route="project"
   slug={project.id}
   image={share.src}
+  imageAlt={project.data.coverAlt}
 >
   <ProjectBody project={project} lang={lang}>
     <Content />
