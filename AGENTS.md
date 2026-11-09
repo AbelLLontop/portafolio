@@ -8,8 +8,8 @@ vive en los documentos de la sección 8.
 
 Landing de portafolio de un desarrollador peruano, con el **blog técnico como
 pieza central**: notas propias, no pensadas para audiencia externa, pero con un
-tratamiento visual cuidado. Acompañan una sección de proyectos (hoy en
-construcción, sin proyectos inventados), una sección de experimentos (pruebas
+tratamiento visual cuidado. Acompañan una sección de proyectos (solo
+proyectos reales, el primero es este mismo repositorio), una sección de experimentos (pruebas
 creativas con su propia página) y una sección "Sobre mí" dentro de Inicio.
 
 El criterio de calidad es "hecho a medida": nada debe sentirse plantilla. El
@@ -42,6 +42,8 @@ traducen; los de los posts no, porque los `.mdx` no se traducen.
 | `/` | `/en/` | Banner (hero con terminal interactiva y carrusel de tecnologías), sobre mí, proyectos, contacto |
 | `/blog` | `/en/blog` | Bitácora de notas agrupada por mes, con búsqueda y paginación |
 | `/blog/<slug>` | `/en/blog/<slug>` | Nota individual |
+| `/proyectos` | `/en/projects` | Listado de proyectos: una fila por proyecto, con su captura |
+| `/proyectos/<slug>` | `/en/projects/<slug>` | Página de un proyecto (título, enlaces al código y al sitio, captura, ficha, texto, stack, galería) |
 | `/experimentos` | `/en/experiments` | Listado de experimentos: pruebas creativas, cada una con su página |
 | `/experimentos/<slug>` | `/en/experiments/<slug>` | Página de un experimento (portada, texto, reproductores, galería, enlaces) |
 
@@ -70,6 +72,15 @@ navegación, el botón ES/EN y los `hreflang`.
 - **Animaciones de entrada**: una carga de verdad anima; una navegación del
   router no vuelve a representar lo ya visto. Lo marcan dos clases en `<html>`
   (`src/lib/nav-flags.ts`), nunca se lee el estado de navegación desde una isla.
+- **Proyectos**: colección `projects` (`src/content/projects/*.mdx`), validada
+  en `content.config.ts`. El cuerpo del `.mdx` es el texto; la captura de
+  portada, el stack, el estado (`live` o `building`), la ficha, `repoUrl`,
+  `liveUrl` y la galería van en el frontmatter. A propósito la página no usa
+  barra lateral, para no parecerse a la de experimentos: el enlace al código
+  va bajo el título y la ficha en una tira horizontal. Las capturas se toman con
+  el movimiento reducido (`--force-prefers-reduced-motion`), si no el texto
+  animado sale borroso. El listado, la sección de Inicio y el comando
+  `proyectos` de la consola salen de la misma colección.
 - **Experimentos**: colección `experiments` (`src/content/experiments/*.mdx`),
   validada en `content.config.ts`. El cuerpo del `.mdx` es el texto; la portada,
   los videos de YouTube (solo el id), el reproductor de SoundCloud, la galería,

@@ -18,9 +18,14 @@ decisiones. Si cambiás una, actualizá la entrada en el mismo PR.
   quedó intacto como sección de `HomeBody.astro` (`AboutSection.astro`). El
   carrusel de tecnologías (`TechMarquee`) es un adorno propio de Inicio, no
   parte de Sobre mí, así que los dos conviven sin que uno reemplace al otro.
-- **Los proyectos no se inventan.** Mientras no haya proyectos reales listos, la
-  sección queda "en construcción" con un placeholder de la misma calidad visual.
+- **Los proyectos no se inventan.** Solo entra software real. El primero es este
+  mismo repositorio; mientras no haya más, el listado cierra con un "próximamente"
+  y, si no hubiera ninguno, la sección vuelve al placeholder "en construcción".
   Un demo de relleno presentado como real es peor que una sección vacía.
+- **La página de un proyecto no copia la de un experimento.** Sin barra lateral:
+  el enlace al código es lo principal de un proyecto y va junto al título; la
+  ficha es una tira horizontal. Se hizo así para que las dos secciones se lean
+  como cosas distintas aunque compartan el mismo sistema visual.
 - **El copy va en primera persona y sin tono de marca personal.** Nada de
   frases de influencer ni de "construyo experiencias digitales que transforman".
   Es la voz del autor, no la de una agencia. Esto se rechazó explícitamente una

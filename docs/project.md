@@ -49,10 +49,9 @@ hero— existe para que el sitio se sienta hecho a medida.
 
 ## Roadmap
 
-- **Proyectos reales.** Hoy la sección está en construcción con un placeholder de
-  la misma calidad visual que el resto. La estructura
-  (`src/content/projects/`, `ProjectCard.astro`) ya existe para recibir
-  contenido sin refactor.
+- **Más proyectos.** La sección ya existe y tiene el primero, este mismo repo.
+  Agregar otro es crear un `.mdx` en `src/content/projects/` con sus capturas en
+  `src/assets/projects/`, sin tocar código.
 - **Más notas.** El blog es la pieza que crece; el listado ya está preparado para
   escalar en cantidad.
 - **Sin RSS por ahora.** No hay audiencia externa suscribiéndose; se puede
