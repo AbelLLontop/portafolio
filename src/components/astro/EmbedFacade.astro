@@ -21,6 +21,10 @@ interface Props {
   /** Imagen local para la portada (SoundCloud). */
   cover?: ImageMetadata;
   coverAlt?: string;
+  /** Plataforma del reproductor de audio: nombre, logo (SVG) y color de marca. */
+  platform?: string;
+  icon?: string | null;
+  brand?: string | null;
   /** `video` mantiene 16:9; `audio` es una franja compacta. */
   kind: "video" | "audio";
   /** Alto del iframe de audio una vez cargado. */
@@ -34,6 +38,9 @@ const {
   thumb,
   cover,
   coverAlt = "",
+  platform,
+  icon,
+  brand,
   kind,
   audioHeight = 380,
 } = Astro.props;
@@ -43,14 +50,20 @@ const {
   class:list={["embed", kind === "video" ? "embed-video" : "embed-audio"]}
   data-embed
   data-src={src}
-  data-title={title}
+  data-title={platform ? `${title} · ${platform}` : title}
   data-height={kind === "audio" ? audioHeight : undefined}
+  style={brand ? `--brand: ${brand}` : undefined}
 >
   <button type="button" class="embed-play" aria-label={label}>
     {kind === "video" && thumb && (
       <img src={thumb} alt="" loading="lazy" class="embed-thumb" />
     )}
-    {kind === "audio" && cover && (
+    {kind === "audio" && icon && (
+      <span class="embed-brand" aria-hidden="true">
+        <Fragment set:html={icon} />
+      </span>
+    )}
+    {kind === "audio" && !icon && cover && (
       <Image
         src={cover}
         alt={coverAlt}
@@ -59,7 +72,14 @@ const {
         class="embed-cover"
       />
     )}
-    <span class="embed-title">{title}</span>
+    {platform ? (
+      <span class="embed-text">
+        <span class="embed-platform font-display">{platform}</span>
+        <span class="embed-title font-mono">{title}</span>
+      </span>
+    ) : (
+      <span class="embed-title">{title}</span>
+    )}
     <span class="embed-icon" aria-hidden="true">
       <svg viewBox="0 0 24 24" fill="currentColor">
         <path d="M8 5v14l11-7z"></path>
@@ -171,11 +191,72 @@ const {
     color: var(--color-zinc-100);
   }
 
+  /* Tarjeta con identidad de plataforma: el logo en su color de marca sobre un
+     cuadro teñido con ese mismo color, y el nombre grande. Sin --brand
+     (plataforma desconocida) vale el acento del sitio. */
+  .embed {
+    --brand: var(--color-accent);
+  }
+
+  .embed-audio .embed-brand {
+    display: grid;
+    place-items: center;
+    flex: none;
+    width: 3.5rem;
+    height: 3.5rem;
+    border: 1px solid color-mix(in srgb, var(--brand) 40%, transparent);
+    border-radius: 0.75rem;
+    background: color-mix(in srgb, var(--brand) 14%, transparent);
+    color: var(--brand);
+  }
+
+  .embed-audio .embed-brand :global(svg) {
+    width: 1.75rem;
+    height: 1.75rem;
+  }
+
+  .embed-text {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  .embed-platform {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.2;
+    color: var(--color-zinc-100);
+  }
+
+  .embed-text .embed-title {
+    font-size: 0.75rem;
+    color: var(--dim);
+  }
+
+  .embed-audio:has(.embed-brand):hover {
+    border-color: var(--brand);
+  }
+
+  .embed-audio:has(.embed-brand):hover .embed-icon {
+    background: var(--brand);
+    color: #000;
+  }
+
   .embed :global(iframe) {
     display: block;
     width: 100%;
     height: 100%;
     border: 0;
+  }
+
+  /* El sitio declara color-scheme: dark. Si el documento incrustado no declara
+     el mismo, el navegador pinta el iframe con un fondo blanco opaco (en
+     Spotify, un bloque blanco bajo la tarjeta). Con light el iframe queda
+     transparente y la tarjeta, que ya trae su propio fondo, se ve sola. */
+  .embed :global(iframe) {
+    color-scheme: light;
   }
 </style>
 
@@ -198,7 +279,10 @@ const {
 
     // Un video conserva su 16:9; el reproductor de audio necesita un alto fijo.
     const height = embed.dataset.height;
-    if (height) embed.style.height = `${height}px`;
+    // + 2 por el borde de 1px de cada lado: el iframe tiene que medir justo el
+    // alto pedido. El reproductor de Spotify elige su diseño según ese alto y
+    // con 350 en vez de 352 cae a una tarjeta horizontal con un hueco debajo.
+    if (height) embed.style.height = `${Number(height) + 2}px`;
 
     button.replaceWith(iframe);
     iframe.focus();

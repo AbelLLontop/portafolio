@@ -1,6 +1,6 @@
 ---
 title: Los Vecinos de Enfrente
-summary: Un grupo que no existe. Letras con Claude, música y voz con Suno y videos de letra hechos con Remotion.
+summary: Un grupo hecho con IA y un experimento para ver si canciones hechas con IA pueden sentirse como canciones reales. Letras con Claude, música y voz con Suno, videos de letra con Remotion.
 date: 2026-10-20
 tags: [Claude, Suno, Remotion]
 ai: true
@@ -18,26 +18,29 @@ facts:
   - label: Origen
     value: Chimbote, Perú
 links:
+  - label: Spotify
+    url: https://open.spotify.com/artist/3rWmYBExk8Zsb7bDE3Tcpm
+  - label: TikTok
+    url: https://www.tiktok.com/@losvecinosdeenfrente
   - label: YouTube
     url: https://www.youtube.com/@LosVecinosdeEnfrente
   - label: SoundCloud
     url: https://soundcloud.com/los-vecinos-de-enfrente
-  - label: TikTok
-    url: https://www.tiktok.com/@losvecinosdeenfrente
+spotify: https://open.spotify.com/album/0Y73dLJdUsm71DihloTdKX
 soundcloud: https://soundcloud.com/los-vecinos-de-enfrente
 videos:
+  - id: 3diP3FjDKOc
+    title: Dime por qué
+  - id: R_pLg0eiZlc
+    title: El que finjo ser
+  - id: XNcKh1T92uQ
+    title: Igual me voy a casar
+  - id: lh0wt2ngkUI
+    title: ¿Cuál es tu signo?
   - id: kQfKMalX8Ko
     title: El desvío
   - id: P8XcYAWS-wY
     title: Que me quiere, que no
-  - id: OmskrVLRexk
-    title: Qué sigue después
-  - id: vwxFHU8TzuY
-    title: No quiero trabajar
-  - id: 9JUiZ7m9c7c
-    title: Tres notas y un aplauso
-  - id: 31KHLJTRJaw
-    title: Estoy relleno
 gallery:
   - src: ../../assets/experiments/los-vecinos-de-enfrente/personaje.webp
     alt: Hoja de personaje de uno de los títeres, con vistas de frente, de lado y de espalda, expresiones, poses, detalles, paleta y accesorios.
@@ -48,18 +51,24 @@ gallery:
     caption: La portada de las canciones. Un cuadro que no encaja entre los demás.
 ---
 
-Quise ver qué pasaba si armaba un grupo entero desde cero, con nombre, identidad, canciones y videos, sin tocar un instrumento. Los Vecinos de Enfrente son tres títeres de fieltro que no existen y que cantan sobre lo cotidiano: el vecino de enfrente, el viernes sin plan, el trabajo que uno no quiere hacer.
+Las canciones hechas con IA suelen sonar genéricas, y se nota que son de IA. Este experimento intenta que no pase: que tengan algo en la letra, en el canto y en la melodía, como una canción real.
 
-La música y las voces están generadas con IA, y las letras las escribí con ayuda de Claude. No hay una banda real detrás: de eso se trata el juego.
+Para probarlo armé un grupo entero desde cero, con nombre, identidad, canciones y videos, sin tocar un instrumento. Los Vecinos de Enfrente son tres títeres de fieltro.
+
+La música y las voces están generadas con IA, y las letras las escribí con ayuda de Claude. No lo escondo: por eso la página lo declara arriba. No sé si lo logré. Eso lo decide quien escucha.
 
 ## Cómo se hizo
 
-**La idea y las letras.** Con Claude armé el concepto del grupo y escribí las letras, una canción por vez, corrigiendo hasta que sonaran a algo que alguien diría.
+**La idea.** Cada canción empieza en papel o en un documento, con una idea inicial de lo que quiero contar.
 
-**La música.** En Suno generé cada canción con un estilo indie y varias pasadas, hasta que la voz y los arreglos me convencieran.
+**La letra.** Le paso esa idea a Claude y me devuelve una letra en el formato que usa Suno, junto con un estilo: uno de los que ya tengo definidos, a veces con alguna variación. Con eso creo de inmediato la canción como versión beta.
 
-**Los videos de letra.** Cada video está hecho con Remotion, que renderiza animaciones desde código. Cada canción tiene su propio diseño: otra paleta, otra tipografía, otra forma de mostrar la letra.
+**Elegir con el oído.** Suno genera dos canciones por defecto. Escucho las dos y busco si la letra, la melodía o la música tienen ese algo que llama la atención. Si lo tienen, esa queda como base. Si la letra no cabe en ninguna y, al ojo o al oído, es casi imposible que se adapte sin forzarla, no se fuerza: se descarta. Una letra obligada a caber en el ritmo se siente, y eso es lo primero que hay que sacar.
+
+**Corregir a mano.** Sobre la canción base itero: quito frases redundantes y frases sin rima, cambio párrafos o ideas, y ajusto melodías o estilos, por ejemplo con un tambor distinto. Repito hasta tener la versión final, que descargo en WAV.
+
+**Los videos de letra.** Le paso a Claude la letra completa y la música, y con Remotion, que renderiza animaciones desde código, genera un video para TikTok y YouTube. Cada canción tiene su propio diseño: otra paleta, otra tipografía, otra forma de mostrar la letra. Le agregué a Remotion una pequeña interfaz para corregir a mano los tiempos en que aparece cada animación, así van al ritmo de la música y no quedan desfases.
 
 **Los personajes.** Los títeres se generaron como imágenes y se mantuvieron iguales entre sí con una hoja de personaje de referencia (más abajo).
 
-**Publicación.** Todo se sube a YouTube, SoundCloud y TikTok con la misma identidad visual.
+**Publicación.** Los videos y las canciones se suben a las plataformas con la misma identidad visual. Lo último fue armar un álbum: tomé 9 de las primeras canciones y las subí con DistroKid, y ya están en Spotify y en otras plataformas.

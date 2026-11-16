@@ -203,6 +203,7 @@ const es = {
   "experiment.videos": "Videos",
   "experiment.design": "Diseño",
   "experiment.play": "Reproducir {title}",
+  "experiment.playSpotify": "Cargar el reproductor de Spotify",
   "experiment.playSoundcloud": "Cargar el reproductor de SoundCloud",
   "experiment.embedNotice":
     "El contenido se carga desde {service} solo cuando le das play.",
@@ -446,6 +447,7 @@ const en: Record<UIKey, string> = {
   "experiment.videos": "Videos",
   "experiment.design": "Design",
   "experiment.play": "Play {title}",
+  "experiment.playSpotify": "Load the Spotify player",
   "experiment.playSoundcloud": "Load the SoundCloud player",
   "experiment.embedNotice":
     "The content loads from {service} only when you press play.",

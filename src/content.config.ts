@@ -69,6 +69,25 @@ const experiments = defineCollection({
       /** Ficha lateral: pares etiqueta/valor. */
       facts: z.array(z.object({ label: z.string(), value: z.string() })),
       links: z.array(z.object({ label: z.string(), url: z.url() })),
+      /** Artista, disco, pista o lista de Spotify; se incrusta con un reproductor. */
+      spotify: z
+        .url()
+        .refine(
+          (url) => {
+            const { hostname, pathname } = new URL(url);
+            return (
+              hostname === "open.spotify.com" &&
+              /^\/(intl-[a-z]+\/)?(artist|album|track|playlist|show|episode)\/[\w]+/.test(
+                pathname,
+              )
+            );
+          },
+          {
+            message:
+              "Tiene que ser una URL de open.spotify.com (artist, album, track…)",
+          },
+        )
+        .optional(),
       /** Perfil o pista de SoundCloud; se incrusta con un reproductor. */
       soundcloud: z
         .url()

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   soundcloudEmbedUrl,
+  spotifyEmbedUrl,
   youtubeEmbedUrl,
   youtubeThumbUrl,
   youtubeWatchUrl,
@@ -35,5 +36,23 @@ describe("soundcloud", () => {
       "https://soundcloud.com/los-vecinos-de-enfrente",
     );
     expect(url.searchParams.get("auto_play")).toBe("true");
+  });
+});
+
+describe("spotify", () => {
+  it("se queda con el tipo y el id, sin idioma ni parámetros de seguimiento", () => {
+    expect(
+      spotifyEmbedUrl(
+        "https://open.spotify.com/intl-es/artist/3rWmYBExk8Zsb7bDE3Tcpm?si=abc",
+      ),
+    ).toBe(
+      "https://open.spotify.com/embed/artist/3rWmYBExk8Zsb7bDE3Tcpm?utm_source=generator",
+    );
+  });
+
+  it("funciona con una URL sin idioma", () => {
+    expect(spotifyEmbedUrl("https://open.spotify.com/track/abc123")).toBe(
+      "https://open.spotify.com/embed/track/abc123?utm_source=generator",
+    );
   });
 });

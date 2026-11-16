@@ -84,12 +84,15 @@ navegación, el botón ES/EN y los `hreflang`.
   `proyectos` de la consola salen de la misma colección.
 - **Experimentos**: colección `experiments` (`src/content/experiments/*.mdx`),
   validada en `content.config.ts`. El cuerpo del `.mdx` es el texto; la portada,
-  los videos de YouTube (solo el id), el reproductor de SoundCloud, la galería,
+  los videos de YouTube (solo el id), el reproductor de Spotify (`spotify`, va
+  primero) y el de SoundCloud (`soundcloud`), la galería,
   la ficha y los enlaces van en el frontmatter, así todos comparten diseño. El
   contenido de terceros se incrusta con `EmbedFacade.astro`: una imagen con
   botón, y el iframe recién se monta al dar play (nada de YouTube ni SoundCloud
   se carga al abrir la página). Las URLs de los embeds salen de
-  `src/lib/embeds.ts`. Si el experimento usa IA, `ai: true` lo declara en la
+  `src/lib/embeds.ts`. Los enlaces (`links`) se pintan como filas con el logo de
+  la plataforma, que sale del dominio de la URL (`src/lib/platform-icons.ts`: hoy
+  YouTube, SoundCloud, Spotify y TikTok; otro dominio lleva una flecha). Si el experimento usa IA, `ai: true` lo declara en la
   tarjeta y en la página; nunca se presenta como obra humana.
 - **Posts**: `summary` es obligatorio en el frontmatter — se usa como meta
   description y como descripción de Open Graph. El número `#N` de cada nota se
