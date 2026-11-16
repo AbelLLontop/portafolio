@@ -139,6 +139,8 @@ navegación, el botón ES/EN y los `hreflang`.
   distingue por otra vía, no por el mismo estilo que el hover.
 - **SEO**: `src/lib/seo.ts` genera canonical, Open Graph y Twitter Cards. Cada
   página pasa su `title` y `description`.
+  El blog (listado y posts) va con `noindex` y fuera del sitemap: no se indexa a
+  propósito (ver `docs/decisions.md`).
   La imagen al compartir el enlace es `public/og-image.png` (es) y
   `og-image-en.png` (en), de 1200x630, y se generan con
   `node scripts/og-image.mjs` (HTML con los tokens del sitio, rasterizado con

@@ -197,3 +197,10 @@ decisiones. Si cambiás una, actualizá la entrada en el mismo PR.
   un agente los leía como si fueran vigentes. Lo vivo se repartió entre
   `AGENTS.md`, `docs/project.md` y este archivo. Siguen en el historial de git si
   hace falta consultarlos.
+- **El blog no se indexa.** Las notas son personales y no se escriben para que
+  las encuentre Google; lo que sí debe aparecer son los experimentos y los
+  proyectos. Los posts y el listado del blog llevan `noindex` (`BlogPostLayout`
+  y las dos páginas de listado) y `astro.config.mjs` los filtra del sitemap.
+  `robots.txt` no los bloquea a propósito: si Google no puede rastrearlos, no
+  llega a ver el `noindex`. Para volver a indexarlos se quita el `noindex` y el
+  `filter` del sitemap.

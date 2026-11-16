@@ -24,6 +24,8 @@ export default defineConfig({
     // Con `i18n`, el sitemap agrega los <xhtml:link rel="alternate"> entre las
     // dos versiones de cada pagina, ademas de los hreflang del <head>.
     sitemap({
+      // El blog es personal y va con noindex: no se anuncia en el sitemap.
+      filter: (page) => !/\/blog(\/|$)/.test(new URL(page).pathname),
       i18n: {
         defaultLocale: "es",
         locales: { es: "es-PE", en: "en-US" },
