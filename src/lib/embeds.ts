@@ -18,6 +18,18 @@ export function youtubeWatchUrl(id: string): string {
   return `https://www.youtube.com/watch?v=${id}`;
 }
 
+/**
+ * Reproductor de Spotify para un artista, disco, pista o lista. Acepta el
+ * enlace tal como se comparte (con `intl-es` y `?si=`): solo se queda con el
+ * tipo y el id.
+ */
+export function spotifyEmbedUrl(url: string): string {
+  const [kind, id] = new URL(url).pathname
+    .split("/")
+    .filter((part) => part && !part.startsWith("intl-"));
+  return `https://open.spotify.com/embed/${kind}/${id}?utm_source=generator`;
+}
+
 /** Reproductor de SoundCloud para un perfil o una pista. */
 export function soundcloudEmbedUrl(url: string): string {
   const params = new URLSearchParams({
