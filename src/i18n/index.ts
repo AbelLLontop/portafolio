@@ -11,18 +11,16 @@ export { interpolate } from "./interpolate.ts";
 
 export type Lang = keyof typeof ui;
 
-/** El espaniol es el idioma por defecto y va sin prefijo de ruta. */
+/**
+ * Hoy el sitio es solo en espaniol. La estructura por idioma se conserva para
+ * poder sumar el ingles al final, cuando el contenido deje de cambiar.
+ */
 export const DEFAULT_LANG: Lang = "es";
 
 export const LANGS = Object.keys(ui) as Lang[];
 
 export function isLang(value: string | undefined): value is Lang {
   return value !== undefined && value in ui;
-}
-
-/** El otro idioma, para el boton ES/EN. Con dos idiomas no hay ambiguedad. */
-export function otherLang(lang: Lang): Lang {
-  return lang === "es" ? "en" : "es";
 }
 
 /**

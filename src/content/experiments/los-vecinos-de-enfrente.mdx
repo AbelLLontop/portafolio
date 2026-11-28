@@ -15,8 +15,6 @@ facts:
     value: "11"
   - label: Herramientas
     value: Claude, Suno, Remotion
-  - label: Origen
-    value: Chimbote, Perú
 links:
   - label: Spotify
     url: https://open.spotify.com/artist/3rWmYBExk8Zsb7bDE3Tcpm
@@ -26,7 +24,7 @@ links:
     url: https://www.youtube.com/@LosVecinosdeEnfrente
   - label: SoundCloud
     url: https://soundcloud.com/los-vecinos-de-enfrente
-spotify: https://open.spotify.com/album/0Y73dLJdUsm71DihloTdKX
+spotify: https://open.spotify.com/artist/3rWmYBExk8Zsb7bDE3Tcpm
 soundcloud: https://soundcloud.com/los-vecinos-de-enfrente
 videos:
   - id: 3diP3FjDKOc
@@ -49,6 +47,66 @@ gallery:
   - src: ../../assets/experiments/los-vecinos-de-enfrente/avatar.jpg
     alt: Una cuadrícula de cinco por cinco cuadrados grises con uno rojo inclinado en el centro.
     caption: La portada de las canciones. Un cuadro que no encaja entre los demás.
+tagline: Música, voces y videos generados con IA
+featured: true
+meta:
+  - activo
+  - 11 canciones
+tools: [Claude, Suno, Remotion, DistroKid]
+tracks:
+  - 01-dime-por-que
+  - 02-igual-me-voy-a-casar
+  - 03-en-el-desvio
+  - 04-que-me-quiere-que-no
+  - 05-con-quien-quedar
+  - 06-dime-cuando-puedo-llamarte
+  - 07-me-muero-por-hablarte
+  - 08-no-quiero-trabajar
+  - 09-que-sigue-despues
+milestones:
+  - title: En Spotify
+    text: 9 canciones, distribuidas con DistroKid
+    url: https://open.spotify.com/artist/3rWmYBExk8Zsb7bDE3Tcpm
+  - title: Videos de letra en TikTok y YouTube
+    text: 6 videos animados desde código con Remotion
+    url: https://www.tiktok.com/@losvecinosdeenfrente
+  - title: En SoundCloud
+    text: el perfil de la banda
+    url: https://soundcloud.com/los-vecinos-de-enfrente
+steps:
+  - title: La idea
+    text:
+      - Cada canción empieza en papel o en un documento, con una idea inicial de lo que quiero contar.
+  - title: La letra
+    text:
+      - "Le paso esa idea a Claude y me devuelve una letra en el formato que usa Suno, junto con un estilo: uno de los que ya tengo definidos, a veces con alguna variación. Con eso creo de inmediato la canción como versión beta."
+    tools: [Claude, Suno]
+  - title: Elegir con el oído
+    text:
+      - Suno genera dos canciones por defecto. Escucho las dos y busco si la letra, la melodía o la música tienen ese algo que llama la atención. Si lo tienen, esa queda como base.
+      - "Si la letra no cabe en ninguna y, al ojo o al oído, es casi imposible que se adapte sin forzarla, no se fuerza: se descarta."
+    tools: [Suno]
+    quote: Una letra obligada a caber en el ritmo se siente, y eso es lo primero que hay que sacar.
+  - title: Corregir a mano
+    text:
+      - "Sobre la canción base itero: quito frases redundantes y frases sin rima, cambio párrafos o ideas, y ajusto melodías o estilos, por ejemplo con un tambor distinto."
+      - Repito hasta tener la versión final, que descargo en WAV.
+    tools: [Suno]
+  - title: Los videos de letra
+    text:
+      - "Le paso a Claude la letra completa y la música, y con Remotion, que renderiza animaciones desde código, genera un video para TikTok y YouTube. Cada canción tiene su propio diseño: otra paleta, otra tipografía, otra forma de mostrar la letra."
+      - Le agregué a Remotion una pequeña interfaz para corregir a mano los tiempos en que aparece cada animación, así van al ritmo de la música y no quedan desfases.
+    tools: [Claude, Remotion]
+    video: 3diP3FjDKOc
+  - title: Los personajes
+    text:
+      - Los títeres se generaron como imágenes y se mantuvieron iguales entre sí con una hoja de personaje de referencia.
+    image: ../../assets/experiments/los-vecinos-de-enfrente/personaje.webp
+    imageAlt: Hoja de personaje de uno de los títeres, con vistas de frente, de lado y de espalda.
+  - title: Publicación
+    text:
+      - "Los videos y las canciones se suben a las plataformas con la misma identidad visual. Lo último fue armar un álbum: tomé 9 de las primeras canciones y las subí con DistroKid, y ya están en Spotify y en otras plataformas."
+    tools: [DistroKid]
 ---
 
 Las canciones hechas con IA suelen sonar genéricas, y se nota que son de IA. Este experimento intenta que no pase: que tengan algo en la letra, en el canto y en la melodía, como una canción real.
@@ -56,19 +114,3 @@ Las canciones hechas con IA suelen sonar genéricas, y se nota que son de IA. Es
 Para probarlo armé un grupo entero desde cero, con nombre, identidad, canciones y videos, sin tocar un instrumento. Los Vecinos de Enfrente son tres títeres de fieltro.
 
 La música y las voces están generadas con IA, y las letras las escribí con ayuda de Claude. No lo escondo: por eso la página lo declara arriba. No sé si lo logré. Eso lo decide quien escucha.
-
-## Cómo se hizo
-
-**La idea.** Cada canción empieza en papel o en un documento, con una idea inicial de lo que quiero contar.
-
-**La letra.** Le paso esa idea a Claude y me devuelve una letra en el formato que usa Suno, junto con un estilo: uno de los que ya tengo definidos, a veces con alguna variación. Con eso creo de inmediato la canción como versión beta.
-
-**Elegir con el oído.** Suno genera dos canciones por defecto. Escucho las dos y busco si la letra, la melodía o la música tienen ese algo que llama la atención. Si lo tienen, esa queda como base. Si la letra no cabe en ninguna y, al ojo o al oído, es casi imposible que se adapte sin forzarla, no se fuerza: se descarta. Una letra obligada a caber en el ritmo se siente, y eso es lo primero que hay que sacar.
-
-**Corregir a mano.** Sobre la canción base itero: quito frases redundantes y frases sin rima, cambio párrafos o ideas, y ajusto melodías o estilos, por ejemplo con un tambor distinto. Repito hasta tener la versión final, que descargo en WAV.
-
-**Los videos de letra.** Le paso a Claude la letra completa y la música, y con Remotion, que renderiza animaciones desde código, genera un video para TikTok y YouTube. Cada canción tiene su propio diseño: otra paleta, otra tipografía, otra forma de mostrar la letra. Le agregué a Remotion una pequeña interfaz para corregir a mano los tiempos en que aparece cada animación, así van al ritmo de la música y no quedan desfases.
-
-**Los personajes.** Los títeres se generaron como imágenes y se mantuvieron iguales entre sí con una hoja de personaje de referencia (más abajo).
-
-**Publicación.** Los videos y las canciones se suben a las plataformas con la misma identidad visual. Lo último fue armar un álbum: tomé 9 de las primeras canciones y las subí con DistroKid, y ya están en Spotify y en otras plataformas.

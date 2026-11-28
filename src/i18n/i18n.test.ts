@@ -1,46 +1,25 @@
 import { describe, expect, it } from "vitest";
 
 import { interpolate } from "./interpolate.ts";
-import {
-  isLang,
-  LANGS,
-  otherLang,
-  pickStrings,
-  useTranslations,
-} from "./index.ts";
-import { NAV_ROUTES, PATHS, pathFor } from "./routes.ts";
+import { isLang, LANGS, pickStrings, useTranslations } from "./index.ts";
+import { PATHS, pathFor } from "./routes.ts";
 import { ui } from "./ui.ts";
 
 describe("diccionario", () => {
-  it("el ingles tiene exactamente las mismas claves que el espaniol", () => {
-    expect(Object.keys(ui.en).sort()).toEqual(Object.keys(ui.es).sort());
-  });
-
-  it("ninguna clave queda vacia en ningun idioma", () => {
+  it("ninguna clave queda vacia", () => {
     for (const lang of LANGS) {
       for (const [key, value] of Object.entries(ui[lang])) {
         expect(value.trim(), `${lang}.${key} esta vacia`).not.toBe("");
       }
     }
   });
-
-  it("los marcadores {asi} de una clave son los mismos en los dos idiomas", () => {
-    const markers = (text: string) => (text.match(/\{(\w+)\}/g) ?? []).sort();
-
-    for (const key of Object.keys(ui.es) as (keyof typeof ui.es)[]) {
-      expect(
-        markers(ui.en[key]),
-        `los marcadores de "${key}" no coinciden`,
-      ).toEqual(markers(ui.es[key]));
-    }
-  });
 });
 
 describe("useTranslations", () => {
   it("traduce en el idioma pedido", () => {
-    const t = useTranslations("en");
+    const t = useTranslations("es");
 
-    expect(t("seo.description")).toBe(ui.en["seo.description"]);
+    expect(t("seo.description")).toBe(ui.es["seo.description"]);
   });
 });
 
@@ -55,36 +34,28 @@ describe("pickStrings", () => {
 describe("idiomas", () => {
   it("reconoce los idiomas validos y descarta el resto", () => {
     expect(isLang("es")).toBe(true);
-    expect(isLang("en")).toBe(true);
     expect(isLang("pt")).toBe(false);
     expect(isLang(undefined)).toBe(false);
-  });
-
-  it("otherLang devuelve el otro idioma", () => {
-    expect(otherLang("es")).toBe("en");
-    expect(otherLang("en")).toBe("es");
   });
 });
 
 describe("rutas", () => {
-  it("el espaniol va sin prefijo y el ingles bajo /en/", () => {
-    expect(pathFor("blog", "es")).toBe("/blog");
-    expect(pathFor("blog", "en")).toBe("/en/blog");
+  it("arma el path de un perfil con su slug", () => {
+    expect(pathFor("experiment", "es", "una-prueba")).toBe(
+      "/experimentos/una-prueba",
+    );
+    expect(pathFor("project", "es", "un-proyecto")).toBe(
+      "/proyectos/un-proyecto",
+    );
   });
 
-  it("una nota usa el mismo slug en los dos idiomas", () => {
-    expect(pathFor("post", "es", "una-nota")).toBe("/blog/una-nota");
-    expect(pathFor("post", "en", "una-nota")).toBe("/en/blog/una-nota");
+  it("falla en vez de emitir una URL rota si falta el slug", () => {
+    expect(() => pathFor("project", "es")).toThrow();
   });
 
-  it("falla en vez de emitir una URL rota si falta el slug de la nota", () => {
-    expect(() => pathFor("post", "es")).toThrow();
-  });
-
-  it("toda ruta del nav existe en el mapa, en los dos idiomas", () => {
-    for (const route of NAV_ROUTES) {
-      expect(PATHS[route].es).toBeTruthy();
-      expect(PATHS[route].en).toBeTruthy();
+  it("toda ruta fija existe en el mapa", () => {
+    for (const route of Object.keys(PATHS) as (keyof typeof PATHS)[]) {
+      expect(pathFor(route, "es")).toBe(PATHS[route].es);
     }
   });
 });

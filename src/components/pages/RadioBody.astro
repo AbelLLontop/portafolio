@@ -1,0 +1,372 @@
+---
+// La página de la radio: el listado de canciones y nada más. Sirve para elegir
+// qué suena. Se llega solo con el botón de lista de la barra de abajo.
+//
+// Las filas son HTML estático: el reproductor marca la que suena con
+// aria-current (por data-track-id) y escribe data-playing en <html>, así el
+// número, las barritas y el play/pausa al pasar el mouse salen solo de CSS.
+import { Image } from "astro:assets";
+import cover from "../../assets/radio/portada.webp";
+import SpotifyLink from "../astro/SpotifyLink.astro";
+import { getRadioTracks, SPOTIFY_ARTIST } from "../../lib/radio.ts";
+import { formatTime, isPlayable } from "../../lib/player.ts";
+import { interpolate, useTranslations, type Lang } from "../../i18n/index.ts";
+
+interface Props {
+  lang: Lang;
+}
+
+const { lang } = Astro.props;
+const t = useTranslations(lang);
+const tracks = await getRadioTracks();
+const songs = tracks.filter((track) => !track.intro).length;
+---
+
+<section class="radio theme-ink">
+  {/* La cabecera es la portada del álbum en Spotify, como la de una lista. */}
+  <header class="radio-head">
+    <Image
+      class="radio-cover"
+      src={cover}
+      alt={t("radio.coverAlt")}
+      widths={[1000, 1600, 1983]}
+      sizes="(min-width: 961px) 80vw, 100vw"
+      loading="eager"
+    />
+    <div class="radio-head-text">
+      <p class="kicker">{t("radio.kicker")}</p>
+      <h1>{t("radio.title")}</h1>
+      <small>{interpolate(t("radio.count"), { count: songs })}</small>
+      <div class="radio-head-acts">
+        <SpotifyLink
+          url={SPOTIFY_ARTIST}
+          label={t("radio.spotify")}
+          variant="pill"
+        />
+      </div>
+    </div>
+  </header>
+
+  <div class="radio-cols" aria-hidden="true">
+    <span>#</span>
+    <span>{t("radio.colTitle")}</span>
+    <span>⏱</span>
+  </div>
+
+  <ol class="radio-list">
+    {tracks.map((track, index) => {
+      const playable = isPlayable(track);
+      return (
+        <li>
+          <button
+            type="button"
+            class="rr"
+            data-radio-row
+            data-track-id={track.id}
+            disabled={!playable}
+            title={playable ? undefined : t("radio.lockedHint")}
+          >
+            <span class="n" aria-hidden="true">
+              <span class="num">{index + 1}</span>
+              <i class="eq">
+                <b />
+                <b />
+                <b />
+              </i>
+              <svg class="ic-play" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7 4l13 8-13 8z" />
+              </svg>
+              <svg class="ic-pause" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M6 5h4v14H6zM14 5h4v14h-4z" />
+              </svg>
+            </span>
+            <span class="ti">
+              <span class="cov">
+                {track.cover ? (
+                  <img src={track.cover} alt="" loading="lazy" />
+                ) : (
+                  <span class="introcov">
+                    <i />
+                  </span>
+                )}
+              </span>
+              <span class="ti-text">
+                <b>{track.title}</b>
+                <small>{track.intro ? t("player.intro") : track.artist}</small>
+              </span>
+            </span>
+            <span class="d">
+              {playable ? formatTime(track.duration) : t("radio.locked")}
+            </span>
+          </button>
+          {track.spotify ? (
+            <SpotifyLink
+              url={track.spotify}
+              label={interpolate(t("song.spotify"), { title: track.title })}
+            />
+          ) : (
+            <span />
+          )}
+        </li>
+      );
+    })}
+  </ol>
+</section>
+
+<style>
+  .radio {
+    min-height: 100%;
+    padding: 5vh 3.4vw 8vh;
+  }
+
+  /* La cabecera sale de los márgenes del panel y llega a los bordes. */
+  .radio-head {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    height: clamp(220px, 36vh, 360px);
+    margin: -5vh -3.4vw 3vh;
+    padding: 0 3.4vw 3vh;
+    overflow: hidden;
+  }
+
+  .radio-head :global(.radio-cover) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 55%;
+  }
+
+  .radio-head::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 35%,
+      color-mix(in srgb, var(--bg) 80%, transparent) 78%,
+      var(--bg) 100%
+    );
+  }
+
+  .radio-head-text {
+    position: relative;
+    z-index: 1;
+  }
+
+  .radio-head-text .kicker {
+    margin: 0 0 8px;
+  }
+
+  .radio-head h1 {
+    font-variation-settings: "wdth" 80;
+    margin: 0;
+    font-size: clamp(36px, 4.4vw, 72px);
+    font-weight: 850;
+    letter-spacing: -0.03em;
+  }
+
+  .radio-head small {
+    display: block;
+    margin-top: 8px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--mute);
+  }
+
+  .radio-cols,
+  .rr {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 64px;
+    gap: 14px;
+    align-items: center;
+  }
+
+  .radio-cols {
+    margin-bottom: 6px;
+    padding: 8px 12px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+
+  .radio-cols span:first-child {
+    text-align: center;
+  }
+
+  .radio-cols span:last-child {
+    text-align: right;
+  }
+
+  .radio-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* La fila que toca y el botón de Spotify van lado a lado: un enlace no puede
+     ir dentro de un botón. */
+  .radio-list li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40px;
+    align-items: center;
+  }
+
+  .radio-head-acts {
+    margin-top: 14px;
+  }
+
+  .rr {
+    width: 100%;
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .rr:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--fg) 6%, transparent);
+  }
+
+  .rr:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+
+  .n,
+  .d {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--mute);
+  }
+
+  .d {
+    text-align: right;
+  }
+
+  .ti {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .ti .cov {
+    width: 44px;
+    height: 44px;
+  }
+
+  .ti-text {
+    min-width: 0;
+  }
+
+  .ti-text b {
+    display: block;
+    overflow: hidden;
+    font-size: 15px;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ti-text small {
+    font-size: 12.5px;
+    color: var(--mute);
+  }
+
+  .rr[aria-current="true"] .ti-text b,
+  .rr[aria-current="true"] .num {
+    color: var(--acc);
+  }
+
+  /* Columna #: número en reposo; barritas si suena; con el mouse encima,
+     play o pausa. */
+  .n {
+    display: grid;
+    place-items: center;
+    height: 20px;
+  }
+
+  .n > * {
+    grid-area: 1 / 1;
+  }
+
+  .n .eq,
+  .n svg {
+    display: none;
+  }
+
+  .n svg {
+    width: 14px;
+    height: 14px;
+    color: var(--fg);
+  }
+
+  :global(html[data-playing="true"]) .rr[aria-current="true"] .num {
+    display: none;
+  }
+
+  :global(html[data-playing="true"]) .rr[aria-current="true"] .eq {
+    display: inline-flex;
+  }
+
+  .rr:not(:disabled):is(:hover, :focus-visible) .num,
+  .rr:not(:disabled):is(:hover, :focus-visible) .eq {
+    display: none !important;
+  }
+
+  .rr:not(:disabled):is(:hover, :focus-visible) .ic-play {
+    display: block;
+  }
+
+  :global(html[data-playing="true"])
+    .rr[aria-current="true"]:is(:hover, :focus-visible)
+    .ic-play {
+    display: none;
+  }
+
+  :global(html[data-playing="true"])
+    .rr[aria-current="true"]:is(:hover, :focus-visible)
+    .ic-pause {
+    display: block;
+  }
+
+  .eq {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 2px;
+    height: 14px;
+  }
+
+  .eq b {
+    width: 3px;
+    background: var(--acc);
+    animation: eq 0.9s ease-in-out infinite;
+  }
+
+  .eq b:nth-child(2) {
+    animation-delay: -0.3s;
+  }
+
+  .eq b:nth-child(3) {
+    animation-delay: -0.6s;
+  }
+
+  @keyframes eq {
+    0%,
+    100% {
+      height: 30%;
+    }
+
+    50% {
+      height: 100%;
+    }
+  }
+</style>

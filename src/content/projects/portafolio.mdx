@@ -1,43 +1,80 @@
 ---
 title: abelitolll.com
-summary: Este mismo sitio, un portafolio con blog técnico, experimentos y terminal interactiva, hecho a medida sobre Astro.
+summary: Este mismo sitio. Un portafolio hecho a medida que funciona como un sello discográfico, con su propio reproductor, sobre Astro.
+tagline: Astro · React · Tailwind
 date: 2026-11-08
 status: live
 stack: [Astro, React, Tailwind, TypeScript, Vercel]
 cover: ../../assets/projects/portafolio/portada-inicio.png
-coverAlt: Inicio de abelitolll.com con la terminal interactiva, el carrusel de tecnologías y un fondo de estrellas.
+coverAlt: El inicio de la primera versión de abelitolll.com, con la terminal interactiva y un fondo de estrellas.
+meta:
+  - en producción
+  - sitio estático
+  - Vercel
 facts:
   - label: Estado
     value: en producción
   - label: Tipo
     value: sitio estático
-  - label: Idiomas
-    value: español e inglés
+  - label: Idioma
+    value: español
   - label: Deploy
     value: Vercel
 repoUrl: https://github.com/AbelLLontop/portafolio
 liveUrl: https://abelitolll.com
+milestones:
+  - title: En producción
+    text: desplegado en Vercel desde main
+    url: https://abelitolll.com
+  - title: Código abierto
+    text: AbelLLontop/portafolio
+    url: https://github.com/AbelLLontop/portafolio
+versions:
+  - name: v2 · El sello
+    date: "2026"
+    tag: actual
+  - name: v1 · La terminal
+    date: nov 2026
+    image: ../../assets/projects/portafolio/portada-inicio.png
+steps:
+  - title: Una ventana, no una página
+    text:
+      - El sitio no hace scroll entero. Es una ventana de reproductor con biblioteca, vista y barra, y cada panel tiene su propio scroll.
+    tools: [Astro]
+  - title: Una radio que no se corta
+    text:
+      - La barra de reproducción sobrevive a la navegación, así la música y la letra siguen sonando al pasar de una página a otra.
+      - La letra se escribe en formato LRC y el karaoke rellena cada palabra al ritmo de la canción.
+    tools: [React, Astro]
+  - title: Contenido tipado
+    text:
+      - Proyectos, experimentos y canciones son archivos validados con zod. Si falta un campo obligatorio, el build falla antes de publicar algo roto.
+    tools: [Astro, TypeScript]
+flow:
+  - title: Una rama por cambio
+    text:
+      - main está protegida. Todo entra por Pull Request, con squash, y la rama se borra al fusionar.
+  - title: Claude como par
+    text:
+      - Un AGENTS.md define las reglas del repo. Claude escribe, yo reviso y decido qué entra.
+    tools: [Claude]
+  - title: CI en cada PR
+    text:
+      - Lint, tests de la lógica pura y build en cada Pull Request. Vercel genera una vista previa de cada uno.
+    tools: [Vercel]
 gallery:
-  - src: ../../assets/projects/portafolio/blog.png
-    alt: El listado del blog agrupado por mes, con un riel de puntos y un buscador.
-    caption: El blog, agrupado por mes, con búsqueda y paginación.
-  - src: ../../assets/projects/portafolio/blog-post.png
-    alt: Una nota del blog abierta, con su índice lateral y un bloque de código.
-    caption: Una nota abierta, con índice lateral y bloques de código.
+  - src: ../../assets/projects/portafolio/portada-inicio.png
+    alt: El inicio de la primera versión, con la terminal interactiva y el carrusel de tecnologías.
+    caption: "v1: el inicio con la terminal interactiva."
+    wide: true
   - src: ../../assets/projects/portafolio/experimentos.png
-    alt: El listado de experimentos con sus tarjetas.
-    caption: La sección de experimentos, donde cada prueba tiene su propia página.
+    alt: El listado de experimentos de la primera versión, con sus tarjetas.
+    caption: "v1: el listado de experimentos."
   - src: ../../assets/projects/portafolio/experimento.png
-    alt: La página de un experimento con su portada, el texto y la ficha lateral.
-    caption: La página de un experimento, con portada, ficha y enlaces.
+    alt: La página de un experimento en la primera versión, con portada, ficha y enlaces.
+    caption: "v1: la página de un experimento."
 ---
 
-Este sitio es mi portafolio, pero no quise que se sintiera como una plantilla. Lo armé a medida: cada detalle, desde la terminal del inicio hasta el cohete que sigue al cursor, está pensado para que se vea y se sienta propio.
+Este sitio es mi portafolio, pero no quise que se sintiera como una plantilla. Lo armé como un sello discográfico: cada proyecto y cada experimento es un artista con su propio perfil.
 
-El centro es el blog técnico. Son notas para mí, escritas mientras aprendo, con un tratamiento visual cuidado. Alrededor hay una sección de experimentos, una de proyectos (la que estás leyendo) y un "Sobre mí" dentro del inicio.
-
-## Cómo está hecho
-
-Es un sitio 100% estático con Astro: sin backend, sin CMS y sin base de datos. El contenido vive en Content Collections validadas con zod, y React aparece solo en las islas que de verdad necesitan estado o animación. Los estilos salen de Tailwind 4 con tokens propios, así el tema claro y el oscuro comparten los mismos colores.
-
-También tiene español e inglés, navegación sin recargar el documento y un flujo de trabajo con ramas protegidas, Conventional Commits y CI que revisa lint, tests y build en cada Pull Request.
+Es 100% estático con Astro: sin backend, sin CMS y sin base de datos. React aparece solo donde de verdad hay estado, como el reproductor y la letra que se canta sola.

@@ -62,54 +62,51 @@ cada cambio intermedio: la puerta es el PR.
 Si el cambio toca interfaz, miralo en el navegador en escritorio y en móvil
 (375px). Si algo no pudiste comprobar, decilo en el PR.
 
-## Agregar un post al blog
+## Agregar un experimento o un proyecto
 
-1. Creá `src/content/blog/<slug>.mdx`.
-2. Frontmatter completo. `summary` **no es opcional**: se usa como meta
-   description y como descripción de Open Graph. Si falta, el post cae a la
-   descripción genérica del sitio.
-3. El número `#N` se calcula solo, por fecha, entre los posts no-draft: no hay
-   que agregar nada.
-4. Los posts son independientes entre sí. Si una nota retoma código o contexto de
-   otra, se explica en la prosa, no con un campo de relación.
-5. Si estás adaptando un `.md` propio (notas de VPS, tutoriales), **revisá que no
-   queden datos reales**: IPs, contraseñas, claves, tokens o usuarios de
-   servicios con acceso de escritura. Van placeholders consistentes (`TU_IP`,
-   `TU_CLAVE_AQUI`, `TU-USUARIO`), incluso si el borrador mezcla partes reales y
-   partes de ejemplo. El dominio del sitio y el usuario Unix `abel` no son
-   secretos. Ante la duda, preguntá antes de publicar.
-
-## Agregar un experimento
-
-1. Poné las imágenes en `src/assets/experiments/<slug>/` y creá
-   `src/content/experiments/<slug>.mdx`.
-2. El frontmatter lo valida `content.config.ts`: portada y avatar con su texto
-   alternativo, ficha, enlaces, y opcionalmente SoundCloud, videos (solo el id de
-   YouTube de 11 caracteres) y galería. El cuerpo es el texto de la página.
-3. Si usa IA, `ai: true`, y decilo en el texto.
-4. Nada se carga de terceros al abrir la página: los reproductores son
+1. Poné las imágenes en `src/assets/experiments/<slug>/` (o `projects/`) y
+   creá `src/content/experiments/<slug>.mdx` (o `projects/`).
+2. El frontmatter lo valida `content.config.ts`. El cuerpo es el "Acerca de";
+   el resto va en el frontmatter y arma las pestañas del perfil:
+   - `steps`: el cómo se hizo, cada paso con su texto, sus herramientas y,
+     opcional, una cita, un prompt, una imagen o un video al costado.
+   - `milestones`: los hitos (el logo sale del dominio de la URL).
+   - `prompts`, `videos` (solo el id de YouTube), `gallery`, `links`.
+   - En proyectos, `flow` (cómo se trabaja en el repo) y `versions`.
+   - En experimentos, `tracks`: los ids de sus pistas en la radio.
+   Una sección sin datos no aparece.
+3. `tagline` es la línea corta de la biblioteca y del inicio.
+4. `featured: true` lo fija como "último lanzamiento" del inicio.
+5. Si usa IA, `ai: true`, y decilo en el texto.
+6. Nada se carga de terceros al abrir la página: los reproductores son
    `EmbedFacade` y recién se montan al dar play.
+
+## Agregar una canción a la radio
+
+1. El audio en `public/audio/<slug>.mp3`, comprimido (128-192 kbps).
+2. Creá `src/content/radio/NN-<slug>.md` con `title`, `cover`, `coverAlt`,
+   `order`, `audio: /audio/<slug>.mp3` y `spotify` (el enlace de la canción,
+   sin `intl-es` ni `?si=`: `https://open.spotify.com/track/<id>`).
+3. El cuerpo es la letra en formato LRC: `[mm:ss.xx] una línea`. Lo que va
+   entre asteriscos se pinta en el acento. Sin letra, la canción suena igual y
+   el botón del micrófono queda bloqueado.
+4. Sin `audio`, la pista aparece bloqueada ("pronto").
 
 ## Agregar una página
 
-1. Agregá la ruta a `src/i18n/routes.ts` (y a `NAV_ROUTES` si va en el nav). De
-   ese mapa salen la navegación, el botón ES/EN y los `hreflang`: una ruta que no
-   esté ahí queda sin traducir y sin alternates.
+1. Agregá la ruta a `src/i18n/routes.ts`.
 2. El cuerpo va en `src/components/pages/<Nombre>Body.astro`, con `lang` como
-   prop.
-3. Creá las dos versiones: `src/pages/<slug>.astro` y
-   `src/pages/en/<slug>.astro`, como envoltorios finos.
-4. El copy va en `src/i18n/ui.ts`, en **los dos idiomas**.
+   prop, y `src/pages/<slug>.astro` es un envoltorio fino.
+3. El copy va en `src/i18n/ui.ts`.
 
 ## Tocar textos de la interfaz
 
-Siempre en `src/i18n/ui.ts`, nunca en el `.astro` ni en el `.tsx`. El inglés
-está tipado contra las claves del español: una traducción faltante rompe
-`npm run check`. Para partes variables, marcador `{asi}` e `interpolate()` —
-nunca concatenar, porque el orden de las palabras cambia entre idiomas.
+Siempre en `src/i18n/ui.ts`, nunca en el `.astro` ni en el `.tsx`. Para partes
+variables, marcador `{asi}` e `interpolate()`: nunca concatenar, porque el
+orden de las palabras cambia entre idiomas y el inglés se suma después.
 
 ## Tests
 
-Vitest sobre la lógica pura de `src/lib/` (numeración de notas, fechas, SEO,
-diccionario). No hay E2E: la interfaz se revisa a ojo. Si vas a agregar lógica,
+Vitest sobre la lógica pura de `src/lib/` (letra LRC, reproductor, SEO,
+embeds, diccionario). No hay E2E: la interfaz se revisa a ojo. Si vas a agregar lógica,
 que viva en `src/lib/` y con su test — las páginas solo pintan.

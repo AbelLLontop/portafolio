@@ -1,0 +1,29 @@
+---
+// Botón redondo con el logo de Spotify que lleva a una canción o a un perfil.
+// El objetivo del sitio es mandar a escuchar a Spotify: va junto a cada
+// canción, donde sea que aparezca. El estilo vive en global.css (.sp-link)
+// porque también lo usa el reproductor, que es React.
+import { platformIcon } from "../../lib/platform-icons.ts";
+
+interface Props {
+  url: string;
+  label: string;
+  /** "icon" = solo el logo; "pill" = logo y texto. */
+  variant?: "icon" | "pill";
+}
+
+const { url, label, variant = "icon" } = Astro.props;
+const icon = platformIcon(url) ?? "";
+---
+
+<a
+  class:list={["sp-link", variant]}
+  href={url}
+  target="_blank"
+  rel="noreferrer"
+  aria-label={variant === "icon" ? label : undefined}
+  title={variant === "icon" ? label : undefined}
+>
+  <Fragment set:html={icon} />
+  {variant === "pill" && <span>{label}</span>}
+</a>

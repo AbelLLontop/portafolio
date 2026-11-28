@@ -1,42 +1,682 @@
 ---
-// El cuerpo del inicio vive acá y no en la página para que las dos rutas
-// (`/` y `/en/`) compartan el mismo markup y solo cambie el idioma.
-import Hero from "../astro/Hero.astro";
-import AboutSection from "../astro/AboutSection.astro";
-import TechMarquee from "../astro/TechMarquee.astro";
-import ProjectsSection from "../astro/ProjectsSection.astro";
-import ContactSection from "../astro/ContactSection.astro";
-import Spotlight from "../astro/Spotlight.astro";
-import SiteGrid from "../astro/SiteGrid.astro";
-import ScrollReveal from "../react/ScrollReveal.tsx";
-import type { Lang } from "../../i18n/index.ts";
+// El inicio: un tablero que entra entero en la pantalla.
+// - El bloque crema es todo lo mío: nombre, "Quién soy" cantándose, bio y stack.
+// - Abajo, Proyectos y Experimentos, cada uno con su propio scroll.
+// - A la derecha, el último lanzamiento del catálogo, sea proyecto o experimento.
+import { Image } from "astro:assets";
+import Avatar from "../astro/Avatar.astro";
+import HeroLyrics from "../react/radio/HeroLyrics.tsx";
+import { getCatalog, type CatalogItem } from "../../lib/catalog.ts";
+import { getRadioTracks } from "../../lib/radio.ts";
+import { platformColor, platformIcon } from "../../lib/platform-icons.ts";
+import {
+  CONTACTS,
+  STACK_GROUPS,
+  YEARS_OF_EXPERIENCE,
+  type StackGroupKey,
+} from "../../lib/profile.ts";
+import { interpolate, useTranslations, type Lang } from "../../i18n/index.ts";
 
 interface Props {
   lang: Lang;
 }
 
 const { lang } = Astro.props;
+const t = useTranslations(lang);
+
+const catalog = await getCatalog(lang);
+const projects = catalog.filter((item) => item.kind === "project");
+const experiments = catalog.filter((item) => item.kind === "experiment");
+// El lanzamiento destacado: el que tenga `featured`, o si no, el más nuevo.
+const latest = catalog.find((item) => item.entry.data.featured) ?? catalog[0];
+
+const intro = (await getRadioTracks()).find((track) => track.intro);
+
+const statusLabel = (item: CatalogItem) =>
+  item.status === "live"
+    ? t("status.live")
+    : item.status === "building"
+      ? t("status.building")
+      : item.status === "ai"
+        ? t("status.ai")
+        : null;
+
+// Lo que muestra la tarjeta del último lanzamiento, venga de donde venga.
+const release = latest && {
+  title: latest.title,
+  href: latest.href,
+  ai: latest.status === "ai",
+  image:
+    latest.entry.collection === "experiments"
+      ? latest.entry.data.banner
+      : latest.entry.data.cover,
+  imageAlt:
+    latest.entry.collection === "experiments"
+      ? latest.entry.data.bannerAlt
+      : latest.entry.data.coverAlt,
+  lead: latest.entry.data.summary,
+  meta: [String(latest.date.getUTCFullYear()), ...latest.entry.data.meta],
+  milestones: latest.entry.data.milestones,
+  tools:
+    latest.entry.collection === "experiments"
+      ? latest.entry.data.tools
+      : latest.entry.data.stack,
+};
+
+const groups = Object.entries(STACK_GROUPS) as [StackGroupKey, string[]][];
 ---
 
-<Spotlight />
-<SiteGrid />
-{/* Banner: el hero y el carrusel de logos son un solo grupo, centrado
-    verticalmente en la pantalla (menos el header, 4rem) pero con un tope de
-    50rem: en pantallas altas el aire sobrante no crece sin límite. Es un mínimo y
-    no un alto fijo: en pantallas bajas o en móvil, donde el contenido ya es más
-    alto, no recorta nada. */}
-<div class="flex min-h-[min(calc(100svh-4rem),50rem)] flex-col justify-center">
-  <Hero lang={lang} />
-  <ScrollReveal client:visible y={16} className="pb-6 md:pb-8">
-    <TechMarquee lang={lang} />
-  </ScrollReveal>
+<div class="board">
+  <section class="cell me-cell theme-paper">
+    <div class="me-main">
+      <p class="kicker">{t("home.kicker")}</p>
+      <h1 class="giant me-name">
+        Abel
+        <br />
+        <span class="r">Llontop</span>
+      </h1>
+      {intro && (
+        <HeroLyrics
+          client:load
+          trackId={intro.id}
+          lines={intro.lines}
+          duration={intro.duration ?? 30}
+          labels={{ play: t("home.playIntro"), pause: t("player.pause") }}
+        >
+          {CONTACTS.map((contact) => (
+            <a class="btn" href={contact.href} target="_blank" rel="noreferrer">
+              {contact.label} <span aria-hidden="true">↗</span>
+            </a>
+          ))}
+        </HeroLyrics>
+      )}
+    </div>
+
+    <div class="me-side scroll">
+      <div class="art5" aria-hidden="true">
+        {Array.from({ length: 25 }, (_, i) => (
+          <i class:list={{ me: i === 12 }} />
+        ))}
+      </div>
+      <p>{interpolate(t("home.bio"), { years: YEARS_OF_EXPERIENCE })}</p>
+      <dl>
+        {groups.map(([key, names]) => (
+          <div>
+            <dt>{t(`stack.group.${key}`)}</dt>
+            <dd>{names.join(" · ")}</dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  </section>
+
+  {[
+    {
+      kind: "project",
+      items: projects,
+      title: t("home.projects"),
+      theme: "theme-ink",
+    },
+    {
+      kind: "experiment",
+      items: experiments,
+      title: t("home.experiments"),
+      theme: "theme-night",
+    },
+  ].map((group) => (
+    <section class:list={["cell list-cell", group.theme]}>
+      <header>
+        <h2>
+          {group.title} <span class="kicker">{group.items.length}</span>
+        </h2>
+        <button type="button" data-show-kind={group.kind}>
+          {t("home.viewAll")} →
+        </button>
+      </header>
+      <ul class="rows scroll">
+        {group.items.map((item) => (
+          <li>
+            <a class="row" href={item.href}>
+              <Avatar image={item.avatar} alt="" title={item.title} size={92} />
+              <span class="row-text">
+                <b>{item.title}</b>
+                <small>{item.tagline}</small>
+              </span>
+              {statusLabel(item) && (
+                <span
+                  class:list={[
+                    "badge",
+                    { live: item.status === "live", ai: item.status === "ai" },
+                  ]}
+                >
+                  {statusLabel(item)}
+                </span>
+              )}
+            </a>
+          </li>
+        ))}
+        {group.items.length === 0 && (
+          <li class="rows-empty">{t("home.empty")}</li>
+        )}
+      </ul>
+    </section>
+  ))}
+
+  {release && (
+    <a class="cell release" href={release.href}>
+      {/* La foto es muy apaisada y la tarjeta es alta: para cubrirla se recorta
+          por los costados y se muestra a ~2.5 veces el ancho de la tarjeta. Por
+          eso pide una versión ancha; con una de 800 px se veía borrosa. */}
+      <span class="release-photo">
+        <Image
+          src={release.image}
+          alt={release.imageAlt}
+          widths={[960, 1400, 2000]}
+          sizes="(min-width: 961px) 1400px, 100vw"
+        />
+      </span>
+      <span class="release-body">
+        <span class="kicker release-kicker">
+          {t("home.latest")}
+          {release.ai && ` · ${t("status.aiLong")}`}
+        </span>
+        <span class="release-title">{release.title}</span>
+        <span class="release-meta">{release.meta.join(" · ")}</span>
+        <span class="release-lead">{release.lead}</span>
+        {release.milestones.length > 0 && (
+          <span class="release-block">
+            <span class="release-label">{t("home.milestones")}</span>
+            <span class="hitos">
+              {release.milestones.map((milestone) => {
+                const icon = milestone.url ? platformIcon(milestone.url) : null;
+                const color = milestone.url
+                  ? platformColor(milestone.url)
+                  : null;
+                return (
+                  <span class="hito">
+                    <i style={color ? `--brand:${color}` : undefined}>
+                      {icon ? <Fragment set:html={icon} /> : "●"}
+                    </i>
+                    <span>
+                      <b>{milestone.title}</b>
+                      <small>{milestone.text}</small>
+                    </span>
+                  </span>
+                );
+              })}
+            </span>
+          </span>
+        )}
+        {release.tools.length > 0 && (
+          <span class="release-tools">
+            <b>{t("home.madeWith")}</b> · {release.tools.join(" · ")}
+          </span>
+        )}
+        <span class="release-open">
+          {t("home.openProfile")} <span aria-hidden="true">→</span>
+        </span>
+      </span>
+    </a>
+  )}
 </div>
-<ScrollReveal client:visible y={32}>
-  <AboutSection lang={lang} />
-</ScrollReveal>
-<ScrollReveal client:visible y={32}>
-  <ProjectsSection lang={lang} />
-</ScrollReveal>
-<ScrollReveal client:visible y={32}>
-  <ContactSection lang={lang} />
-</ScrollReveal>
+
+<style>
+  .board {
+    display: grid;
+    gap: 14px;
+    height: 100%;
+    /* En una pantalla baja el tablero no se aplasta: hace scroll en la vista. */
+    min-height: 700px;
+    padding: 14px;
+    grid-template-columns: 1.25fr 1fr 1fr;
+    grid-template-rows: minmax(400px, 1.25fr) minmax(240px, 1fr);
+    grid-template-areas: "me me rel" "proj exp rel";
+  }
+
+  .cell {
+    position: relative;
+    min-height: 0;
+    overflow: hidden;
+    border-radius: 14px;
+  }
+
+  /* ---- mi bloque -------------------------------------------------------- */
+
+  .me-cell {
+    grid-area: me;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 44%);
+    gap: 0 2.4vw;
+    padding: 3.2vh 2.4vw;
+  }
+
+  .me-main {
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    min-height: 0;
+  }
+
+  .me-name {
+    margin-top: 1.4vh;
+    /* Mide con el ancho y con el alto: en una pantalla baja no se come la letra. */
+    font-size: clamp(46px, min(6vw, 11vh), 118px);
+  }
+
+  .me-main :global(.hero-lyr) {
+    align-self: end;
+    height: calc(3 * 1.22em + 4px);
+    margin-top: 2vh;
+    overflow: hidden;
+    font-size: clamp(16px, min(1.7vw, 3.1vh), 28px);
+  }
+
+  .me-main :global(.hero-lyr .line.now) {
+    animation: rise 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(40%);
+    }
+  }
+
+  .me-main :global(.hero-acts) {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 2vh;
+  }
+
+  .me-main :global(.hero-acts astro-slot) {
+    display: contents;
+  }
+
+  .me-side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0;
+    scrollbar-width: none;
+  }
+
+  .me-side .art5 {
+    flex: none;
+    width: 96px;
+    height: 96px;
+    align-self: flex-end;
+  }
+
+  .me-side p {
+    margin: 0;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--soft);
+  }
+
+  .me-side dl {
+    margin: 0;
+  }
+
+  .me-side dl div {
+    display: grid;
+    grid-template-columns: 62px 1fr;
+    gap: 8px;
+    padding: 6px 0;
+    border-top: 1px solid var(--line);
+    font-size: 12.5px;
+    line-height: 1.35;
+  }
+
+  .me-side dt {
+    padding-top: 2px;
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+
+  .me-side dd {
+    margin: 0;
+  }
+
+  /* ---- listas ----------------------------------------------------------- */
+
+  .list-cell {
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .list-cell:nth-of-type(2) {
+    grid-area: proj;
+  }
+
+  .list-cell:nth-of-type(3) {
+    grid-area: exp;
+  }
+
+  .list-cell header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 18px 10px;
+  }
+
+  .list-cell h2 {
+    margin: 0;
+    font-size: 17px;
+    font-weight: 750;
+    letter-spacing: -0.01em;
+  }
+
+  .list-cell header button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--mute);
+    font-family: var(--mono);
+    font-size: 11px;
+    cursor: pointer;
+  }
+
+  .list-cell header button:hover {
+    color: var(--fg);
+  }
+
+  .rows {
+    margin: 0;
+    padding: 0 8px 10px;
+    list-style: none;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 46px minmax(0, 1fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 8px 10px;
+    border-radius: 8px;
+    text-decoration: none;
+  }
+
+  .row:hover {
+    background: color-mix(in srgb, var(--fg) 6%, transparent);
+  }
+
+  .row :global(.cov) {
+    width: 46px;
+    height: 46px;
+  }
+
+  .row-text b {
+    display: block;
+    font-size: 15px;
+    font-weight: 650;
+  }
+
+  .row-text small {
+    font-size: 12px;
+    color: var(--mute);
+  }
+
+  .rows-empty {
+    padding: 10px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--mute);
+  }
+
+  /* ---- último lanzamiento ---------------------------------------------- */
+
+  /* Toda la tarjeta es un enlace al perfil. Al pasar el mouse se marca el
+     borde, la foto se acerca y aparece "Ver el perfil": así queda claro que
+     lo que se abre es la tarjeta, no cada hito. */
+  .release {
+    grid-area: rel;
+    display: flex;
+    flex-direction: column;
+    background: #0a080e;
+    color: #fff;
+    text-decoration: none;
+  }
+
+  /* El borde va en una capa encima de todo: como sombra de la tarjeta quedaba
+     debajo de la foto y solo se veía alrededor del texto. */
+  .release::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    border: 2px solid transparent;
+    border-radius: inherit;
+    pointer-events: none;
+    transition: border-color 0.25s ease;
+  }
+
+  .release:hover::after,
+  .release:focus-visible::after {
+    border-color: var(--amber);
+  }
+
+  .release-open {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding-top: 2px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: rgb(255 255 255 / 0.45);
+    transition: color 0.25s ease;
+  }
+
+  .release-open span {
+    transition: transform 0.25s ease;
+  }
+
+  .release:hover .release-open,
+  .release:focus-visible .release-open {
+    color: var(--amber);
+  }
+
+  .release:hover .release-open span {
+    transform: translateX(4px);
+  }
+
+  .release-photo {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 140px;
+    overflow: hidden;
+  }
+
+  .release-photo :global(img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 35%;
+    transition: transform 1.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  .release:hover .release-photo :global(img) {
+    transform: scale(1.03);
+  }
+
+  .release-photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 45%,
+      rgb(10 8 14 / 0.85) 85%,
+      #0a080e 100%
+    );
+  }
+
+  .release-body {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: -64px;
+    padding: 0 22px 22px;
+  }
+
+  .release-kicker {
+    color: var(--amber);
+  }
+
+  .release-title {
+    font-size: clamp(30px, 2.5vw, 40px);
+    font-weight: 850;
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+    font-variation-settings: "wdth" 72;
+  }
+
+  .release-meta,
+  .release-tools {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: rgb(255 255 255 / 0.55);
+  }
+
+  .release-tools b {
+    color: var(--amber);
+    font-weight: 500;
+  }
+
+  .release-lead {
+    font-size: 14px;
+    line-height: 1.5;
+    color: rgb(255 255 255 / 0.82);
+  }
+
+  .release-label {
+    display: block;
+    margin-bottom: 6px;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.45);
+  }
+
+  .hitos {
+    display: block;
+    border-top: 1px solid rgb(255 255 255 / 0.12);
+  }
+
+  .hito {
+    display: grid;
+    grid-template-columns: 30px 1fr;
+    gap: 10px;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  }
+
+  .hito i {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--brand, var(--amber)) 16%, transparent);
+    color: var(--brand, var(--amber));
+    font-style: normal;
+    font-size: 10px;
+  }
+
+  .hito i :global(svg) {
+    width: 15px;
+    height: 15px;
+  }
+
+  .hito b {
+    display: block;
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+
+  .hito small {
+    font-size: 12px;
+    color: rgb(255 255 255 / 0.55);
+  }
+
+  /* Pantallas medianas (laptops chicas, tablets en horizontal): tres columnas
+     no entran. El lanzamiento baja a una franja horizontal y el tablero pasa a
+     hacer scroll dentro de la vista. */
+  @media (max-width: 1200px) and (min-width: 961px) {
+    .board {
+      height: auto;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: auto minmax(280px, auto) auto;
+      grid-template-areas: "me me" "proj exp" "rel rel";
+    }
+
+    .me-cell {
+      min-height: 420px;
+    }
+
+    .list-cell .rows {
+      max-height: 320px;
+    }
+
+    .release {
+      flex-direction: row;
+      min-height: 380px;
+    }
+
+    .release-photo {
+      flex: 0 0 42%;
+    }
+
+    .release-photo::after {
+      background: linear-gradient(90deg, transparent 55%, #0a080e 100%);
+    }
+
+    .release-body {
+      flex: 1;
+      justify-content: center;
+      margin-top: 0;
+      padding: 26px 28px;
+    }
+  }
+
+  @media (max-width: 960px) {
+    .board {
+      height: auto;
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto;
+      grid-template-areas: "me" "rel" "proj" "exp";
+    }
+
+    .me-cell {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 24px;
+      padding: 28px 22px;
+    }
+
+    .me-name {
+      font-size: clamp(56px, 18vw, 96px);
+    }
+
+    .me-side .art5 {
+      display: none;
+    }
+
+    .release-photo {
+      flex: none;
+      height: 240px;
+    }
+
+    .list-cell .rows {
+      max-height: 340px;
+    }
+  }
+</style>

@@ -2,7 +2,7 @@
 import { getImage } from "astro:assets";
 import { render } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import ExperimentBody from "../../components/pages/ExperimentBody.astro";
+import ProfileBody from "../../components/pages/ProfileBody.astro";
 import { getPublishedExperiments } from "../../lib/experiments.ts";
 import { pageTitle } from "../../lib/seo.ts";
 
@@ -31,12 +31,11 @@ const share = await getImage({
   title={pageTitle(experiment.data.title)}
   description={experiment.data.summary}
   lang={lang}
-  route="experiment"
-  slug={experiment.id}
+  current={experiment.id}
   image={share.src}
   imageAlt={experiment.data.bannerAlt}
 >
-  <ExperimentBody experiment={experiment} lang={lang}>
+  <ProfileBody entry={experiment} lang={lang}>
     <Content />
-  </ExperimentBody>
+  </ProfileBody>
 </BaseLayout>

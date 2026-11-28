@@ -4,9 +4,8 @@ import NotFoundBody from "../components/pages/NotFoundBody.astro";
 import { pageTitle } from "../lib/seo.ts";
 import { useTranslations } from "../i18n/index.ts";
 
-// Un solo 404 para todo el sitio (Vercel sirve /404.html para cualquier ruta
-// inexistente). Se construye en español; NotFoundBody cambia al inglés en el
-// cliente cuando la URL empieza por /en/.
+// Un solo 404 para todo el sitio: Vercel sirve /404.html para cualquier ruta
+// inexistente, incluidas las del blog y las de /en/, que ya no existen.
 const lang = "es" as const;
 const t = useTranslations(lang);
 ---
@@ -15,7 +14,6 @@ const t = useTranslations(lang);
   title={pageTitle(t("seo.notFound.title"))}
   description={t("seo.notFound.description")}
   lang={lang}
-  route="notFound"
   noindex
 >
   <NotFoundBody />

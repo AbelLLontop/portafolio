@@ -1,22 +1,18 @@
 ---
 import { ClientRouter } from "astro:transitions";
 import "../styles/global.css";
-import Header from "../components/layout/Header.astro";
-import Footer from "../components/layout/Footer.astro";
-import Starfield from "../components/react/decor/Starfield.tsx";
-import CursorRocket from "../components/react/decor/CursorRocket.tsx";
-import AscentHud from "../components/astro/AscentHud.astro";
-import { buildSeoMeta, SITE_LOCALES, SITE_NAME } from "../lib/seo.ts";
-import { otherLang, type Lang } from "../i18n/index.ts";
-import type { Route } from "../i18n/routes.ts";
+import Library from "../components/layout/Library.astro";
+import Player from "../components/react/radio/Player.tsx";
+import { buildSeoMeta, SITE_NAME } from "../lib/seo.ts";
+import { getRadioTracks } from "../lib/radio.ts";
+import { pickStrings, useTranslations, type Lang } from "../i18n/index.ts";
+import { pathFor } from "../i18n/routes.ts";
 
 interface Props {
   title: string;
   lang: Lang;
-  /** Qué página es, para armar el botón ES/EN y los hreflang. */
-  route: Route;
-  /** Solo para `route="post"`. */
-  slug?: string;
+  /** El id del perfil abierto, para marcarlo en la biblioteca. */
+  current?: string;
   description?: string;
   image?: string;
   imageAlt?: string;
@@ -24,21 +20,37 @@ interface Props {
   noindex?: boolean;
 }
 
-const { title, lang, route, slug, description, image, imageAlt, noindex } =
+const { title, lang, current, description, image, imageAlt, noindex } =
   Astro.props;
+const t = useTranslations(lang);
+const tracks = await getRadioTracks();
+const playerStrings = pickStrings(lang, [
+  "player.play",
+  "player.pause",
+  "player.prev",
+  "player.next",
+  "player.lyrics",
+  "player.list",
+  "player.back",
+  "player.mute",
+  "player.unmute",
+  "player.volume",
+  "player.seek",
+  "player.intro",
+  "player.noLyrics",
+  "player.spotify",
+]);
 const seo = buildSeoMeta({
   title,
   url: Astro.url,
   lang,
-  route,
-  slug,
   description,
   image,
   imageAlt,
 });
 ---
 
-<html lang={lang} class="dark">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -47,56 +59,12 @@ const seo = buildSeoMeta({
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Saira:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=IBM+Plex+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <meta name="viewport" content="width=device-width" />
-    {/* Color de la barra del navegador en móvil, según el tema del sistema. */}
-    <meta
-      name="theme-color"
-      content="#09090b"
-      media="(prefers-color-scheme: dark)"
-    />
-    <meta
-      name="theme-color"
-      content="#f6f7f9"
-      media="(prefers-color-scheme: light)"
-    />
-    {/* El tema se fija antes del primer pintado para evitar un destello del
-        otro. Prioridad: la elección guardada con el botón, luego el tema del
-        sistema, y si el navegador no permite leerlo, claro. El oscuro es la
-        ausencia de atributo. Mientras no haya elección guardada, el sitio
-        sigue los cambios del sistema en vivo. */}
-    <script is:inline>
-      (function () {
-        var root = document.documentElement;
-        var saved = null;
-        try {
-          saved = localStorage.getItem("theme");
-        } catch (_) {}
-        var query = window.matchMedia
-          ? window.matchMedia("(prefers-color-scheme: dark)")
-          : null;
-        var apply = function (theme) {
-          if (theme === "dark") delete root.dataset.theme;
-          else root.dataset.theme = "light";
-        };
-        if (saved === "light" || saved === "dark") {
-          apply(saved);
-        } else if (query && query.media !== "not all") {
-          apply(query.matches ? "dark" : "light");
-          query.addEventListener("change", function (event) {
-            var chosen = null;
-            try {
-              chosen = localStorage.getItem("theme");
-            } catch (_) {}
-            if (!chosen) apply(event.matches ? "dark" : "light");
-          });
-        } else {
-          apply("light");
-        }
-      })();
-    </script>
+    {/* Color de la barra del navegador en móvil: el sitio tiene un solo tema. */}
+    <meta name="theme-color" content="#0c0c0e" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
 
@@ -109,27 +77,9 @@ const seo = buildSeoMeta({
     {noindex && <meta name="robots" content="noindex" />}
     {!noindex && <link rel="canonical" href={seo.url} />}
 
-    {/* Cada idioma declara al otro, y x-default manda al español (el sitio
-        por defecto) cuando el navegador no matchea ninguno. */}
-    {!noindex &&
-      seo.alternates.map((alternate) => (
-        <link
-          rel="alternate"
-          hreflang={alternate.hreflang}
-          href={alternate.href}
-        />
-      ))}
-    {!noindex && (
-      <link rel="alternate" hreflang="x-default" href={seo.defaultHref} />
-    )}
-
-    <meta property="og:type" content={seo.type} />
+    <meta property="og:type" content="website" />
     <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:locale" content={seo.locale} />
-    <meta
-      property="og:locale:alternate"
-      content={SITE_LOCALES[otherLang(lang)]}
-    />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={seo.description} />
     <meta property="og:image" content={seo.image} />
@@ -152,59 +102,60 @@ const seo = buildSeoMeta({
     <meta name="twitter:image" content={seo.image} />
     <meta name="twitter:image:alt" content={seo.imageAlt} />
   </head>
-  <body class="flex min-h-screen flex-col">
-    <div class="veil"></div>
-    {/* transition:persist: la decoración no se vuelve a montar al navegar. Sin
-        esto el campo de estrellas se regenera de cero y el cohete reaparece de
-        golpe en otro punto, que es justo el parpadeo que el router evita. */}
-    <Starfield client:visible transition:persist />
-    <CursorRocket client:visible transition:persist />
-    {route === "post" && <AscentHud lang={lang} />}
-    <Header lang={lang} route={route} slug={slug} />
-    <div class="flex-1">
-      <slot />
+  <body>
+    <div class="app">
+      <header class="mobile-top">
+        <button
+          type="button"
+          class="mt-lib"
+          data-lib-toggle
+          aria-label={t("lib.open")}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+        <a class="mt-brand" href={pathFor("home", lang)}>
+          <i aria-hidden="true"></i>abelitolll
+        </a>
+      </header>
+      <Library lang={lang} current={current} />
+      <main class="stage" id="stage">
+        <slot />
+      </main>
+      {/* transition:persist: el reproductor no se vuelve a montar al navegar,
+          así la música y la letra siguen sonando entre páginas. */}
+      <div class="bar-slot" transition:persist="radio">
+        <Player
+          client:load
+          tracks={tracks}
+          strings={playerStrings}
+          listPath={pathFor("radio", lang)}
+        />
+      </div>
     </div>
-    <Footer lang={lang} />
     <script>
-      import { INSTANT_CLASS, SWAP_CLASS } from "../lib/nav-flags.ts";
-
-      // Este módulo corre una sola vez en toda la sesión: el router reemplaza
-      // el <body>, pero no vuelve a ejecutar los scripts ya cargados. Por eso
-      // los listeners van sobre `document`, que sobrevive al swap.
-      let instant = false;
-
-      // El router reemplaza los atributos de <html> por los del documento
-      // nuevo, que llega sin data-theme: se le copia el tema vigente antes del
-      // swap para que no parpadee al otro tema en cada navegación.
-      document.addEventListener("astro:before-swap", (event) => {
-        const theme = document.documentElement.dataset.theme;
-        const next = (event as unknown as { newDocument: Document }).newDocument
-          .documentElement;
-        if (theme) next.dataset.theme = theme;
-        else delete next.dataset.theme;
-      });
-
-      document.addEventListener("astro:before-preparation", (event) => {
-        // `sourceElement` es el elemento que disparó la navegación, así que el
-        // botón ES/EN se reconoce acá en vez de con un listener por enlace que
-        // habría que volver a colgar en cada página.
-        const source = (event as { sourceElement?: Element }).sourceElement;
-        instant = source?.closest("[data-lang-link]") != null;
-      });
-
-      document.addEventListener("astro:after-swap", () => {
-        // after-swap: el DOM nuevo ya está puesto y el navegador todavía no
-        // pintó, así que las clases llegan a tiempo y nada se revela por un
-        // frame antes de apagarse.
-        const root = document.documentElement;
-        root.classList.add(SWAP_CLASS);
-        root.classList.toggle(INSTANT_CLASS, instant);
-        instant = false;
-
-        // `--ascent` lo escribe el HUD, que solo existe en los posts: al salir
-        // de uno nadie lo bajaría de nuevo y el veil quedaría atenuado para
-        // siempre. Sin la variable, el CSS vuelve a su default (0).
-        root.style.removeProperty("--ascent");
+      // Cualquier fila con data-radio-row (la lista de la radio, las canciones
+      // de un experimento) le pide al reproductor que toque su pista; si ya
+      // suena, la pausa. Va acá, una sola vez para todo el sitio: si cada
+      // página trajera su listener, después de visitar dos se tocaría dos
+      // veces y la pista se pausaría sola.
+      document.addEventListener("click", (event) => {
+        const row = (event.target as Element).closest<HTMLButtonElement>(
+          "[data-radio-row]",
+        );
+        if (!row || row.disabled || !row.dataset.trackId) return;
+        window.dispatchEvent(
+          new CustomEvent("radio:play", {
+            detail: { id: row.dataset.trackId },
+          }),
+        );
       });
     </script>
     <script>

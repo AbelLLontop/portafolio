@@ -6,201 +6,143 @@ decisiones. Si cambiás una, actualizá la entrada en el mismo PR.
 
 ## Producto
 
+- **El sitio es un sello discográfico.** El autor es el productor; cada
+  proyecto y cada experimento es un "artista" con su propio perfil, y sus piezas
+  concretas (canciones, videos, versiones) son sus lanzamientos. La versión
+  anterior tenía la estructura típica de un portafolio (hero, secciones con
+  scroll, decoración) y se sentía genérica: la decoración (estrellas, cohete,
+  terminal) no decía nada del autor. El sello sí, porque el experimento central
+  es una banda.
 - **El sitio es 100% estático, sin backend ni CMS.** El contenido son archivos
-  del repo. Todo lo que parezca necesitar servidor (búsqueda, filtros, idioma) se
-  resuelve en el navegador. Agregar backend significa cambiar hosting y asumir
-  mantenimiento que hoy no aporta nada.
+  del repo. Todo lo que parezca necesitar servidor (búsqueda, filtros) se
+  resuelve en el navegador.
+- **No hay blog.** Se escribió poco y no se leía; las notas, las páginas y su
+  código se borraron y sus URLs dan 404 a propósito, sin redirecciones. Si
+  vuelve, será otro proyecto, no una sección de este.
+- **Solo español, por ahora.** El contenido va a cambiar mucho y traducir cada
+  corrección no tenía sentido. La estructura por idioma (`src/i18n/`, `Lang`,
+  `pathFor`) se conservó para sumar el inglés al final, cuando el contenido se
+  estabilice.
+- **No se menciona el origen ni la ubicación del autor.** Ni país ni ciudad,
+  en ningún lado (perfil, proyectos, experimentos, letras, imagen para
+  compartir). Pedido explícito del autor.
 - **El correo no se publica.** Es un dato personal; el contacto es GitHub y
   LinkedIn. Tampoco van foto personal ni timeline de empleos.
-- **"Sobre mí" no es una página propia, vive dentro de Inicio.** Era muy corta
-  para justificar una ruta separada y un clic extra. `/sobre-mi` y `/en/about`
-  se eliminaron; el contenido (incluido el listado de stack con `TechBadge`)
-  quedó intacto como sección de `HomeBody.astro` (`AboutSection.astro`). El
-  carrusel de tecnologías (`TechMarquee`) es un adorno propio de Inicio, no
-  parte de Sobre mí, así que los dos conviven sin que uno reemplace al otro.
-- **Los proyectos no se inventan.** Solo entra software real. El primero es este
-  mismo repositorio; mientras no haya más, el listado cierra con un "próximamente"
-  y, si no hubiera ninguno, la sección vuelve al placeholder "en construcción".
-  Un demo de relleno presentado como real es peor que una sección vacía.
-- **La página de un proyecto no copia la de un experimento.** Sin barra lateral:
-  el enlace al código es lo principal de un proyecto y va junto al título; la
-  ficha es una tira horizontal. Se hizo así para que las dos secciones se lean
-  como cosas distintas aunque compartan el mismo sistema visual.
+- **Los proyectos no se inventan.** Solo entra software real. El catálogo
+  escala a muchos elementos (la biblioteca tiene buscador y filtros), pero nunca
+  se rellena con demos presentados como reales.
 - **El copy va en primera persona y sin tono de marca personal.** Nada de
-  frases de influencer ni de "construyo experiencias digitales que transforman".
-  Es la voz del autor, no la de una agencia. Esto se rechazó explícitamente una
-  vez; si el copy nuevo suena a marca, está mal.
-- **El stack que muestra el sitio no se deduce de los posts.** Las notas
-  documentan cosas que el autor probó o configuró (pm2, certbot, Java, Spring
-  Boot) y eso no significa que sean parte de su stack. Antes de tocar `STACK` hay
-  que preguntar.
-
-## Contenido
-
-- **Los posts son siempre independientes entre sí**, sin ningún indicio de
-  jerarquía ni de "este depende de otro", ni en el listado ni dentro del post. Si
-  una nota retoma código o contexto de otra, se explica en la prosa. Agregar un
-  campo de relación en el frontmatter obligaría a mantener un grafo de
-  dependencias que no aporta al lector real (el autor).
-- **El número `#N` se calcula por fecha, no es frontmatter.** Se ordena
-  ascendente entre los posts no-draft (el más viejo es `#1`) en
-  `src/pages/blog/index.astro` y `[slug].astro`. Así crear un post nuevo no
-  obliga a tocar nada más, y no hay dos notas con el mismo número. El costo es
-  que los números se corren si se publica una nota con fecha vieja.
-- **`summary` es obligatorio en el frontmatter.** Alimenta la meta description y
-  el Open Graph del post (`src/lib/seo.ts`). Si falta, el post cae a la
-  descripción genérica del sitio, que es peor que no tener nada específico.
-- **La búsqueda del listado nunca recorre el cuerpo de los posts.** Al navegador
-  solo viajan título, resumen, tags, fecha y número, así que el peso del listado
-  no crece con lo que se escribe. Buscar dentro del texto exigiría enviar los
-  posts completos o un backend.
-- **No hay filtro por tag.** La lista de tags crece con cada nota y termina
-  pesando más en pantalla que los propios posts. Los tags se siguen mostrando
-  como metadata, pero en el listado solo en la última nota: en cada fila
-  sumaban una línea de ruido que hacía sentir el listado saturado.
-- **El listado del blog es una bitácora.** Las notas se agrupan por mes (el mes
-  se calcula en UTC, ver `src/lib/dates.ts`: en zona local Perú movería una nota
-  del 1 de octubre a septiembre), con la fecha como marca de tiempo a la izquierda
-  y un riel con un punto por nota. La última nota se distingue en reposo por
-  tamaño, etiqueta y un punto que pulsa, y **no** por el color del título ni el
-  fondo, que es justo lo que cambia el hover: con el mismo estilo los dos estados
-  eran indistinguibles. El hover nunca mueve nada (antes corría la fila).
-- **Desde una nota se vuelve al listado por tres sitios:** la fila de la etiqueta
-  de arriba, la barra pegajosa del título (solo mientras está pegada, y con área
-  táctil ampliada) y el enlace del final. Estando a la mitad de una nota larga el
-  de abajo queda lejos, y esa es la situación en la que más falta hace.
+  frases de influencer. Esto se rechazó explícitamente una vez.
 
 ## Diseño
 
-- **Una sola unidad de espaciado vertical (`--section-y`).** Cada sección ponía
-  su propio `py-*` y los huecos salían de 96 a 224 px sin criterio: el carrusel
-  quedaba a 100 px por un lado y 160 por el otro. Ahora el hueco entre secciones
-  es siempre 2 × `--section-y` y los subbloques usan 1 ×. Si el aire se ve mal,
-  se cambia esa variable, no cada componente.
-- **El marco con borde es solo de Proyectos y de la consola.** Se probó ponerlo
-  en Sobre mí, el stack y Contacto y el sitio pasó a parecer una plantilla con
-  tarjetas en todos lados: quitaba lo especial que tenía en un solo sitio. El
-  resto usa filetes y rótulos mono.
-- **Tipografía con escala nombrada.** Había 10 tamaños pequeños, 9 espaciados de
-  letra y 7 grises que se distinguían por décimas de píxel y daban sensación de
-  desorden. Ahora hay `text-micro` y `text-ui`, tres roles de espaciado y cuatro
-  niveles de gris (ver AGENTS.md). Cada valor suelto es una oportunidad de volver
-  a abrir la deriva; se elige el rol más cercano.
-- **La rejilla de fondo es fija, quieta y sin luz de cursor.** Primero vivía
-  dentro del hero y su luz se cortaba en el borde de la sección; al pasarla a una
-  capa fija de toda la página era demasiado brusca, y suavizada seguía compitiendo
-  con el cohete y las estrellas, que ya son la firma del cursor. Se quitó la luz
-  en vez de apilar un tercer efecto (tampoco partículas).
-- **El hero y el carrusel son un solo grupo, centrado, con tope de alto.** Un
-  banner de `100svh` dejaba más de 240 px de aire en pantallas altas y el carrusel
-  clavado al fondo se leía separado del hero. El grupo se centra en
-  `min(100svh − header, 50rem)`: el aire no crece sin límite y en pantallas bajas
-  o móvil el alto lo manda el contenido (es un mínimo, no un alto fijo).
-- **El stack son filas con filete dentro de Sobre mí.** No es una sección aparte
-  (una tabla en su propia sección se sentía suelta) ni una nube de chips con
-  filtros por área: se probó y se rechazó, parecía un diseño ajeno pegado sin
-  criterio. La frase "sigo aprendiendo" es la última fila de la misma tabla.
-- **Hover sin desplazamiento y estados distintos.** Un hover que cambia padding o
-  tamaño hace que el contenido se mueva bajo el cursor; solo cambian color, brillo
-  y fondo. Los controles que cambian de aspecto al enfocarse (el buscador del
-  blog) no pueden cambiar de tamaño: se oculta con opacidad, no con `display`.
-- **Los experimentos son una sección aparte, no parte de Proyectos.** Proyectos
-  es software real y la regla es no inventar ninguno; un grupo musical ficticio
-  hecho con IA es una prueba creativa, no un proyecto. Mezclarlos habría obligado
-  a elegir entre desdibujar qué es cada cosa o dejar el experimento sin lugar.
-  Cada experimento tiene su propia página en vez de una tarjeta con enlaces,
-  porque lo que lo hace interesante (cómo se hizo, los videos, el diseño) no cabe
-  en una tarjeta.
-- **Los videos y el audio se incrustan con una fachada, no con el iframe
-  directo.** Seis iframes de YouTube al abrir la página descargan sus scripts y
-  les avisan a sus servidores aunque nadie les dé play, y en el celular pesa.
-  `EmbedFacade` muestra una imagen con un botón y monta el iframe (en
-  `youtube-nocookie.com`) solo al reproducir. El costo: un clic más para ver un
-  video. TikTok queda como enlace: su embed es pesado e inestable.
+- **Una ventana, no una página.** El sitio es una app de reproductor: biblioteca
+  a la izquierda, vista en el centro y barra de reproducción abajo. La página
+  nunca hace scroll entera; cada panel tiene su propio scroll. El scroll largo
+  con secciones apiladas era justo lo que hacía sentir el sitio plantilla.
+- **El inicio es un tablero que entra en una pantalla.** El bloque crema es todo
+  lo del autor (nombre, "Quién soy" cantándose, bio, stack); alrededor, en
+  oscuro, el catálogo: Proyectos y Experimentos abajo, y el último lanzamiento a
+  la derecha. Se probó poner "Sobre mí" como un bloque oscuro más y se leía como
+  parte del último lanzamiento: lo del autor va solo en el bloque crema.
+- **La tarjeta del último lanzamiento es imagen con texto encima**, fundida con
+  un degradado, y lo que dice es de ESE lanzamiento: descripción, hitos y
+  herramientas. Sin botones ni tablas: se probaron y se rechazaron. Los hitos
+  son genéricos (no "canciones populares") porque no todo experimento es música.
+  Por defecto es el más nuevo del catálogo; `featured: true` en el frontmatter
+  fija otro.
+- **El logo de Los Vecinos (la cuadrícula 5×5) es solo arte.** Se probó usarlo
+  como navegación (cada cuadro un proyecto) y como titular que cambia al pasar el
+  mouse: confundía y no escala a muchos elementos. Ahora no se toca; el cuadro
+  rojo late con lo que suena.
+- **Cada perfil va en pestañas, armado con secciones.** Inicio, Cómo se hizo,
+  Videos, Escuchar, Prompts, Galería, Flujo con Claude, Repositorio. Una sección
+  sin datos no se muestra, así cada proyecto o experimento elige las suyas sin
+  tocar el diseño. Se probaron un desplegable por capítulos (demasiado simple),
+  un pliego horizontal (incómodo de leer) y una columna con índice (no gustó).
+- **Cada perfil tiene su paleta.** Los experimentos van de noche (ámbar), los
+  proyectos en tinta. Igual que cada video de la banda tiene la suya.
+- **Un solo tema, sin claro/oscuro.** El diseño usa paletas fijas por panel
+  (papel, tinta, noche); una versión clara habría obligado a rediseñar cada una.
+- **Tipografía: Archivo (con eje de ancho) e IBM Plex Mono.** Archivo hace los
+  titulares gigantes, condensados con `font-variation-settings: "wdth"`; la mono,
+  etiquetas y datos. El texto largo va en la sans del sistema.
+- **Un solo acento: el rojo del cuadro que no encaja** (`--red`). El ámbar es el
+  acento de la paleta de noche, no un segundo color de marca.
+- **Los videos y reproductores de terceros van con fachada** (`EmbedFacade`):
+  una imagen con botón, y el iframe recién se monta al dar play. Al montarse,
+  pausa la radio del sitio para que no suenen dos cosas.
+
+## La radio
+
+- **La radio es independiente de las páginas.** Tiene su propia colección
+  (`src/content/radio/`) y no lee la página de ningún experimento. Un perfil solo
+  puede pedirle "toca esta pista" (con `data-radio-row` y `data-track-id`).
+- **Cada canción lleva a Spotify.** El objetivo de la radio es que la gente
+  vaya a escuchar a Spotify: junto a cada canción (lista, perfil, barra, vista
+  de letra) hay un botón con su enlace, y la cabecera de la radio lleva al
+  perfil del artista. Se enlaza al artista y no al álbum, porque los álbumes
+  van a cambiar.
+- **Solo canciones publicadas.** No hay concepto de "inédita": entran las que
+  están en Spotify.
+- **El audio va en el repo** (`public/audio/`), comprimido (MP3 de 128-192
+  kbps). Son pocas canciones; un servicio aparte sumaba configuración sin
+  necesidad. Si la lista crece mucho, se reconsidera.
+- **La intro arranca sola, silenciada.** El navegador no deja sonar nada sin un
+  clic, pero sí reproducir en silencio: "Quién soy" arranca muda, su letra corre
+  igual, y el sonido se activa con la primera interacción en la página. Si ese
+  primer clic es sobre un play, no la pausa: la persona quería escucharla. Una
+  pista sin audio queda bloqueada (la intro sin audio correría sobre un reloj
+  propio).
+- **Sin letra, el micrófono se bloquea.** Como en Spotify: no se abre una vista
+  vacía. Las letras sincronizadas de las canciones van en otro PR.
+- **La letra va en formato LRC, en el cuerpo de cada `.md`.** Las palabras entre
+  asteriscos van en el acento. El build la parsea (`src/lib/lrc.ts`) y el
+  cliente solo pinta.
+- **La lista de canciones es una página (`/radio`), no un desplegable.** Se
+  llega solo con el botón de lista de la barra; volver a tocarlo regresa a donde
+  se estaba. El desplegable tapaba la vista y no gustó.
+- **La vista de letra se cierra con "Volver", Esc o el micrófono.** Sin salida
+  visible no se entendía cómo volver.
 
 ## Técnicas
 
-- **El diccionario `src/i18n/ui.ts` es la única fuente del copy**, y el inglés
-  está tipado contra las claves del español: una traducción faltante rompe
-  `npm run check` en vez de dejar un hueco en producción. Por eso el texto no va
-  suelto en los `.astro` ni en los `.tsx`, y las partes variables usan
-  `{marcador}` con `interpolate()`: concatenar rompe el orden de las palabras en
-  el otro idioma.
-- **Español sin prefijo, inglés en `/en/`, y los posts no se traducen.** Mover el
-  español a `/es/` cambiaría todas las URLs ya publicadas. Los `.mdx` quedan en
-  español y la versión inglesa lo avisa con una línea sobria: traducirlos
-  duplicaría el trabajo de escribir cada nota.
-- **`src/i18n/routes.ts` es la única fuente de los paths.** De ahí salen la
-  navegación, el botón ES/EN y los `hreflang`. Una ruta que no esté en ese mapa
-  queda sin traducir y sin alternates.
-- **Las islas React se hidratan con `client:visible`.** La única excepción es la
-  terminal del hero (`client:load`), que es above-the-fold y arranca sola.
-- **El HUD de altitud se muestra solo en los posts individuales.** En el resto
-  del sitio competía con el contenido sin aportar orientación.
+- **El reproductor sobrevive a la navegación** con `transition:persist` sobre el
+  contenedor de la barra. Sin eso, cada cambio de página cortaba la música.
+- **El estado de la radio vive en `window`** (`src/components/react/radio/bus.ts`),
+  no en una variable de módulo: cada isla se empaqueta por su cuenta y así el
+  estado es uno solo. Para pedirle algo al reproductor se usan eventos de
+  `window` (`radio:play`, `radio:pause`), que puede disparar cualquier script.
+- **El click de las filas de la radio se escucha una sola vez, en el layout.**
+  Con el router los scripts corren una vez por sesión; si cada página trajera su
+  listener, después de visitar dos páginas un click tocaría dos veces y la pista
+  se pausaría sola.
 - **La navegación va por el `<ClientRouter />` de Astro.** El sitio sigue siendo
-  estático: el router es solo cliente, y sin JS los enlaces funcionan como
-  enlaces normales. Se gana que cambiar de página no recargue el documento (sin
-  parpadeo, sin loader en la pestaña, la decoración de fondo no se reinicia) y
-  que un elemento pueda animarse de una página a la otra. El costo está en los
-  `<script>`: corren una sola vez por sesión, así que lo que toca el DOM de la
-  página tiene que ir en `astro:page-load`. Quitar el router obliga a desarmar
-  eso en cinco archivos.
-- **Una carga del documento anima; una navegación del router, no del todo.** Dos
-  clases en `<html>` (`src/lib/nav-flags.ts`) distinguen los casos:
-  `nav-swap` (llegué por el router) hace que la terminal del hero aparezca con
-  su diálogo puesto en vez de retipear un diálogo ya visto — en un swap es
-  instantáneo, así que se vería vacía tecleando sola; `nav-instant` (cambio de
-  idioma) además apaga los reveals, porque ahí solo cambian las palabras. Las
-  demás navegaciones **sí** vuelven a revelar: son medio segundo y son lo que
-  hace que el cambio de página se lea como un cambio de página. Antes del router
-  esto era un `sessionStorage` leído por un script inline del `<head>` antes del
-  primer pintado; sin documento nuevo, basta con `astro:after-swap`.
-- **El morph entre páginas es uno solo: el título del post.** El mismo
-  `transition:name` lo llevan la fila del listado y el `<h1>` de la nota, así que
-  al entrar el navegador lleva uno hasta el otro. Un segundo elemento animado
-  compite con ese y el cambio de página se vuelve ruidoso.
-- **El acento se usa siempre desde el token**, nunca como hex suelto en un
-  componente, para poder cambiarlo en un solo lugar.
+  estático. El costo está en los `<script>`: corren una sola vez, así que lo que
+  depende del DOM de la página va en `astro:page-load` y los listeners se cuelgan
+  de `document`.
+- **El diccionario `src/i18n/ui.ts` es la única fuente del copy.** Las partes
+  variables usan `{marcador}` con `interpolate()`.
+- **`src/i18n/routes.ts` es la única fuente de los paths.**
+- **No hay páginas de listado** (`/proyectos`, `/experimentos`). La biblioteca y
+  el tablero las reemplazan; "ver todo" filtra la biblioteca.
+- **Las clases de un componente no pueden chocar con las del arte.** El bloque
+  del inicio se llamaba `.me`, igual que el cuadro rojo del logo, y el estilo del
+  bloque deformaba el logo. Ojo con nombres cortos en estilos con scope.
 
 ## Flujo
 
 - **`main` protegida con ruleset.** PR obligatorio, checks en verde, solo squash,
-  y la rama se borra al fusionar. Vale también para los agentes de IA: es lo que
-  evita que un cambio entre sin pasar por revisión. El historial queda lineal, a
-  cambio de no poder commitear directo nunca.
+  y la rama se borra al fusionar. Vale también para los agentes de IA.
 - **Un agente no commitea por su cuenta.** Escribe los archivos, muestra el
   cambio y espera. Cuando se le pide el commit, primero crea la rama. Nunca hace
-  push por iniciativa propia. Se aprendió por las malas: un agente con permiso
-  implícito abrió un PR sobre trabajo que todavía no estaba revisado. Y al
-  revés, su trabajo termina al abrir el PR: vigilar los checks, esperar el CI o
-  fusionar es trabajo del flujo y de la persona, no del agente.
-- **Conventional Commits sin ámbitos cerrados.** Hubo una lista fija de 21
-  ámbitos validada por un hook propio: se desincronizaba con `src/` cada vez que
-  algo se movía y obligaba a memorizarla. El estándar no define ámbitos, así que
-  el ámbito es libre y opcional. Lo valida `commitlint` en CI, no un script
-  propio.
-- **La validación de commits corre en CI, no en local.** Sin husky ni hooks: un
-  hook que tarda se termina salteando con `--no-verify`, y el gate real es el PR.
-- **Sin tests E2E.** Hubo 23 con Playwright: para un sitio de este tamaño el
-  costo de mantenerlos no se justificaba, porque en frontend el detalle visual
-  cambia todo el tiempo y cada cambio los rompía. Los tests son unitarios
-  (Vitest) sobre la lógica pura de `src/lib/`, y la interfaz se revisa a ojo en
-  escritorio y móvil. El costo asumido: una regresión visual (título pegado,
-  índice, menú móvil) no la detecta nadie automáticamente.
-- **La prosa queda fuera de Prettier** (`*.md`, `*.mdx`). Si el formateador
-  reescribe los docs, cada edición de documentación pelea con el gate de lint, y
-  un `.mdx` publicado puede cambiar de renderizado.
-- **Los commits y los PR no llevan atribución de IA.** Ni co-autoría, ni firmas,
-  ni emojis.
-- **`SPEC.md` y `PLAN.md` se eliminaron.** Eran el diario de construcción del
-  sitio: crecían sin parar, duplicaban comandos y estructura con `AGENTS.md`, y
-  un agente los leía como si fueran vigentes. Lo vivo se repartió entre
-  `AGENTS.md`, `docs/project.md` y este archivo. Siguen en el historial de git si
-  hace falta consultarlos.
-- **El blog no se indexa.** Las notas son personales y no se escriben para que
-  las encuentre Google; lo que sí debe aparecer son los experimentos y los
-  proyectos. Los posts y el listado del blog llevan `noindex` (`BlogPostLayout`
-  y las dos páginas de listado) y `astro.config.mjs` los filtra del sitemap.
-  `robots.txt` no los bloquea a propósito: si Google no puede rastrearlos, no
-  llega a ver el `noindex`. Para volver a indexarlos se quita el `noindex` y el
-  `filter` del sitemap.
+  push por iniciativa propia, y su trabajo termina al abrir el PR.
+- **Conventional Commits sin ámbitos cerrados.** Lo valida `commitlint` en CI,
+  no un hook local.
+- **Sin tests E2E.** Los tests son unitarios (Vitest) sobre la lógica pura de
+  `src/lib/` (letra, reproductor, SEO, embeds) y la interfaz se revisa a ojo en
+  escritorio y móvil.
+- **La prosa queda fuera de Prettier** (`*.md`, `*.mdx`).
+- **Los commits y los PR no llevan atribución de IA.**
+- **Los prototipos del rediseño no se suben.** Viven en `prototipos/`, fuera
+  del repo, como referencia local.
