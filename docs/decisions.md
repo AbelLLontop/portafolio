@@ -141,6 +141,9 @@ decisiones. Si cambiás una, actualizá la entrada en el mismo PR.
   `/experimentos` (los listados que ya no existen) van al inicio. El blog no
   redirige a propósito: queda en 404 para que salga del índice. Viven en
   `vercel.json`.
+- **El favicon es el cuadro rojo inclinado, no el logo 5×5.** A 16 px los 25
+  cuadros se ven como una mancha gris. Reemplaza a la carita con lentes del
+  diseño anterior. Se genera con `node scripts/favicon.mjs`.
 - **JSON-LD solo en el inicio.** Un `Person` y un `WebSite` (`buildHomeJsonLd`
   en `src/lib/seo.ts`), con los perfiles de `CONTACTS` en `sameAs` y sin
   ubicación. El sitemap no lleva `lastmod`: el contenido no tiene una fecha de

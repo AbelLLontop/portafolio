@@ -112,6 +112,9 @@ No hay páginas de listado: la biblioteca y el tablero las reemplazan.
   `public/og-image.png` (1200x630), generada con `node scripts/og-image.mjs`: si
   cambia el diseño, se edita el script y se regenera. Los perfiles usan su
   propia imagen.
+  Los íconos (`favicon.svg`, `favicon.ico`, `apple-touch-icon.png`) son el
+  cuadro rojo inclinado sobre el fondo oscuro y salen de
+  `node scripts/favicon.mjs`.
 
 ## 5. Reglas de trabajo (personas y agentes)
 
