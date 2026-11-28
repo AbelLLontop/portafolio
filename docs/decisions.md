@@ -88,12 +88,12 @@ decisiones. Si cambiás una, actualizá la entrada en el mismo PR.
 - **El audio va en el repo** (`public/audio/`), comprimido (MP3 de 128-192
   kbps). Son pocas canciones; un servicio aparte sumaba configuración sin
   necesidad. Si la lista crece mucho, se reconsidera.
-- **La intro arranca sola, silenciada.** El navegador no deja sonar nada sin un
-  clic, pero sí reproducir en silencio: "Quién soy" arranca muda, su letra corre
-  igual, y el sonido se activa con la primera interacción en la página. Si ese
-  primer clic es sobre un play, no la pausa: la persona quería escucharla. Una
-  pista sin audio queda bloqueada (la intro sin audio correría sobre un reloj
-  propio).
+- **La intro arranca en pausa.** "Quién soy" queda cargada en la barra y suena
+  cuando la persona le da play. Antes arrancaba sola y silenciada (el navegador
+  no deja sonar nada sin un clic) y el sonido se activaba con el primer clic en
+  cualquier parte: la animación y la letra corrían mudas, y parecía que el audio
+  estaba roto. No volver al autoplay silenciado. Una pista sin audio queda
+  bloqueada (la intro sin audio correría sobre un reloj propio).
 - **Sin letra, el micrófono se bloquea.** Como en Spotify: no se abre una vista
   vacía. Las letras sincronizadas de las canciones van en otro PR.
 - **La letra va en formato LRC, en el cuerpo de cada `.md`.** Las palabras entre
