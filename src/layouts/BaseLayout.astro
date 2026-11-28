@@ -1,17 +1,18 @@
 ---
 import { ClientRouter } from "astro:transitions";
 import "../styles/global.css";
-import Header from "../components/layout/Header.astro";
-import Footer from "../components/layout/Footer.astro";
+import Library from "../components/layout/Library.astro";
+import Player from "../components/react/radio/Player.tsx";
 import { buildSeoMeta, SITE_NAME } from "../lib/seo.ts";
-import type { Lang } from "../i18n/index.ts";
-import type { Route } from "../i18n/routes.ts";
+import { getRadioTracks } from "../lib/radio.ts";
+import { pickStrings, useTranslations, type Lang } from "../i18n/index.ts";
+import { pathFor } from "../i18n/routes.ts";
 
 interface Props {
   title: string;
   lang: Lang;
-  /** Qué página es, para marcar la sección actual en la navegación. */
-  route: Route;
+  /** El id del perfil abierto, para marcarlo en la biblioteca. */
+  current?: string;
   description?: string;
   image?: string;
   imageAlt?: string;
@@ -19,8 +20,25 @@ interface Props {
   noindex?: boolean;
 }
 
-const { title, lang, route, description, image, imageAlt, noindex } =
+const { title, lang, current, description, image, imageAlt, noindex } =
   Astro.props;
+const t = useTranslations(lang);
+const tracks = await getRadioTracks();
+const playerStrings = pickStrings(lang, [
+  "player.play",
+  "player.pause",
+  "player.prev",
+  "player.next",
+  "player.lyrics",
+  "player.list",
+  "player.back",
+  "player.mute",
+  "player.unmute",
+  "player.volume",
+  "player.seek",
+  "player.intro",
+  "player.noLyrics",
+]);
 const seo = buildSeoMeta({
   title,
   url: Astro.url,
@@ -31,7 +49,7 @@ const seo = buildSeoMeta({
 });
 ---
 
-<html lang={lang} class="dark">
+<html lang={lang}>
   <head>
     <meta charset="utf-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -40,12 +58,12 @@ const seo = buildSeoMeta({
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Saira:wght@600;700;800&family=JetBrains+Mono:wght@400;500;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=IBM+Plex+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
     <meta name="viewport" content="width=device-width" />
     {/* Color de la barra del navegador en móvil: el sitio tiene un solo tema. */}
-    <meta name="theme-color" content="#09090b" />
+    <meta name="theme-color" content="#0c0c0e" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
 
@@ -83,24 +101,60 @@ const seo = buildSeoMeta({
     <meta name="twitter:image" content={seo.image} />
     <meta name="twitter:image:alt" content={seo.imageAlt} />
   </head>
-  <body class="flex min-h-screen flex-col">
-    <Header lang={lang} route={route} />
-    <div class="flex-1">
-      <slot />
+  <body>
+    <div class="app">
+      <header class="mobile-top">
+        <button
+          type="button"
+          class="mt-lib"
+          data-lib-toggle
+          aria-label={t("lib.open")}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <path d="M4 6h16M4 12h16M4 18h16"></path>
+          </svg>
+        </button>
+        <a class="mt-brand" href={pathFor("home", lang)}>
+          <i aria-hidden="true"></i>abelitolll
+        </a>
+      </header>
+      <Library lang={lang} current={current} />
+      <main class="stage" id="stage">
+        <slot />
+      </main>
+      {/* transition:persist: el reproductor no se vuelve a montar al navegar,
+          así la música y la letra siguen sonando entre páginas. */}
+      <div class="bar-slot" transition:persist="radio">
+        <Player
+          client:load
+          tracks={tracks}
+          strings={playerStrings}
+          listPath={pathFor("radio", lang)}
+        />
+      </div>
     </div>
-    <Footer lang={lang} />
     <script>
-      import { SWAP_CLASS } from "../lib/nav-flags.ts";
-
-      // Este módulo corre una sola vez en toda la sesión: el router reemplaza
-      // el <body>, pero no vuelve a ejecutar los scripts ya cargados. Por eso
-      // los listeners van sobre `document`, que sobrevive al swap.
-      document.addEventListener("astro:after-swap", () => {
-        // after-swap: el DOM nuevo ya está puesto y el navegador todavía no
-        // pintó, así que las clases llegan a tiempo y nada se revela por un
-        // frame antes de apagarse.
-        const root = document.documentElement;
-        root.classList.add(SWAP_CLASS);
+      // Cualquier fila con data-radio-row (la lista de la radio, las canciones
+      // de un experimento) le pide al reproductor que toque su pista; si ya
+      // suena, la pausa. Va acá, una sola vez para todo el sitio: si cada
+      // página trajera su listener, después de visitar dos se tocaría dos
+      // veces y la pista se pausaría sola.
+      document.addEventListener("click", (event) => {
+        const row = (event.target as Element).closest<HTMLButtonElement>(
+          "[data-radio-row]",
+        );
+        if (!row || row.disabled || !row.dataset.trackId) return;
+        window.dispatchEvent(
+          new CustomEvent("radio:play", {
+            detail: { id: row.dataset.trackId },
+          }),
+        );
       });
     </script>
     <script>

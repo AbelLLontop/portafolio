@@ -1,72 +1,453 @@
 @import "tailwindcss";
 @config "../../tailwind.config.mjs";
 
+/* ==========================================================================
+   abelitolll · el sello
+   El sitio es una ventana de reproductor: biblioteca a la izquierda, la vista
+   en el centro (con su propio scroll) y la barra de reproducción abajo. La
+   página nunca hace scroll entera.
+   ========================================================================== */
+
 :root {
-  --color-accent: #fb6161;
+  /* La carcasa: lo que rodea a la vista (biblioteca y barra). */
+  --shell: #0c0c0e;
+  --shell-2: #141417;
+  --shell-3: #1c1c20;
+  --shell-line: #222227;
 
-  /* tokens de "casco": neutrales y de estado, no acentos de marca.
-     El acento sigue siendo uno solo (--color-accent). */
-  --line: #1f2430;
-  --hull: #0d1117;
-  --hull-2: #141a24;
-  --dim: #a0aabb;
-  --faint: #7d889a;
-  --go: #5ee6a8;
+  /* Texto sobre la carcasa: cuatro niveles, ningún otro gris. */
+  --ink: #eeeae2;
+  --dim: #b4b1ab;
+  --mute: #86848c;
+  --faint: #55545b;
 
-  /* Superficies y velos que antes eran valores sueltos en cada componente. */
-  --bg: #09090b;
-  --bg-top: #0c0c10;
-  --bg-bottom: #0a0a0d;
-  --surface: #0c0c10;
-  --tint: rgb(255 255 255 / 0.02);
-  --tint-2: rgb(255 255 255 / 0.03);
-  --panel: rgb(8 12 19 / 0.82);
-  --panel-shadow:
-    0 30px 80px -40px rgb(0 0 0 / 0.95), inset 0 1px 0 rgb(255 255 255 / 0.04);
-  --sheen: #f4f4f5;
-  --star: #ffffff;
-  --on-accent: #09090b;
+  /* Un solo acento: el cuadro rojo que no encaja. */
+  --red: #d8382a;
+  --amber: #ffb347;
+
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+  --display: "Archivo", system-ui, sans-serif;
+
+  /* Medidas de la ventana: las usan el layout y la vista de letra. */
+  --lib-w: 272px;
+  --bar-h: 84px;
+  --top-h: 0px;
 }
 
-/* El fondo va en <html> y no en <body> a propósito, y los dos motivos
-   importan:
+/* Las paletas de los paneles. Cada uno elige la suya con una clase y todo lo
+   de adentro lee --bg / --fg / --line / --acc, así un mismo componente sirve
+   sobre papel, sobre tinta o de noche. */
+.theme-paper {
+  --bg: #ebe6db;
+  --fg: #18171a;
+  --soft: #3c3a40;
+  --mute: #6f6b63;
+  --line: #cdc7ba;
+  --acc: #d8382a;
+  --card: #e2dccf;
+  background: var(--bg);
+  color: var(--fg);
+}
 
-   1. Si en el futuro vuelve una capa de fondo en z-index negativo, en el
-      orden de pintado va DESPUÉS del fondo del elemento raíz pero ANTES del
-      fondo de un <body> normal: con el fondo en <body> quedaría tapada.
-   2. Entre dos documentos el navegador pinta el lienzo del <html>, así que
-      sin un color propio ahí el cambio de página se ve como un parpadeo.
+.theme-ink {
+  --bg: #161518;
+  --fg: #ebe6db;
+  --soft: #c6c2ba;
+  --mute: #8e8b85;
+  --line: #2c2b30;
+  --acc: #ff5a45;
+  --card: #1f1e22;
+  background: var(--bg);
+  color: var(--fg);
+}
 
-   Mientras <html> no declaraba fondo, el navegador propagaba el del <body>
-   al lienzo y las dos cosas funcionaban por accidente; al declararlo, esa
-   propagación se corta. Declarándolo acá quedan las dos a propósito. */
+.theme-night {
+  --bg: #110d18;
+  --fg: #f3ead7;
+  --soft: #d9cfbd;
+  --mute: #a097ad;
+  --line: #2b2338;
+  --acc: #ffb347;
+  --card: #1b1526;
+  background: var(--bg);
+  color: var(--fg);
+}
+
+* {
+  box-sizing: border-box;
+}
+
 html {
   color-scheme: dark;
-  background-color: var(--bg);
-  background-image:
-    radial-gradient(
-      ellipse 80% 50% at 15% 0%,
-      color-mix(in srgb, var(--color-accent) 10%, transparent),
-      transparent
-    ),
-    radial-gradient(
-      ellipse 60% 40% at 100% 20%,
-      color-mix(in srgb, var(--color-accent) 6%, transparent),
-      transparent
-    ),
-    linear-gradient(
-      180deg,
-      var(--bg-top) 0%,
-      var(--bg) 40%,
-      var(--bg-bottom) 100%
-    );
-  background-attachment: fixed;
+  background: var(--shell);
 }
 
-/* El router anima el cambio de página con las view transitions del navegador.
-   Astro ya apaga sus animaciones propias con menos movimiento, pero el morph
-   de un `transition:name` lo corre el navegador por su cuenta. */
+body {
+  margin: 0;
+  height: 100dvh;
+  overflow: hidden;
+  background: var(--shell);
+  color: var(--ink);
+  font-family: var(--display);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--red);
+  color: #fff;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------- ventana */
+
+.app {
+  display: grid;
+  grid-template-columns: var(--lib-w) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) var(--bar-h);
+  grid-template-areas: "lib stage" "bar bar";
+  height: 100dvh;
+}
+
+.app > .lib {
+  grid-area: lib;
+}
+
+.app > .stage {
+  grid-area: stage;
+  position: relative;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, currentColor 22%, transparent) transparent;
+}
+
+.app > .bar-slot {
+  grid-area: bar;
+  min-width: 0;
+}
+
+.mobile-top {
+  display: none;
+}
+
+.scroll {
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, currentColor 22%, transparent) transparent;
+}
+
+/* ---------------------------------------------------------------- piezas */
+
+.kicker {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+/* El titular gigante: Archivo con eje de ancho. --w lo elige cada uso. */
+.giant {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: -0.045em;
+  line-height: 0.84;
+  font-variation-settings: "wdth" var(--w, 62);
+}
+
+.giant .r {
+  color: var(--acc, var(--red));
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border: 1px solid var(--line, var(--shell-line));
+  border-radius: 999px;
+  background: none;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.btn:hover {
+  background: color-mix(in srgb, var(--fg, var(--ink)) 8%, transparent);
+}
+
+.btn.solid {
+  background: var(--fg);
+  color: var(--bg);
+  border-color: var(--fg);
+}
+
+.btn.solid:hover {
+  background: var(--acc);
+  border-color: var(--acc);
+  color: #000;
+}
+
+/* Botón redondo de play: el único lugar donde el acento es un relleno. */
+.pbig {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 56px;
+  height: 56px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--acc, var(--red));
+  color: #000;
+  cursor: pointer;
+}
+
+.pbig:hover {
+  filter: brightness(1.08);
+}
+
+.pbig svg {
+  width: 22px;
+  height: 22px;
+}
+
+/* Portada cuadrada pequeña (biblioteca, listas, barra). */
+.cov {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 42px;
+  height: 42px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #2a2a2e;
+  /* Para que la portada dibujada escale con el tamaño de la portada. */
+  container-type: inline-size;
+}
+
+.cov img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Portada tipográfica para lo que no tiene imagen propia. */
+.gencov {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  background: #18171a;
+  color: #ebe6db;
+  font-family: var(--display);
+  font-weight: 850;
+  font-size: 19cqw;
+  line-height: 0.85;
+  letter-spacing: -0.04em;
+  text-align: center;
+  text-transform: uppercase;
+  font-variation-settings: "wdth" 62;
+}
+
+.gencov b {
+  display: block;
+  color: var(--red);
+  font-weight: inherit;
+}
+
+/* La portada de la intro: el cuadro rojo sobre papel. */
+.introcov {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #ebe6db;
+}
+
+.introcov i {
+  width: 40%;
+  height: 40%;
+  background: var(--red);
+  transform: rotate(-9deg);
+}
+
+.badge {
+  justify-self: start;
+  padding: 3px 7px;
+  border: 1px solid var(--line, var(--shell-line));
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  white-space: nowrap;
+}
+
+.badge.live {
+  color: #59c27a;
+  border-color: #59c27a55;
+}
+
+.badge.ai {
+  color: var(--acc, var(--amber));
+  border-color: color-mix(in srgb, var(--acc, var(--amber)) 40%, transparent);
+}
+
+/* El logo de Los Vecinos (5x5 con el cuadro rojo torcido) usado solo como
+   arte. No se toca: el cuadro rojo late con lo que suena (--beat lo escribe
+   el reproductor, de 0 a 1). */
+.art5 {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  gap: 9%;
+  aspect-ratio: 1;
+  pointer-events: none;
+}
+
+.art5 i {
+  background: color-mix(in srgb, var(--fg, var(--ink)) 42%, transparent);
+}
+
+.art5 i.me {
+  background: var(--red);
+  transform: rotate(calc(-9deg + var(--beat, 0) * 7deg))
+    scale(calc(1 + var(--beat, 0) * 0.08));
+}
+
+/* ---------------------------------------------------------------- letra
+   Karaoke: la línea activa se rellena palabra por palabra (--p de 0% a 100%,
+   lo escribe la isla). Las palabras entre asteriscos en el .lrc van en el
+   acento. */
+
+.lyr .line {
+  display: block;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  line-height: 1.22;
+  color: color-mix(in srgb, var(--fg, var(--ink)) 26%, transparent);
+  transition: color 0.4s;
+}
+
+.lyr .line.past {
+  color: color-mix(in srgb, var(--fg, var(--ink)) 48%, transparent);
+}
+
+.lyr .w {
+  white-space: pre;
+}
+
+.lyr .line.now .w {
+  background: linear-gradient(
+    90deg,
+    var(--fg, var(--ink)) var(--p, 0%),
+    color-mix(in srgb, var(--fg, var(--ink)) 30%, transparent) var(--p, 0%)
+  );
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.lyr .line .w.acc,
+.lyr .line.now .w.acc {
+  background: none;
+  color: var(--acc, var(--red));
+}
+
+/* ---------------------------------------------------------------- texto largo
+   El cuerpo de los .mdx (Acerca de). */
+
+.prose {
+  max-width: 64ch;
+}
+
+.prose p {
+  margin: 0 0 16px;
+  font-family: system-ui, sans-serif;
+  font-size: 18px;
+  line-height: 1.62;
+  color: var(--soft);
+}
+
+.prose > p:first-child {
+  font-family: var(--display);
+  font-size: clamp(21px, 1.8vw, 26px);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: var(--fg);
+}
+
+.prose h2 {
+  margin: 32px 0 12px;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+}
+
+.prose strong {
+  color: var(--fg);
+}
+
+.prose a {
+  text-decoration-color: var(--acc);
+  text-underline-offset: 4px;
+}
+
+.prose ul {
+  margin: 0 0 16px;
+  padding-left: 1.2em;
+  color: var(--soft);
+}
+
+.prose code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: var(--card);
+  font-family: var(--mono);
+  font-size: 0.88em;
+}
+
+.prose pre {
+  overflow-x: auto;
+  padding: 16px;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
   ::view-transition-group(*),
   ::view-transition-old(*),
   ::view-transition-new(*) {
@@ -74,531 +455,369 @@ html {
   }
 }
 
-/* Sin fondo propio: lo pinta <html> (ver arriba). */
-body {
-  @apply text-zinc-100;
-}
-
-/* Ritmo vertical del inicio, una sola unidad. --section-y es la MITAD del
-   espacio entre dos secciones: cada sección pone esa mitad arriba y abajo, así
-   el hueco entre contenidos es siempre 2 × --section-y. El hero y todo lo
-   demás se mide con ella; si el espacio se ve desparejo, se cambia aquí y
-   no en cada componente. */
-:root {
-  --section-y: 3.5rem;
-}
-
-@media (min-width: 768px) {
+@media (max-width: 1280px) {
   :root {
-    --section-y: 5rem;
+    --lib-w: 232px;
   }
 }
 
-.section-y {
-  padding-block: var(--section-y);
-}
+/* ---------------------------------------------------------------- móvil
+   La biblioteca pasa a un cajón que se abre desde la barra de arriba. */
 
-.section-label {
-  @apply flex items-center gap-3 font-mono text-micro uppercase tracking-eyebrow;
-  color: var(--faint);
-}
+@media (max-width: 960px) {
+  :root {
+    --lib-w: 0px;
+    --bar-h: 72px;
+    --top-h: 56px;
+  }
 
-/* El filete arranca con un tramo corto de acento y se apaga en --line: el
-   mismo detalle en todas las etiquetas del sitio. */
-.section-label::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--color-accent) 55%, var(--line)),
-    var(--line) 3.5rem
-  );
-}
+  .app {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: var(--top-h) minmax(0, 1fr) var(--bar-h);
+    grid-template-areas: "top" "stage" "bar";
+  }
 
-/* El filete se dibuja de izquierda a derecha al entrar la etiqueta en
-   pantalla. Solo con scroll-driven animations (donde no existen, queda
-   dibujado entero) y sin preferencia de menos movimiento. */
-@media (prefers-reduced-motion: no-preference) {
-  @supports (animation-timeline: view()) {
-    .section-label::after {
-      transform-origin: left;
-      animation: rule-draw linear both;
-      animation-timeline: view();
-      animation-range: entry 0% entry 80%;
-    }
+  .mobile-top {
+    grid-area: top;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 14px;
+    border-bottom: 1px solid var(--shell-line);
   }
 }
 
-@keyframes rule-draw {
-  from {
-    transform: scaleX(0);
-  }
-}
+/* ---------------------------------------------------------------- reproductor
+   La barra de abajo y la vista de letra (Player.tsx). */
 
-/* La rejilla misma es el borde: gap de 1px sobre el color de linea,
-   asi las celdas no acumulan bordes dobles entre si. */
-.hull-grid {
+.bar {
   display: grid;
-  gap: 1px;
-  background: var(--line);
-  border: 1px solid var(--line);
-  @apply overflow-hidden rounded-xl;
+  grid-template-columns: minmax(0, 300px) minmax(0, 1fr) minmax(0, 300px);
+  align-items: center;
+  height: 100%;
+  padding: 0 18px;
+  border-top: 1px solid var(--shell-line);
+  background: #08080a;
 }
 
-.hull-cell {
-  background: color-mix(in srgb, var(--hull) 82%, transparent);
-  @apply min-w-0 p-4;
+.bar-now {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
 
-.hull-panel {
-  border: 1px solid var(--line);
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, var(--hull-2) 70%, transparent),
-    color-mix(in srgb, var(--hull) 70%, transparent)
-  );
-  @apply rounded-xl backdrop-blur-sm;
+.bar-now .cov {
+  width: 54px;
+  height: 54px;
 }
 
-::selection {
-  background-color: var(--color-accent);
-  color: var(--on-accent);
+.bar-title {
+  min-width: 0;
 }
 
-.post-chip {
-  @apply rounded-full px-2.5 py-1 font-mono text-micro uppercase tracking-label;
-  border: 1px solid color-mix(in srgb, var(--color-accent) 30%, var(--line));
-  background: color-mix(in srgb, var(--color-accent) 8%, transparent);
-  color: var(--color-accent);
+.bar-title b {
+  display: block;
+  overflow: hidden;
+  font-size: 15px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-/* ===========================================================
-   Cuerpo del post
-   =========================================================== */
-
-/* text-base, el mismo cuerpo de texto que el resto del sitio: el post se
-   distingue por ritmo (interlineado y aire entre bloques), no por tamanio. */
-.prose-post-body {
-  @apply text-base leading-[1.75] text-zinc-300;
+.bar-title small {
+  font-size: 12px;
+  color: var(--mute);
 }
 
-.prose-post-body > * + * {
-  @apply mt-5;
+.bar-center {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
 }
 
-/* Entradilla: el primer parrafo arranca mas claro, no mas grande. */
-.prose-post-body > p:first-child {
-  @apply text-zinc-100;
+.bar-controls {
+  display: flex;
+  align-items: center;
+  gap: 22px;
 }
 
-.prose-post-body h2,
-.prose-post-body h3 {
-  /* El header del post es sticky: sin este margen los saltos por hash
-     dejarian el heading debajo de el. */
-  scroll-margin-top: 7.5rem;
+.bar-controls button {
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--mute);
+  cursor: pointer;
 }
 
-.prose-post-body h2 {
-  @apply relative mt-16 pt-6 font-display text-2xl font-semibold tracking-[-0.01em] text-zinc-100 md:text-3xl;
-  border-top: 1px solid var(--line);
+.bar-controls button:hover {
+  color: var(--ink);
 }
 
-/* Marca de acento sobre la regla: separa secciones sin meter otro borde. */
-.prose-post-body h2::before {
-  content: "";
+.bar-controls svg {
+  width: 18px;
+  height: 18px;
+}
+
+.bar-controls .bar-pp {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: #000;
+}
+
+.bar-controls .bar-pp:hover {
+  color: #000;
+}
+
+.bar-controls .bar-pp svg {
+  width: 16px;
+  height: 16px;
+}
+
+.bar-scrub {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: min(560px, 100%);
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--mute);
+}
+
+.bar-bars {
+  display: flex;
+  flex: 1;
+  align-items: flex-end;
+  gap: 3px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.bar-bars i {
+  flex: 1;
+  border-radius: 1px;
+  background: #2a2a30;
+}
+
+.bar-bars i.on {
+  background: var(--ink);
+}
+
+.bar-right {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}
+
+.bar-icon {
+  display: grid;
+  place-items: center;
+  padding: 6px;
+  border: 0;
+  background: none;
+  color: var(--mute);
+  cursor: pointer;
+}
+
+.bar-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+.bar-icon:hover,
+.bar-icon[aria-pressed="true"] {
+  color: var(--red);
+}
+
+.bar-vol {
+  width: 90px;
+  accent-color: var(--ink);
+}
+
+.lyrics-view {
+  position: fixed;
+  top: var(--top-h);
+  left: var(--lib-w);
+  right: 0;
+  bottom: var(--bar-h);
+  z-index: 30;
+  --fg: #f4f1ea;
+  --acc: #ff5a45;
+  color: var(--fg);
+  background:
+    radial-gradient(70% 60% at 75% 25%, rgb(216 56 42 / 0.28), transparent 70%),
+    #0e0d10;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(24px);
+  transition:
+    opacity 0.35s,
+    transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.lyrics-view.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: none;
+}
+
+.lv-top {
   position: absolute;
-  top: -1px;
+  top: 0;
   left: 0;
-  width: 2.5rem;
-  height: 1px;
-  background: var(--color-accent);
-  box-shadow: 0 0 8px var(--color-accent);
+  right: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 24px;
+  background: linear-gradient(#0e0d10 60%, transparent);
 }
 
-.prose-post-body h3 {
-  @apply relative mt-10 font-display text-xl font-semibold tracking-[-0.01em] text-zinc-100;
+.lv-top .cov {
+  width: 44px;
+  height: 44px;
 }
 
-/* El ancla por heading la inyecta el script del layout del post sobre los
-   ids que ya genera Astro, los mismos que consume el indice. */
-.heading-anchor {
-  @apply absolute right-full hidden pr-3 font-mono text-base no-underline opacity-0 transition-opacity duration-200 lg:block;
-  color: var(--color-accent);
+.lv-title b {
+  display: block;
+  font-size: 15px;
 }
 
-.prose-post-body :is(h2, h3):hover .heading-anchor,
-.heading-anchor:focus-visible {
-  @apply opacity-100;
+.lv-title small {
+  font-size: 12px;
+  color: #8d8a93;
 }
 
-.prose-post-body a:not(.heading-anchor) {
-  @apply text-accent underline underline-offset-4 transition-opacity hover:opacity-80;
-  text-decoration-color: color-mix(
-    in srgb,
-    var(--color-accent) 50%,
-    transparent
-  );
+.lv-tag {
+  padding: 3px 7px;
+  border: 1px solid #ff5a4566;
+  border-radius: 4px;
+  color: #ff5a45;
+  font-family: var(--mono);
+  font-size: 10.5px;
 }
 
-/* ---------- Listas ---------- */
-
-.prose-post-body ul {
-  @apply list-none pl-6;
+.lv-close {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 9px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: #1f1d22;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
 }
 
-.prose-post-body ul > li {
-  @apply relative;
+.lv-close svg {
+  width: 14px;
+  height: 14px;
 }
 
-.prose-post-body ul > li::before {
-  content: "";
+.lv-close:hover {
+  background: #f4f1ea;
+  color: #000;
+}
+
+.lv-close kbd {
+  padding: 1px 5px;
+  border: 1px solid #555;
+  border-radius: 3px;
+  color: #999;
+  font-family: var(--mono);
+  font-size: 10px;
+}
+
+.lv-body {
   position: absolute;
-  left: -1.1rem;
-  top: 0.72em;
-  width: 5px;
-  height: 5px;
-  rotate: 45deg;
-  background: color-mix(in srgb, var(--color-accent) 70%, transparent);
+  inset: 0;
+  overflow-y: auto;
+  padding: 18vh 7vw 40vh;
+  scrollbar-width: none;
 }
 
-.prose-post-body ol {
-  @apply list-decimal pl-6;
+.lv-body .line {
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font-size: clamp(30px, 3.8vw, 58px);
+  line-height: 1.08;
+  text-align: left;
+  cursor: pointer;
 }
 
-.prose-post-body ol > li::marker {
-  @apply font-mono text-[0.85em];
-  color: var(--color-accent);
+.lv-empty {
+  font-size: 22px;
+  color: #8d8a93;
 }
 
-.prose-post-body li {
-  @apply text-zinc-300;
-}
+@media (max-width: 960px) {
+  .bar {
+    grid-template-columns: minmax(0, 1fr) auto auto;
+    gap: 10px;
+    padding: 0 12px;
+  }
 
-.prose-post-body li + li {
-  @apply mt-2;
-}
+  .bar-scrub,
+  .bar-vol,
+  .bar-vol-btn {
+    display: none;
+  }
 
-.prose-post-body li > ul,
-.prose-post-body li > ol {
-  @apply mt-2;
-}
+  .bar-center {
+    justify-items: end;
+  }
 
-/* ---------- Nota al margen ---------- */
+  .bar-controls {
+    gap: 14px;
+  }
 
-.prose-post-body blockquote {
-  @apply rounded-lg px-5 py-4;
-  border: 1px solid var(--line);
-  border-left: 2px solid var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 4%, var(--hull));
-  color: var(--dim);
-}
-
-.prose-post-body blockquote > * + * {
-  @apply mt-3;
-}
-
-.prose-post-body hr {
-  @apply my-12 border-0;
-  border-top: 1px solid var(--line);
-}
-
-.prose-post-body strong {
-  @apply font-semibold text-zinc-100;
-}
-
-/* ---------- Codigo en linea ---------- */
-
-.prose-post-body code {
-  @apply rounded px-[0.3rem] py-[0.1rem] font-mono text-[0.86em] text-accent;
-  background: color-mix(in srgb, var(--color-accent) 9%, var(--hull));
-  border: 1px solid color-mix(in srgb, var(--color-accent) 16%, transparent);
-}
-
-/* ---------- Tablas ---------- */
-
-/* .table-wrap lo pone el script del layout: sin el, una tabla ancha
-   desborda la columna en movil en vez de hacer scroll dentro de su marco. */
-.table-wrap {
-  @apply my-6 overflow-x-auto rounded-xl;
-  border: 1px solid var(--line);
-  /* Mismo panel que los bloques de codigo y la consola del inicio. */
-  background: var(--panel);
-  backdrop-filter: blur(12px);
-  box-shadow: var(--panel-shadow);
-}
-
-.prose-post-body table {
-  @apply w-full border-collapse text-left text-sm;
-}
-
-.prose-post-body th {
-  @apply whitespace-nowrap px-4 py-2.5 font-mono text-micro font-medium uppercase tracking-label;
-  /* Transparente: la cabecera comparte el fondo del marco, como la barra de
-     los bloques de codigo. */
-  background: transparent;
-  color: var(--faint);
-  border-bottom: 1px solid var(--line);
-}
-
-.prose-post-body td {
-  @apply px-4 py-2.5 align-top text-zinc-300;
-  border-top: 1px solid color-mix(in srgb, var(--line) 70%, transparent);
-}
-
-.prose-post-body tbody tr {
-  @apply transition-colors;
-}
-
-.prose-post-body tbody tr:hover {
-  background: color-mix(in srgb, var(--color-accent) 4%, transparent);
-}
-
-.prose-post-body tbody tr:first-child td {
-  border-top: 0;
-}
-
-.prose-post-body td:first-child {
-  @apply font-medium text-zinc-100;
-}
-
-/* ===========================================================
-   Bloques de codigo
-   =========================================================== */
-
-/* El <pre> ya trae el marco y el hueco de la barra desde el CSS, y el
-   script solo lo envuelve y superpone la barra encima: asi el bloque no
-   cambia de alto al hidratar (nada de salto al cargar la nota). */
-.prose-post-body pre.astro-code {
-  @apply overflow-x-auto rounded-xl px-4 pb-4 font-mono text-sm leading-[1.7];
-  padding-top: 2.9rem;
-  border: 1px solid var(--line);
-  /* Mismo panel que la consola del inicio (TerminalHero): fondo translucido,
-     blur del fondo y la sombra interior de 1px que lo lee como pieza fisica. */
-  background: rgb(8 12 19 / 0.82) !important;
-  backdrop-filter: blur(12px);
-  box-shadow:
-    0 30px 80px -40px rgb(0 0 0 / 0.95),
-    inset 0 1px 0 rgb(255 255 255 / 0.04);
-  color: #f4f4f5;
-  transition: border-color 0.25s ease;
-  scrollbar-width: thin;
-  scrollbar-color: color-mix(in srgb, var(--color-accent) 30%, transparent)
-    transparent;
-}
-
-.code-block {
-  @apply relative my-6;
-}
-
-.code-block:hover pre.astro-code {
-  border-color: color-mix(in srgb, var(--color-accent) 32%, var(--line));
-}
-
-/* El codigo en linea se mide en em (relativo al parrafo), asi que dentro
-   del <pre> encogeria el bloque: aca vuelve a tomar el tamanio del <pre>. */
-.prose-post-body pre code {
-  @apply border-0 bg-transparent p-0 text-inherit;
-  font-size: inherit;
-}
-
-.prose-post-body pre.astro-code::-webkit-scrollbar {
-  height: 8px;
-}
-
-.prose-post-body pre.astro-code::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-.prose-post-body pre.astro-code::-webkit-scrollbar-thumb {
-  @apply rounded-full;
-  background: color-mix(in srgb, var(--color-accent) 22%, transparent);
-}
-
-.prose-post-body pre.astro-code:hover::-webkit-scrollbar-thumb {
-  background: color-mix(in srgb, var(--color-accent) 45%, transparent);
-}
-
-/* La barra va fuera del <pre> y en absoluto: dentro quedaria enganchada al
-   scroll horizontal del codigo y se iria de pantalla al desplazarlo. */
-.code-chrome {
-  @apply pointer-events-none absolute inset-x-px top-px flex h-[2.1rem] items-center justify-between gap-3 rounded-t-[0.7rem] px-3.5;
-  border-bottom: 1px solid var(--line);
-  /* Transparente a proposito: la barra comparte el fondo del <pre>, igual que
-     la cabecera de la consola del inicio. */
-  background: transparent;
-}
-
-.code-chrome > * {
-  @apply pointer-events-auto;
-}
-
-.code-id {
-  @apply flex min-w-0 items-center gap-2.5;
-}
-
-/* Los tres puntos de la consola del inicio: el primero toma el color del
-   lenguaje, los otros dos quedan apagados. */
-.code-dot {
-  @apply h-2.5 w-2.5 shrink-0 rounded-full;
-  background: var(--faint);
-}
-
-.code-dot-idle {
-  @apply h-2.5 w-2.5 shrink-0 rounded-full;
-  background: var(--line);
-}
-
-.code-lang {
-  @apply ml-1.5 truncate font-mono text-micro uppercase tracking-label;
-  color: var(--faint);
-}
-
-.code-block[data-lang="bash"] .code-dot {
-  background: #a3e635;
-}
-
-.code-block[data-lang="js"] .code-dot {
-  background: #facc15;
-}
-
-.code-block[data-lang="yaml"] .code-dot {
-  background: #c084fc;
-}
-
-.code-block[data-lang="nginx"] .code-dot {
-  background: #4ade80;
-}
-
-.code-block[data-lang="sql"] .code-dot {
-  background: #38bdf8;
-}
-
-.code-block[data-lang="dockerfile"] .code-dot {
-  background: #60a5fa;
-}
-
-.code-block[data-lang="html"] .code-dot {
-  background: #fb923c;
-}
-
-/* ---------- Boton de copiar ---------- */
-
-.code-copy {
-  @apply relative grid h-7 w-7 shrink-0 cursor-pointer place-items-center rounded-md border-0 bg-transparent opacity-55 transition;
-  color: var(--dim);
-}
-
-.code-block:hover .code-copy,
-.code-copy:focus-visible,
-.code-copy[data-state="copied"],
-.code-copy[data-state="error"] {
-  @apply opacity-100;
-}
-
-.code-copy:hover {
-  color: var(--color-accent);
-  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
-}
-
-/* Sin hover (tactil) el boton nunca se revelaria: ahi va siempre visible. */
-@media (hover: none) {
-  .code-copy {
-    @apply opacity-100;
+  .lv-body {
+    padding: 14vh 6vw 40vh;
   }
 }
 
-.code-copy svg {
-  @apply absolute h-[15px] w-[15px] transition-all duration-200;
+.mt-lib {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--shell-line);
+  border-radius: 8px;
+  background: none;
+  cursor: pointer;
 }
 
-.code-copy .icon-check {
-  @apply scale-50 opacity-0;
+.mt-lib svg {
+  width: 18px;
+  height: 18px;
 }
 
-.code-copy[data-state="copied"] {
-  color: var(--go);
-  background: color-mix(in srgb, var(--go) 14%, transparent);
+.mt-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 18px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-decoration: none;
 }
 
-.code-copy[data-state="copied"] .icon-copy {
-  @apply scale-50 opacity-0;
-}
-
-.code-copy[data-state="copied"] .icon-check {
-  @apply scale-100 opacity-100;
-}
-
-.code-copy[data-state="error"] {
-  color: #fb7185;
-}
-
-/* El texto que antes vivia dentro del boton pasa a este globo: el boton se
-   queda solo con el icono, como en cualquier consola moderna. */
-.code-copy::after {
-  content: attr(data-tip);
-  @apply pointer-events-none absolute right-0 top-[calc(100%+0.4rem)] z-10 whitespace-nowrap rounded px-2 py-1 font-mono text-micro uppercase tracking-label opacity-0 transition-opacity duration-150;
-  border: 1px solid var(--line);
-  background: var(--surface);
-  color: var(--dim);
-}
-
-.code-copy:hover::after,
-.code-copy:focus-visible::after,
-.code-copy[data-state="copied"]::after,
-.code-copy[data-state="error"]::after {
-  @apply opacity-100;
-}
-
-/* ===========================================================
-   Indice del post
-   =========================================================== */
-
-.toc {
-  @apply relative pl-3;
-  border-left: 1px solid var(--line);
-}
-
-/* --toc-fill lo escribe el script del indice: el espinazo llega siempre
-   justo hasta el pip del item activo. No mide el scroll de la pagina (de
-   eso ya se ocupan la barra de arriba y el riel de altitud), porque dos
-   marcas midiendo cosas distintas sobre la misma linea se separaban. */
-.toc::after {
-  content: "";
-  @apply absolute left-[-1px] top-0 w-px;
-  height: var(--toc-fill, 0px);
-  /* background: var(--color-accent); */
-  /* box-shadow: 0 0 8px var(--color-accent); */
-  /* transition: height 0.2s ease; */
-}
-
-/* text-sm, igual que el resumen de cada fila del listado: el indice ya no
-   suma dos tamanios propios al sitio y la profundidad la marca la sangria. */
-.toc-link {
-  @apply -ml-3 block border-l-2 border-transparent py-1 pl-3 text-sm leading-snug transition-colors duration-200;
-  color: var(--faint);
-}
-
-.toc-link:hover {
-  @apply text-zinc-300;
-}
-
-.toc-link[data-depth="3"] {
-  @apply pl-6;
-}
-
-.toc-link {
-  @apply relative;
-}
-
-.toc-link.is-active {
-  @apply border-accent text-accent;
-}
-
-/* Pip sobre el espinazo: marca donde va la lectura, igual que el del HUD. */
-.toc-link.is-active::before {
-  content: "";
-  @apply absolute left-[-4px] top-1/2 block h-[6px] w-[6px] -translate-y-1/2 rounded-full;
-  background: var(--color-accent);
-  box-shadow: 0 0 10px var(--color-accent);
+.mt-brand i {
+  width: 14px;
+  height: 14px;
+  background: var(--red);
+  transform: rotate(-9deg);
 }

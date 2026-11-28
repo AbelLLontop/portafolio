@@ -1,0 +1,351 @@
+---
+// La biblioteca: la columna izquierda con todo el catálogo. Escala a muchos
+// elementos porque tiene buscador y filtros, y su lista tiene scroll propio.
+// En el celular es un cajón que se abre desde la barra de arriba.
+import Avatar from "../astro/Avatar.astro";
+import { getCatalog } from "../../lib/catalog.ts";
+import { interpolate, useTranslations, type Lang } from "../../i18n/index.ts";
+import { pathFor } from "../../i18n/routes.ts";
+
+interface Props {
+  lang: Lang;
+  /** El id del perfil abierto, para marcarlo. */
+  current?: string;
+}
+
+const { lang, current } = Astro.props;
+const t = useTranslations(lang);
+const items = await getCatalog(lang);
+
+const filters = [
+  ["all", t("lib.all")],
+  ["project", t("lib.projects")],
+  ["experiment", t("lib.experiments")],
+] as const;
+---
+
+<aside class="lib" id="library" aria-label={t("lib.label")}>
+  <a class="lib-brand" href={pathFor("home", lang)}>
+    <i aria-hidden="true"></i>abelitolll<small>{t("lib.label")}</small>
+  </a>
+
+  <label class="lib-search">
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2.4"
+      aria-hidden="true"
+    >
+      <circle cx="11" cy="11" r="7"></circle>
+      <path d="m20 20-4-4"></path>
+    </svg>
+    <span class="sr-only">{t("lib.search")}</span>
+    <input
+      type="search"
+      placeholder={t("lib.search")}
+      data-lib-search
+      autocomplete="off"
+    />
+  </label>
+
+  <div class="lib-filters" role="group" aria-label={t("lib.filter")}>
+    {filters.map(([key, label]) => (
+      <button
+        type="button"
+        data-lib-filter={key}
+        aria-pressed={key === "all" ? "true" : "false"}
+      >
+        {label}
+      </button>
+    ))}
+  </div>
+
+  <ul class="lib-items scroll">
+    {items.map((item) => (
+      <li data-kind={item.kind} data-name={item.title.toLowerCase()}>
+        <a
+          class="lib-item"
+          href={item.href}
+          aria-current={item.id === current ? "page" : undefined}
+        >
+          <Avatar image={item.avatar} alt="" title={item.title} size={84} />
+          <span class="lib-text">
+            <b>{item.title}</b>
+            <small>
+              {t(item.kind === "project" ? "lib.project" : "lib.experiment")} ·{" "}
+              {item.date.getUTCFullYear()}
+            </small>
+          </span>
+        </a>
+      </li>
+    ))}
+    <li class="lib-empty" data-lib-empty hidden>
+      {t("lib.empty")}
+    </li>
+  </ul>
+
+  <p class="lib-foot" data-lib-count={t("lib.count")}>
+    {interpolate(t("lib.count"), { count: items.length })}
+  </p>
+</aside>
+
+<style>
+  .lib {
+    display: grid;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+    min-height: 0;
+    border-right: 1px solid var(--shell-line);
+    background: var(--shell);
+  }
+
+  .lib-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 20px 14px;
+    font-size: 19px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+
+  .lib-brand i {
+    width: 16px;
+    height: 16px;
+    background: var(--red);
+    transform: rotate(-9deg);
+  }
+
+  .lib-brand small {
+    margin-left: auto;
+    font-family: var(--mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+
+  .lib-search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 14px 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    background: var(--shell-2);
+  }
+
+  .lib-search svg {
+    width: 14px;
+    height: 14px;
+    opacity: 0.5;
+  }
+
+  .lib-search input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    background: none;
+    font-size: 13px;
+    outline: none;
+  }
+
+  .lib-search:focus-within {
+    outline: 2px solid var(--red);
+    outline-offset: 1px;
+  }
+
+  .lib-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 0 14px 10px;
+  }
+
+  .lib-filters button {
+    padding: 5px 11px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--shell-2);
+    color: var(--mute);
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .lib-filters button[aria-pressed="true"] {
+    background: var(--ink);
+    color: #000;
+  }
+
+  .lib-items {
+    min-height: 0;
+    margin: 0;
+    padding: 0 8px 10px;
+    list-style: none;
+  }
+
+  .lib-item {
+    display: grid;
+    grid-template-columns: 42px minmax(0, 1fr);
+    gap: 11px;
+    align-items: center;
+    padding: 7px 8px;
+    border-radius: 8px;
+    text-decoration: none;
+  }
+
+  .lib-item:hover {
+    background: var(--shell-2);
+  }
+
+  .lib-item[aria-current="page"] {
+    background: var(--shell-3);
+  }
+
+  .lib-item[aria-current="page"] b {
+    color: var(--red);
+  }
+
+  .lib-text b {
+    display: block;
+    overflow: hidden;
+    font-size: 14px;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .lib-text small {
+    font-size: 11.5px;
+    color: var(--mute);
+  }
+
+  .lib-empty {
+    padding: 12px;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--mute);
+  }
+
+  .lib-foot {
+    margin: 0;
+    padding: 12px 20px;
+    border-top: 1px solid var(--shell-line);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--mute);
+  }
+
+  @media (max-width: 960px) {
+    .lib {
+      position: fixed;
+      top: var(--top-h);
+      bottom: var(--bar-h);
+      left: 0;
+      z-index: 40;
+      width: min(320px, 86vw);
+      transform: translateX(-100%);
+      transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    :global(html.lib-open) .lib {
+      transform: none;
+      box-shadow: 0 0 0 100vmax rgb(0 0 0 / 0.55);
+    }
+
+    .lib-brand {
+      display: none;
+    }
+
+    .lib-search {
+      margin-top: 14px;
+    }
+  }
+</style>
+
+<script>
+  // Con el router este módulo corre una sola vez: todo cuelga de `document`.
+  // La biblioteca se vuelve a dibujar en cada página, así que el filtro y la
+  // búsqueda se aplican sobre la que esté en pantalla.
+  let query = "";
+  let kind = "all";
+
+  const apply = () => {
+    const rows = document.querySelectorAll<HTMLElement>(
+      ".lib-items li[data-kind]",
+    );
+    let shown = 0;
+    rows.forEach((row) => {
+      const visible =
+        (kind === "all" || row.dataset.kind === kind) &&
+        (row.dataset.name ?? "").includes(query);
+      row.hidden = !visible;
+      if (visible) shown++;
+    });
+    const empty = document.querySelector<HTMLElement>("[data-lib-empty]");
+    if (empty) empty.hidden = shown > 0;
+    // El texto con el marcador viaja en data-*: este script no ve el diccionario.
+    const count = document.querySelector<HTMLElement>("[data-lib-count]");
+    if (count) {
+      count.textContent = (count.dataset.libCount ?? "").replace(
+        "{count}",
+        String(shown),
+      );
+    }
+    document
+      .querySelectorAll<HTMLElement>("[data-lib-filter]")
+      .forEach((button) => {
+        button.setAttribute(
+          "aria-pressed",
+          String(button.dataset.libFilter === kind),
+        );
+      });
+    const input = document.querySelector<HTMLInputElement>("[data-lib-search]");
+    if (input && input.value !== query) input.value = query;
+  };
+
+  document.addEventListener("input", (event) => {
+    const input = (event.target as Element).closest<HTMLInputElement>(
+      "[data-lib-search]",
+    );
+    if (!input) return;
+    query = input.value.trim().toLowerCase();
+    apply();
+  });
+
+  document.addEventListener("click", (event) => {
+    const target = event.target as Element;
+    const filter = target.closest<HTMLElement>("[data-lib-filter]");
+    if (filter) {
+      kind = filter.dataset.libFilter ?? "all";
+      apply();
+      return;
+    }
+    // "ver todo" del inicio: filtra la biblioteca en vez de abrir otra página.
+    const show = target.closest<HTMLElement>("[data-show-kind]");
+    if (show) {
+      kind = show.dataset.showKind ?? "all";
+      apply();
+      document.documentElement.classList.add("lib-open");
+      return;
+    }
+    // Cajón del celular.
+    if (target.closest("[data-lib-toggle]")) {
+      document.documentElement.classList.toggle("lib-open");
+      return;
+    }
+    if (
+      document.documentElement.classList.contains("lib-open") &&
+      !target.closest(".lib")
+    ) {
+      document.documentElement.classList.remove("lib-open");
+    }
+  });
+
+  document.addEventListener("astro:page-load", apply);
+  document.addEventListener("astro:after-swap", () =>
+    document.documentElement.classList.remove("lib-open"),
+  );
+</script>

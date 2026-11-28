@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { interpolate } from "./interpolate.ts";
 import { isLang, LANGS, pickStrings, useTranslations } from "./index.ts";
-import { NAV_ROUTES, PATHS, pathFor } from "./routes.ts";
+import { PATHS, pathFor } from "./routes.ts";
 import { ui } from "./ui.ts";
 
 describe("diccionario", () => {
@@ -53,9 +53,9 @@ describe("rutas", () => {
     expect(() => pathFor("project", "es")).toThrow();
   });
 
-  it("toda ruta del nav existe en el mapa", () => {
-    for (const route of NAV_ROUTES) {
-      expect(PATHS[route].es).toBeTruthy();
+  it("toda ruta fija existe en el mapa", () => {
+    for (const route of Object.keys(PATHS) as (keyof typeof PATHS)[]) {
+      expect(pathFor(route, "es")).toBe(PATHS[route].es);
     }
   });
 });

@@ -2,7 +2,7 @@
 import { getImage } from "astro:assets";
 import { render } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import ProjectBody from "../../components/pages/ProjectBody.astro";
+import ProfileBody from "../../components/pages/ProfileBody.astro";
 import { getPublishedProjects } from "../../lib/projects.ts";
 import { pageTitle } from "../../lib/seo.ts";
 
@@ -31,11 +31,11 @@ const share = await getImage({
   title={pageTitle(project.data.title)}
   description={project.data.summary}
   lang={lang}
-  route="project"
+  current={project.id}
   image={share.src}
   imageAlt={project.data.coverAlt}
 >
-  <ProjectBody project={project} lang={lang}>
+  <ProfileBody entry={project} lang={lang}>
     <Content />
-  </ProjectBody>
+  </ProfileBody>
 </BaseLayout>

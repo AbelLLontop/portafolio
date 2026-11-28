@@ -1,32 +1,25 @@
 // Mapa de rutas.
 //
-// Es la unica fuente de verdad de los paths del sitio: de aca salen la
-// navegacion y los enlaces internos. Va indexado por idioma aunque hoy solo
-// exista el espaniol, para que sumar el ingles despues no obligue a tocar cada
-// enlace.
+// Es la unica fuente de verdad de los paths del sitio: de aca salen los
+// enlaces internos. Va indexado por idioma aunque hoy solo exista el espaniol,
+// para que sumar el ingles despues no obligue a tocar cada enlace.
 import type { Lang } from "./index.ts";
 
 export const PATHS = {
   home: { es: "/" },
+  /** La lista de canciones de la radio. */
+  radio: { es: "/radio" },
+  /** Base de los perfiles de proyecto (no hay listado: lo hace la biblioteca). */
   projects: { es: "/proyectos" },
+  /** Base de los perfiles de experimento. */
   experiments: { es: "/experimentos" },
 } as const;
 
-/** Rutas fijas, las que aparecen en la navegacion. */
+/** Rutas fijas. */
 export type StaticRoute = keyof typeof PATHS;
 
 /** `project` y `experiment` son las rutas dinamicas: necesitan su slug. */
-export type Route = StaticRoute | "experiment" | "project" | "notFound";
-
-/** Las entradas de la navegacion, en orden. El label sale del diccionario. */
-export const NAV_ROUTES = [
-  "home",
-  "projects",
-  "experiments",
-] as const satisfies readonly StaticRoute[];
-
-/** Las entradas del pie, mas cortas que las del header. */
-export const FOOTER_ROUTES = NAV_ROUTES;
+export type Route = StaticRoute | "experiment" | "project";
 
 /** Path de una ruta. Para `project` y `experiment` hace falta el slug. */
 export function pathFor(route: Route, lang: Lang, slug?: string): string {
@@ -37,9 +30,6 @@ export function pathFor(route: Route, lang: Lang, slug?: string): string {
     const base = route === "experiment" ? "experiments" : "projects";
     return `${PATHS[base][lang]}/${slug}`;
   }
-
-  // El 404 no tiene URL propia.
-  if (route === "notFound") return PATHS.home[lang];
 
   return PATHS[route][lang];
 }

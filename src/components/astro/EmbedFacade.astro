@@ -94,7 +94,7 @@ const {
     overflow: hidden;
     border: 1px solid var(--line);
     border-radius: 0.5rem;
-    background: var(--surface);
+    background: var(--card);
   }
 
   .embed-video {
@@ -114,13 +114,13 @@ const {
   }
 
   .embed-play:focus-visible {
-    outline: 2px solid var(--color-accent);
+    outline: 2px solid var(--acc);
     outline-offset: -2px;
   }
 
   /* El borde de acento al pasar el mouse es el unico hover: nada se mueve. */
   .embed:hover {
-    border-color: var(--color-accent);
+    border-color: var(--acc);
   }
 
   .embed-video .embed-thumb {
@@ -163,8 +163,8 @@ const {
   }
 
   .embed:hover .embed-icon {
-    background: var(--color-accent);
-    color: var(--on-accent);
+    background: var(--acc);
+    color: #000;
   }
 
   .embed-video .embed-icon {
@@ -188,14 +188,14 @@ const {
     flex: 1;
     min-width: 0;
     font-size: 0.95rem;
-    color: var(--color-zinc-100);
+    color: var(--fg);
   }
 
   /* Tarjeta con identidad de plataforma: el logo en su color de marca sobre un
      cuadro teñido con ese mismo color, y el nombre grande. Sin --brand
      (plataforma desconocida) vale el acento del sitio. */
   .embed {
-    --brand: var(--color-accent);
+    --brand: var(--acc);
   }
 
   .embed-audio .embed-brand {
@@ -227,12 +227,12 @@ const {
     font-size: 1.15rem;
     font-weight: 700;
     line-height: 1.2;
-    color: var(--color-zinc-100);
+    color: var(--fg);
   }
 
   .embed-text .embed-title {
     font-size: 0.75rem;
-    color: var(--dim);
+    color: var(--mute);
   }
 
   .embed-audio:has(.embed-brand):hover {
@@ -283,6 +283,10 @@ const {
     // alto pedido. El reproductor de Spotify elige su diseño según ese alto y
     // con 350 en vez de 352 cae a una tarjeta horizontal con un hueco debajo.
     if (height) embed.style.height = `${Number(height) + 2}px`;
+
+    // Lo de afuera suena por su cuenta: se pausa la radio del sitio para que
+    // no se pisen.
+    window.dispatchEvent(new Event("radio:pause"));
 
     button.replaceWith(iframe);
     iframe.focus();

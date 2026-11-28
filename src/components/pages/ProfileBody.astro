@@ -1,0 +1,1397 @@
+---
+// El perfil de un "artista" del sello: un proyecto o un experimento. Es la
+// misma página para los dos; lo que cambia son las secciones, que salen de
+// los datos. Una sección sin datos no se muestra.
+//
+// Las secciones van en pestañas: cada una es un panel completo, y la pestaña
+// elegida queda en la URL (#como-se-hizo) para poder compartirla.
+import { Image } from "astro:assets";
+import Avatar from "../astro/Avatar.astro";
+import EmbedFacade from "../astro/EmbedFacade.astro";
+import { getRadioTracks } from "../../lib/radio.ts";
+import { formatTime } from "../../lib/player.ts";
+import {
+  platformColor,
+  platformHost,
+  platformIcon,
+} from "../../lib/platform-icons.ts";
+import {
+  soundcloudEmbedUrl,
+  spotifyEmbedUrl,
+  youtubeEmbedUrl,
+  youtubeThumbUrl,
+} from "../../lib/embeds.ts";
+import type { Experiment } from "../../lib/experiments.ts";
+import type { Project } from "../../lib/projects.ts";
+import { interpolate, useTranslations, type Lang } from "../../i18n/index.ts";
+
+interface Props {
+  entry: Project | Experiment;
+  lang: Lang;
+}
+
+const { entry, lang } = Astro.props;
+const t = useTranslations(lang);
+
+const exp = entry.collection === "experiments" ? entry.data : null;
+const proj = entry.collection === "projects" ? entry.data : null;
+const data = entry.data;
+
+// Sin imagen de cabecera, la cabecera es tipográfica (el nombre en gigante).
+const banner = exp ? exp.banner : (proj!.banner ?? null);
+const bannerAlt = exp ? exp.bannerAlt : (proj!.bannerAlt ?? "");
+const avatar = exp ? exp.avatar : (proj!.avatar ?? null);
+const avatarAlt = exp ? exp.avatarAlt : (proj!.avatarAlt ?? "");
+const theme = exp ? "theme-night" : "theme-ink";
+
+const role = exp
+  ? `${t("profile.experiment")}${exp.ai ? ` · ${t("status.aiLong")}` : ""}`
+  : `${t("profile.project")} · ${t(proj!.status === "live" ? "status.live" : "status.building")}`;
+
+// Enlaces afuera: los del experimento, o el código y el sitio del proyecto.
+const links = exp
+  ? exp.links
+  : [
+      ...(proj!.liveUrl
+        ? [{ label: t("profile.live"), url: proj!.liveUrl }]
+        : []),
+      ...(proj!.repoUrl
+        ? [{ label: t("profile.code"), url: proj!.repoUrl }]
+        : []),
+    ];
+
+// Las canciones de la radio que son de este experimento.
+const radio = await getRadioTracks();
+const songs = (exp?.tracks ?? [])
+  .map((id) => radio.find((track) => track.id === id))
+  .filter((track) => track !== undefined);
+
+const tabs = [
+  { id: "inicio", label: t("profile.tab.home"), count: 0 },
+  {
+    id: exp ? "como-se-hizo" : "como-esta-hecho",
+    label: t(exp ? "profile.tab.process" : "profile.tab.build"),
+    count: data.steps.length,
+  },
+  {
+    id: "videos",
+    label: t("profile.tab.videos"),
+    count: exp?.videos.length ?? 0,
+  },
+  {
+    id: "escuchar",
+    label: t("profile.tab.listen"),
+    count: exp && (exp.spotify || exp.soundcloud || exp.links.length) ? -1 : 0,
+  },
+  {
+    id: "prompts",
+    label: t("profile.tab.prompts"),
+    count: data.prompts.length,
+  },
+  {
+    id: "galeria",
+    label: t("profile.tab.gallery"),
+    count: data.gallery.length,
+  },
+  { id: "flujo", label: t("profile.tab.flow"), count: proj?.flow.length ?? 0 },
+  {
+    id: "repositorio",
+    label: t("profile.tab.repo"),
+    count: proj?.repoUrl ? -1 : 0,
+  },
+].filter((tab) => tab.id === "inicio" || tab.count !== 0);
+
+// El titular se mide por su palabra más larga: tiene que entrar entera en el
+// ancho disponible, sea "abelitolll.com" o "Los Vecinos de Enfrente".
+const longestWord = Math.max(
+  ...data.title.split(/\s+/).map((word) => word.length),
+);
+
+const has = (id: string) => tabs.some((tab) => tab.id === id);
+const steps = data.steps;
+const flow = proj?.flow ?? [];
+---
+
+<article class:list={["profile", theme]}>
+  <header class="banner">
+    {banner ? (
+      <Image
+        class="banner-img"
+        src={banner}
+        alt={bannerAlt}
+        widths={[900, 1600]}
+        sizes="80vw"
+      />
+    ) : (
+      <div class="banner-gen" aria-hidden="true">
+        <span>{data.title}</span>
+      </div>
+    )}
+    <div class="banner-in">
+      <Avatar
+        image={avatar}
+        alt={avatarAlt}
+        title={data.title}
+        size={300}
+        class="banner-avatar"
+      />
+      <div class="banner-text">
+        <p class="kicker banner-kicker">{role}</p>
+        <h1 class="giant banner-title" style={`--chars:${longestWord}`}>
+          {data.title}
+        </h1>
+        <p class="banner-meta">{data.meta.join(" · ")}</p>
+      </div>
+    </div>
+  </header>
+
+  <div class="actrow">
+    {songs.length > 0 && (
+      <button
+        type="button"
+        class="pbig"
+        data-radio-row
+        data-track-id={songs[0].id}
+        disabled={!songs[0].audio}
+        aria-label={t("profile.playFirst")}
+      >
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M7 4l13 8-13 8z" />
+        </svg>
+      </button>
+    )}
+    {proj?.liveUrl && (
+      <a class="btn solid" href={proj.liveUrl} target="_blank" rel="noreferrer">
+        {t("profile.live")} ↗
+      </a>
+    )}
+    {proj?.repoUrl && (
+      <a class="btn" href={proj.repoUrl} target="_blank" rel="noreferrer">
+        {t("profile.code")} ↗
+      </a>
+    )}
+    <p class="actrow-summary">{data.summary}</p>
+    {/* En un proyecto los enlaces ya son los botones de al lado. */}
+    <span class="plats">
+      {(exp ? links : []).map((link) => {
+        const icon = platformIcon(link.url);
+        return (
+          <a
+            href={link.url}
+            target="_blank"
+            rel="noreferrer"
+            title={link.label}
+            aria-label={link.label}
+          >
+            {icon ? <Fragment set:html={icon} /> : "↗"}
+          </a>
+        );
+      })}
+    </span>
+  </div>
+
+  <nav class="tabs" role="tablist" aria-label={t("profile.tabs")}>
+    {tabs.map((tab, index) => (
+      <button
+        type="button"
+        role="tab"
+        id={`tab-${tab.id}`}
+        aria-controls={`panel-${tab.id}`}
+        aria-selected={index === 0 ? "true" : "false"}
+        data-tab={tab.id}
+      >
+        {tab.label}
+        {tab.count > 0 && <span class="tab-count">{tab.count}</span>}
+      </button>
+    ))}
+  </nav>
+
+  <!-- ===== Inicio ===== -->
+  <section
+    class="pane"
+    id="panel-inicio"
+    role="tabpanel"
+    aria-labelledby="tab-inicio"
+  >
+    {songs.length > 0 && (
+      <div class="blk">
+        <h2>
+          {t("profile.songs")} <small>{t("profile.songsHint")}</small>
+        </h2>
+        <ol class="songs">
+          {songs.map((song, index) => (
+            <li>
+              <button
+                type="button"
+                class="song"
+                data-radio-row
+                data-track-id={song.id}
+                disabled={!song.audio}
+                title={song.audio ? undefined : t("radio.lockedHint")}
+              >
+                <span class="song-n">{index + 1}</span>
+                <span class="cov">
+                  {song.cover && <img src={song.cover} alt="" loading="lazy" />}
+                </span>
+                <b>{song.title}</b>
+                <span class="song-d">
+                  {song.audio ? formatTime(song.duration) : t("radio.locked")}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ol>
+      </div>
+    )}
+
+    {proj && proj.versions.length > 0 && (
+      <div class="blk">
+        <h2>{t("profile.versions")}</h2>
+        <div class="versions">
+          {proj.versions.map((version) => (
+            <figure class="version">
+              <span class="version-cover">
+                {version.image ? (
+                  <Image src={version.image} alt="" width={400} height={400} />
+                ) : (
+                  <Avatar
+                    image={null}
+                    alt=""
+                    title={data.title}
+                    size={400}
+                    class="version-gen"
+                  />
+                )}
+                {version.tag && <span class="version-tag">{version.tag}</span>}
+              </span>
+              <figcaption>
+                <b>{version.name}</b>
+                <small>{version.date}</small>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <div class="blk">
+      <h2>{t("profile.about")}</h2>
+      <div class="about">
+        <div class="prose">
+          <slot />
+        </div>
+        <aside>
+          <dl class="facts">
+            {data.facts.map((fact) => (
+              <div>
+                <dt>{fact.label}</dt>
+                <dd>{fact.value}</dd>
+              </div>
+            ))}
+          </dl>
+          {data.milestones.length > 0 && (
+            <>
+              <h3 class="side-label">{t("profile.milestones")}</h3>
+              <ul class="hitos">
+                {data.milestones.map((milestone) => {
+                  const icon = milestone.url
+                    ? platformIcon(milestone.url)
+                    : null;
+                  const color = milestone.url
+                    ? platformColor(milestone.url)
+                    : null;
+                  const Tag = milestone.url ? "a" : "div";
+                  return (
+                    <li>
+                      <Tag
+                        class="hito"
+                        href={milestone.url}
+                        target={milestone.url ? "_blank" : undefined}
+                        rel={milestone.url ? "noreferrer" : undefined}
+                      >
+                        <i style={color ? `--brand:${color}` : undefined}>
+                          {icon ? <Fragment set:html={icon} /> : "●"}
+                        </i>
+                        <span>
+                          <b>{milestone.title}</b>
+                          <small>{milestone.text}</small>
+                        </span>
+                      </Tag>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Cómo se hizo / Cómo está hecho ===== -->
+  {steps.length > 0 && (
+    <section
+      class="pane"
+      id={`panel-${tabs[1]?.id}`}
+      role="tabpanel"
+      aria-labelledby={`tab-${tabs[1]?.id}`}
+      hidden
+    >
+      <div class="blk">
+        <h2>
+          {tabs[1]?.label}{" "}
+          <small>
+            {interpolate(t("profile.stepCount"), { count: steps.length })}
+          </small>
+        </h2>
+        <ol class="proc">
+          {steps.map((step) => (
+            <li class="st">
+              <div>
+                <h3>{step.title}</h3>
+                {step.text.map((paragraph) => (
+                  <p>{paragraph}</p>
+                ))}
+                {step.tools.length > 0 && (
+                  <p class="tools">
+                    {step.tools.map((tool) => (
+                      <span>{tool}</span>
+                    ))}
+                  </p>
+                )}
+              </div>
+              <div class="st-side">
+                {step.quote && <blockquote>{step.quote}</blockquote>}
+                {step.prompt && (
+                  <div class="prompt">
+                    <header>prompt</header>
+                    <pre>{step.prompt}</pre>
+                  </div>
+                )}
+                {step.image && (
+                  <Image
+                    src={step.image}
+                    alt={step.imageAlt ?? ""}
+                    widths={[480, 900]}
+                    sizes="30vw"
+                  />
+                )}
+                {step.video && (
+                  <EmbedFacade
+                    kind="video"
+                    src={youtubeEmbedUrl(step.video)}
+                    title={step.title}
+                    label={interpolate(t("experiment.play"), {
+                      title: step.title,
+                    })}
+                    thumb={youtubeThumbUrl(step.video)}
+                  />
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )}
+
+  <!-- ===== Videos ===== -->
+  {has("videos") && exp && (
+    <section
+      class="pane"
+      id="panel-videos"
+      role="tabpanel"
+      aria-labelledby="tab-videos"
+      hidden
+    >
+      <div class="blk">
+        <h2>
+          {t("profile.tab.videos")} <small>{t("profile.videosHint")}</small>
+        </h2>
+        <div class="vids">
+          {exp.videos.map((video) => (
+            <EmbedFacade
+              kind="video"
+              src={youtubeEmbedUrl(video.id)}
+              title={video.title}
+              label={interpolate(t("experiment.play"), { title: video.title })}
+              thumb={youtubeThumbUrl(video.id)}
+            />
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ===== Escuchar ===== -->
+  {has("escuchar") && exp && (
+    <section
+      class="pane"
+      id="panel-escuchar"
+      role="tabpanel"
+      aria-labelledby="tab-escuchar"
+      hidden
+    >
+      <div class="blk">
+        <h2>{t("profile.listenOut")}</h2>
+        <div class="plat-cards">
+          {exp.links.map((link) => {
+            const icon = platformIcon(link.url);
+            const color = platformColor(link.url);
+            return (
+              <a
+                href={link.url}
+                target="_blank"
+                rel="noreferrer"
+                style={color ? `--brand:${color}` : undefined}
+              >
+                <i>{icon ? <Fragment set:html={icon} /> : "↗"}</i>
+                <span>
+                  <b>{link.label}</b>
+                  <small>{platformHost(link.url)} ↗</small>
+                </span>
+              </a>
+            );
+          })}
+        </div>
+        <div class="embeds">
+          {exp.spotify && (
+            <div>
+              <EmbedFacade
+                kind="audio"
+                src={spotifyEmbedUrl(exp.spotify)}
+                title={data.title}
+                platform="Spotify"
+                icon={platformIcon(exp.spotify)}
+                brand={platformColor(exp.spotify)}
+                label={t("experiment.playSpotify")}
+                audioHeight={352}
+              />
+              <p class="notice">
+                {interpolate(t("experiment.embedNotice"), {
+                  service: "Spotify",
+                })}
+              </p>
+            </div>
+          )}
+          {exp.soundcloud && (
+            <div>
+              <EmbedFacade
+                kind="audio"
+                src={soundcloudEmbedUrl(exp.soundcloud)}
+                title={data.title}
+                platform="SoundCloud"
+                icon={platformIcon(exp.soundcloud)}
+                brand={platformColor(exp.soundcloud)}
+                label={t("experiment.playSoundcloud")}
+                audioHeight={352}
+              />
+              <p class="notice">
+                {interpolate(t("experiment.embedNotice"), {
+                  service: "SoundCloud",
+                })}
+              </p>
+            </div>
+          )}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ===== Prompts ===== -->
+  {has("prompts") && (
+    <section
+      class="pane"
+      id="panel-prompts"
+      role="tabpanel"
+      aria-labelledby="tab-prompts"
+      hidden
+    >
+      <div class="blk">
+        <h2>{t("profile.tab.prompts")}</h2>
+        {data.prompts.map((prompt) => (
+          <div class="prompt">
+            <header>
+              <span>{prompt.title}</span>
+              <button type="button" data-copy data-copied={t("profile.copied")}>
+                {t("profile.copy")}
+              </button>
+            </header>
+            <pre>{prompt.text}</pre>
+          </div>
+        ))}
+      </div>
+    </section>
+  )}
+
+  <!-- ===== Galería ===== -->
+  {has("galeria") && (
+    <section
+      class="pane"
+      id="panel-galeria"
+      role="tabpanel"
+      aria-labelledby="tab-galeria"
+      hidden
+    >
+      <div class="blk">
+        <h2>{t("profile.tab.gallery")}</h2>
+        <div class="gal">
+          {data.gallery.map((item) => (
+            <figure class:list={{ wide: item.wide }}>
+              <Image
+                src={item.src}
+                alt={item.alt}
+                widths={[600, 1200]}
+                sizes={item.wide ? "70vw" : "35vw"}
+              />
+              <figcaption>{item.caption}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </section>
+  )}
+
+  <!-- ===== Flujo con Claude ===== -->
+  {has("flujo") && (
+    <section
+      class="pane"
+      id="panel-flujo"
+      role="tabpanel"
+      aria-labelledby="tab-flujo"
+      hidden
+    >
+      <div class="blk">
+        <h2>{t("profile.tab.flow")}</h2>
+        <ol class="proc">
+          {flow.map((step) => (
+            <li class="st">
+              <div>
+                <h3>{step.title}</h3>
+                {step.text.map((paragraph) => (
+                  <p>{paragraph}</p>
+                ))}
+                {step.tools.length > 0 && (
+                  <p class="tools">
+                    {step.tools.map((tool) => (
+                      <span>{tool}</span>
+                    ))}
+                  </p>
+                )}
+              </div>
+              <div class="st-side" />
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )}
+
+  <!-- ===== Repositorio ===== -->
+  {has("repositorio") && proj?.repoUrl && (
+    <section
+      class="pane"
+      id="panel-repositorio"
+      role="tabpanel"
+      aria-labelledby="tab-repositorio"
+      hidden
+    >
+      <div class="blk">
+        <h2>{t("profile.tab.repo")}</h2>
+        <div class="plat-cards">
+          <a
+            href={proj.repoUrl}
+            target="_blank"
+            rel="noreferrer"
+            style="--brand:#e8e4da"
+          >
+            <i>
+              <Fragment set:html={platformIcon(proj.repoUrl) ?? "↗"} />
+            </i>
+            <span>
+              <b>{new URL(proj.repoUrl).pathname.slice(1)}</b>
+              <small>{t("profile.repoText")}</small>
+            </span>
+          </a>
+        </div>
+        <h3 class="side-label">{t("profile.stack")}</h3>
+        <p class="tools">
+          {proj.stack.map((tool) => (
+            <span>{tool}</span>
+          ))}
+        </p>
+      </div>
+    </section>
+  )}
+</article>
+
+<style>
+  .profile {
+    min-height: 100%;
+  }
+
+  /* ---- cabecera --------------------------------------------------------- */
+
+  .banner {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    height: 44vh;
+    max-height: 460px;
+    min-height: 300px;
+    overflow: hidden;
+  }
+
+  .banner :global(.banner-img) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 30%;
+  }
+
+  .banner-gen {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    background:
+      radial-gradient(
+        60% 80% at 85% 10%,
+        color-mix(in srgb, var(--acc) 18%, transparent),
+        transparent 70%
+      ),
+      var(--bg);
+  }
+
+  .banner-gen span {
+    position: absolute;
+    top: -4vh;
+    right: -2vw;
+    color: color-mix(in srgb, var(--fg) 6%, transparent);
+    font-size: 30vh;
+    font-weight: 850;
+    line-height: 0.8;
+    letter-spacing: -0.05em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    font-variation-settings: "wdth" 62;
+  }
+
+  .banner::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 20%,
+      color-mix(in srgb, var(--bg) 92%, transparent) 92%
+    );
+  }
+
+  .banner-in {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: flex-end;
+    gap: 24px;
+    width: 100%;
+    padding: 0 3.4vw 3vh;
+  }
+
+  .banner-in :global(.banner-avatar) {
+    width: 150px;
+    height: 150px;
+    box-shadow: 0 20px 50px rgb(0 0 0 / 0.5);
+  }
+
+  .banner-text {
+    flex: 1 1 auto;
+    min-width: 0;
+    container-type: inline-size;
+  }
+
+  .banner-kicker {
+    margin: 0;
+    color: var(--acc);
+  }
+
+  /* El tamaño sale del ancho del bloque y del largo de la palabra más larga
+     (0.56em por letra con este ancho de Archivo), con tope arriba y abajo. */
+  .banner-title {
+    --w: 72;
+    margin: 10px 0;
+    font-size: clamp(30px, calc(100cqw / (var(--chars) * 0.56)), 104px);
+  }
+
+  .banner-meta {
+    margin: 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--soft);
+  }
+
+  /* ---- acciones --------------------------------------------------------- */
+
+  .actrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 2.4vh 3.4vw;
+  }
+
+  .actrow .pbig:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+
+  .actrow-summary {
+    flex: 1 1 320px;
+    max-width: 70ch;
+    margin: 0 0 0 6px;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--soft);
+  }
+
+  .plats {
+    display: flex;
+    gap: 6px;
+    margin-left: auto;
+  }
+
+  .plats a {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--line);
+    border-radius: 50%;
+    text-decoration: none;
+  }
+
+  .plats a :global(svg) {
+    width: 16px;
+    height: 16px;
+  }
+
+  .plats a:hover {
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  /* ---- pestañas --------------------------------------------------------- */
+
+  .tabs {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    gap: 4px;
+    overflow-x: auto;
+    padding: 10px 3.4vw;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 90%, transparent);
+    backdrop-filter: blur(10px);
+    scrollbar-width: none;
+  }
+
+  .tabs button {
+    padding: 8px 14px;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--mute);
+    font-size: 14px;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .tabs button:hover {
+    color: var(--fg);
+  }
+
+  .tabs button[aria-selected="true"] {
+    background: var(--fg);
+    color: var(--bg);
+  }
+
+  .tab-count {
+    margin-left: 5px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    opacity: 0.6;
+  }
+
+  /* En pantallas grandes el contenido no se estira sin límite. */
+  .pane {
+    padding: 4vh 3.4vw 12vh;
+  }
+
+  .pane > .blk {
+    max-width: 1200px;
+  }
+
+  .blk + .blk {
+    margin-top: 7vh;
+  }
+
+  .blk h2 {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 12px;
+    margin: 0 0 2.4vh;
+    font-size: clamp(24px, 2.2vw, 34px);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  .blk h2 small {
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+
+  .side-label {
+    margin: 26px 0 8px;
+    font-family: var(--mono);
+    font-size: 11px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+
+  /* ---- canciones -------------------------------------------------------- */
+
+  .songs {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .song {
+    display: grid;
+    grid-template-columns: 34px 46px minmax(0, 1fr) 64px;
+    gap: 14px;
+    align-items: center;
+    width: 100%;
+    padding: 8px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .song:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--fg) 6%, transparent);
+  }
+
+  .song:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  .song .cov {
+    width: 46px;
+    height: 46px;
+  }
+
+  .song b {
+    font-size: 16px;
+    font-weight: 650;
+  }
+
+  .song-n,
+  .song-d {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--mute);
+  }
+
+  .song-n {
+    text-align: center;
+  }
+
+  .song-d {
+    text-align: right;
+  }
+
+  .song[aria-current="true"] b,
+  .song[aria-current="true"] .song-n {
+    color: var(--acc);
+  }
+
+  /* ---- versiones -------------------------------------------------------- */
+
+  .versions {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 22px;
+  }
+
+  .version {
+    margin: 0;
+  }
+
+  .version-cover {
+    position: relative;
+    display: block;
+    aspect-ratio: 1;
+    overflow: hidden;
+    border-radius: 8px;
+    background: var(--card);
+  }
+
+  .version-cover :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top;
+  }
+
+  .version-cover :global(.version-gen) {
+    width: 100%;
+    height: 100%;
+  }
+
+  .version-tag {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    padding: 3px 6px;
+    border-radius: 3px;
+    background: var(--acc);
+    color: #000;
+    font-family: var(--mono);
+    font-size: 10px;
+  }
+
+  .version figcaption b {
+    display: block;
+    margin-top: 10px;
+    font-size: 15px;
+  }
+
+  .version figcaption small {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--mute);
+  }
+
+  /* ---- acerca de -------------------------------------------------------- */
+
+  .about {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 4vw;
+    align-items: start;
+  }
+
+  .facts {
+    margin: 0;
+  }
+
+  .facts div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+    font-size: 15px;
+  }
+
+  .facts dt {
+    padding-top: 3px;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--mute);
+  }
+
+  .facts dd {
+    margin: 0;
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .hitos {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-top: 1px solid var(--line);
+  }
+
+  .hito {
+    display: grid;
+    grid-template-columns: 32px 1fr;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--line);
+    text-decoration: none;
+  }
+
+  a.hito:hover b {
+    color: var(--acc);
+  }
+
+  .hito i {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--brand, var(--acc)) 16%, transparent);
+    color: var(--brand, var(--acc));
+    font-style: normal;
+    font-size: 10px;
+  }
+
+  .hito i :global(svg) {
+    width: 15px;
+    height: 15px;
+  }
+
+  .hito b {
+    display: block;
+    font-size: 14px;
+  }
+
+  .hito small {
+    font-size: 12.5px;
+    color: var(--mute);
+  }
+
+  /* ---- proceso ---------------------------------------------------------- */
+
+  .proc {
+    margin: 0 0 0 10px;
+    padding: 0;
+    list-style: none;
+    border-left: 2px solid var(--line);
+    counter-reset: step;
+  }
+
+  .st {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    gap: 3vw;
+    padding: 0 0 5vh 36px;
+  }
+
+  .st::before {
+    counter-increment: step;
+    content: counter(step, decimal-leading-zero);
+    position: absolute;
+    top: -2px;
+    left: -17px;
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 2px solid var(--acc);
+    border-radius: 50%;
+    background: var(--bg);
+    color: var(--acc);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .st h3 {
+    margin: 0 0 12px;
+    font-size: clamp(24px, 2.3vw, 36px);
+    font-weight: 850;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    font-variation-settings: "wdth" 78;
+  }
+
+  .st p {
+    margin: 0 0 10px;
+    font-family: system-ui, sans-serif;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--soft);
+  }
+
+  .tools {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .tools span {
+    padding: 4px 8px;
+    border: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .st-side :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+  }
+
+  blockquote {
+    margin: 0;
+    padding-left: 16px;
+    border-left: 3px solid var(--acc);
+    font-size: 21px;
+    font-weight: 600;
+    line-height: 1.35;
+  }
+
+  .prompt {
+    margin-bottom: 18px;
+    overflow: hidden;
+    border: 1px solid #2a2930;
+    border-radius: 10px;
+    background: #0c0b0e;
+    color: #e8e4da;
+  }
+
+  .prompt header {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 14px;
+    border-bottom: 1px solid #2a2930;
+    color: #8d8a93;
+    font-family: var(--mono);
+    font-size: 11px;
+  }
+
+  .prompt header button {
+    padding: 0;
+    border: 0;
+    background: none;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .prompt header button:hover {
+    color: #fff;
+  }
+
+  .prompt pre {
+    margin: 0;
+    padding: 16px;
+    font-family: var(--mono);
+    font-size: 13px;
+    line-height: 1.65;
+    white-space: pre-wrap;
+  }
+
+  /* ---- videos, escuchar, galería --------------------------------------- */
+
+  .vids {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 18px;
+  }
+
+  .plat-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 12px;
+  }
+
+  .plat-cards a {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    text-decoration: none;
+  }
+
+  .plat-cards a:hover {
+    border-color: var(--brand, var(--acc));
+  }
+
+  /* flex: none: con un texto largo al lado, la fila lo aplastaba de ancho. */
+  .plat-cards i {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--brand, var(--acc)) 16%, transparent);
+    color: var(--brand, var(--acc));
+  }
+
+  .plat-cards i :global(svg) {
+    width: 20px;
+    height: 20px;
+  }
+
+  .plat-cards b {
+    display: block;
+    font-size: 16px;
+  }
+
+  .plat-cards small {
+    font-size: 12px;
+    color: var(--mute);
+  }
+
+  .embeds {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+  }
+
+  .notice {
+    margin: 8px 0 0;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--mute);
+  }
+
+  .gal {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .gal figure {
+    margin: 0;
+  }
+
+  .gal figure.wide {
+    grid-column: 1 / -1;
+  }
+
+  .gal :global(img) {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 6px;
+  }
+
+  .gal figcaption {
+    margin-top: 6px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--mute);
+  }
+
+  @media (max-width: 960px) {
+    .banner-in {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 14px;
+    }
+
+    /* Con containment de ancho, el bloque no tiene ancho propio: en columna
+       tiene que estirarse, si no se encoge a cero y el texto cae palabra por
+       palabra. */
+    .banner-text {
+      align-self: stretch;
+    }
+
+    .banner-in :global(.banner-avatar) {
+      width: 84px;
+      height: 84px;
+    }
+
+    .about,
+    .st {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .gal {
+      grid-template-columns: minmax(0, 1fr);
+    }
+
+    .plats {
+      margin-left: 0;
+    }
+
+    .song {
+      grid-template-columns: 26px 40px minmax(0, 1fr) 48px;
+    }
+  }
+</style>
+
+<script>
+  // Pestañas y copiar. Un solo listener en `document` (el módulo corre una
+  // vez con el router); cada página trae sus pestañas nuevas.
+  const select = (id: string, focus = false) => {
+    const tab = document.querySelector<HTMLElement>(
+      `[role="tab"][data-tab="${id}"]`,
+    );
+    if (!tab) return false;
+    document.querySelectorAll<HTMLElement>('[role="tab"]').forEach((other) => {
+      const on = other === tab;
+      other.setAttribute("aria-selected", String(on));
+      const panel = document.getElementById(
+        other.getAttribute("aria-controls") ?? "",
+      );
+      if (panel) panel.hidden = !on;
+    });
+    if (focus) tab.focus();
+    return true;
+  };
+
+  document.addEventListener("click", (event) => {
+    const target = event.target as Element;
+    const tab = target.closest<HTMLElement>('[role="tab"][data-tab]');
+    if (tab?.dataset.tab) {
+      select(tab.dataset.tab);
+      // replaceState con el estado actual: el router de Astro guarda el suyo
+      // en history.state y no hay que pisarlo.
+      history.replaceState(history.state, "", `#${tab.dataset.tab}`);
+      // Al cambiar de pestaña, la vista vuelve al borde de las pestañas.
+      const tabs = tab.closest(".tabs") as HTMLElement | null;
+      const stage = document.getElementById("stage");
+      if (tabs && stage && stage.scrollTop > tabs.offsetTop) {
+        stage.scrollTop = tabs.offsetTop;
+      }
+      return;
+    }
+
+    const copy = target.closest<HTMLButtonElement>("[data-copy]");
+    if (copy) {
+      const text =
+        copy.closest(".prompt")?.querySelector("pre")?.textContent ?? "";
+      const original = copy.textContent;
+      navigator.clipboard?.writeText(text).then(() => {
+        copy.textContent = copy.dataset.copied ?? original;
+        setTimeout(() => (copy.textContent = original), 1600);
+      });
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    const tab = (event.target as Element).closest<HTMLElement>('[role="tab"]');
+    if (!tab || (event.key !== "ArrowRight" && event.key !== "ArrowLeft"))
+      return;
+    const all = [...document.querySelectorAll<HTMLElement>('[role="tab"]')];
+    const next =
+      all[
+        (all.indexOf(tab) + (event.key === "ArrowRight" ? 1 : all.length - 1)) %
+          all.length
+      ];
+    if (next.dataset.tab) select(next.dataset.tab, true);
+  });
+
+  document.addEventListener("astro:page-load", () => {
+    const id = decodeURIComponent(location.hash.slice(1));
+    if (id) select(id);
+  });
+</script>

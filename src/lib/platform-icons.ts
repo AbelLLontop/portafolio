@@ -1,3 +1,4 @@
+import githubIconRaw from "simple-icons/icons/github.svg?raw";
 import soundcloudIconRaw from "simple-icons/icons/soundcloud.svg?raw";
 import spotifyIconRaw from "simple-icons/icons/spotify.svg?raw";
 import tiktokIconRaw from "simple-icons/icons/tiktok.svg?raw";
@@ -14,6 +15,7 @@ const PLATFORM_ICONS: Record<string, string> = {
   "soundcloud.com": withCurrentColor(soundcloudIconRaw),
   "spotify.com": withCurrentColor(spotifyIconRaw),
   "tiktok.com": withCurrentColor(tiktokIconRaw),
+  "github.com": withCurrentColor(githubIconRaw),
 };
 
 // Color de marca de cada plataforma. Es la excepción a "un solo acento": el
@@ -24,6 +26,7 @@ const PLATFORM_COLORS: Record<string, string> = {
   "soundcloud.com": "#ff5500",
   "spotify.com": "#1ed760",
   "tiktok.com": "#25f4ee",
+  "github.com": "#e8e4da",
 };
 
 /** Color de marca de la plataforma de un enlace, o `null` si no se conoce. */
