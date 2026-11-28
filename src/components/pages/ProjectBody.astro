@@ -5,7 +5,7 @@ import { Image } from "astro:assets";
 import githubIconRaw from "simple-icons/icons/github.svg?raw";
 import TechBadge from "../astro/TechBadge.astro";
 import ScrollReveal from "../react/ScrollReveal.tsx";
-import { formatPostDate } from "../../lib/dates.ts";
+import { formatDate } from "../../lib/dates.ts";
 import type { Project } from "../../lib/projects.ts";
 import { useTranslations, type Lang } from "../../i18n/index.ts";
 import { pathFor } from "../../i18n/routes.ts";
@@ -50,7 +50,7 @@ const repoName = repoUrl ? new URL(repoUrl).pathname.slice(1) : "";
   <ScrollReveal client:visible y={0}>
     <header class="mt-8">
       <p class="flex flex-wrap items-center gap-3 font-mono text-micro uppercase tracking-label text-faint">
-        <span>{formatPostDate(date, lang)}</span>
+        <span>{formatDate(date, lang)}</span>
         <span
           class:list={[
             "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5",
@@ -70,11 +70,6 @@ const repoName = repoUrl ? new URL(repoUrl).pathname.slice(1) : "";
               : "projects.statusBuilding",
           )}
         </span>
-        {lang !== "es" && (
-          <span class="normal-case tracking-ui">
-            {t("projects.spanishNotice")}
-          </span>
-        )}
       </p>
       <h1 class="mt-3 font-display text-4xl font-bold tracking-[-0.02em] text-zinc-100 md:text-6xl">
         {title}

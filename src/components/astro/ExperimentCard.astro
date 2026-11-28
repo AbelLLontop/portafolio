@@ -1,6 +1,6 @@
 ---
 import { Image } from "astro:assets";
-import { formatPostDate } from "../../lib/dates.ts";
+import { formatDate } from "../../lib/dates.ts";
 import type { Experiment } from "../../lib/experiments.ts";
 import { useTranslations, type Lang } from "../../i18n/index.ts";
 import { pathFor } from "../../i18n/routes.ts";
@@ -39,7 +39,7 @@ const { title, summary, date, tags, ai, banner, bannerAlt, avatar } =
   </div>
   <div class="p-5">
     <p class="font-mono text-micro uppercase tracking-label text-faint">
-      {formatPostDate(date, lang)}
+      {formatDate(date, lang)}
     </p>
     <h2 class="mt-1.5 font-display text-xl font-semibold text-zinc-100 transition-colors group-hover:text-accent">
       {title}

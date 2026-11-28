@@ -2,17 +2,6 @@ import { defineCollection } from "astro:content";
 import { glob } from "astro/loaders";
 import { z } from "astro/zod";
 
-const blog = defineCollection({
-  loader: glob({ pattern: "**/*.mdx", base: "./src/content/blog" }),
-  schema: z.object({
-    title: z.string(),
-    date: z.coerce.date(),
-    tags: z.array(z.string()),
-    summary: z.string().optional(),
-    draft: z.boolean().default(false),
-  }),
-});
-
 // Un proyecto es algo que construyo y se puede usar o leer el codigo (no una
 // prueba creativa ni una nota). Como los experimentos, el cuerpo del .mdx es el
 // texto de la pagina y lo demas va en el frontmatter para compartir diseno.
@@ -118,4 +107,4 @@ const experiments = defineCollection({
     }),
 });
 
-export const collections = { blog, projects, experiments };
+export const collections = { projects, experiments };

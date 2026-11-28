@@ -5,7 +5,7 @@
 import { Image } from "astro:assets";
 import EmbedFacade from "../astro/EmbedFacade.astro";
 import ScrollReveal from "../react/ScrollReveal.tsx";
-import { formatPostDate } from "../../lib/dates.ts";
+import { formatDate } from "../../lib/dates.ts";
 import {
   platformColor,
   platformHost,
@@ -84,7 +84,7 @@ const notice = (service: string) =>
       />
       <div class="min-w-0 pb-1 pt-4">
         <p class="font-mono text-micro uppercase tracking-label text-faint">
-          {formatPostDate(date, lang)}
+          {formatDate(date, lang)}
         </p>
         <h1 class="font-display text-3xl font-bold tracking-[-0.02em] text-zinc-100 md:text-4xl">
           {title}
@@ -103,11 +103,6 @@ const notice = (service: string) =>
       {ai && (
         <li class="rounded-full border border-accent/40 px-2.5 py-0.5 font-mono text-micro text-accent">
           {t("experiments.aiChip")}
-        </li>
-      )}
-      {lang !== "es" && (
-        <li class="font-mono text-micro tracking-ui text-faint">
-          {t("experiments.spanishNotice")}
         </li>
       )}
     </ul>

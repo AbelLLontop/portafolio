@@ -5,7 +5,7 @@
 import { Image } from "astro:assets";
 import TechBadge from "./TechBadge.astro";
 import type { Project } from "../../lib/projects.ts";
-import { formatPostDate } from "../../lib/dates.ts";
+import { formatDate } from "../../lib/dates.ts";
 import { useTranslations, type Lang } from "../../i18n/index.ts";
 import { pathFor } from "../../i18n/routes.ts";
 
@@ -39,7 +39,7 @@ const { title, summary, date, status, stack, cover, coverAlt } = project.data;
   <div class="min-w-0">
     <p class="flex flex-wrap items-center gap-3 font-mono text-micro uppercase tracking-label text-faint">
       <span>{String(index + 1).padStart(2, "0")}</span>
-      <span>{formatPostDate(date, lang)}</span>
+      <span>{formatDate(date, lang)}</span>
       <span
         class:list={[
           "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5",

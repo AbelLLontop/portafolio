@@ -29,16 +29,6 @@ const projects = await getPublishedProjects();
       <p class="relative max-w-prose text-zinc-300">
         {t("projects.placeholder")}
       </p>
-      <p class="relative max-w-prose text-sm" style="color: var(--faint);">
-        {t("projects.meanwhileBefore")}{" "}
-        <a
-          href={pathFor("blog", lang)}
-          class="underline decoration-accent/50 underline-offset-4 hover:text-accent"
-        >
-          {t("projects.meanwhileLink")}
-        </a>{" "}
-        {t("projects.meanwhileAfter")}
-      </p>
     </div>
   ) : (
     <div class="mt-6 border-b" style="border-color: var(--line);">

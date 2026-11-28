@@ -1,71 +1,44 @@
-// Mapa de rutas por idioma.
+// Mapa de rutas.
 //
-// Es la unica fuente de verdad de los paths del sitio y sirve para tres cosas
-// a la vez: armar la navegacion, mandar el boton ES/EN a *la misma* pagina en
-// el otro idioma (no al inicio), y emitir los <link rel="alternate" hreflang>.
-//
-// El espaniol va sin prefijo para no mover ninguna URL ya publicada; el ingles
-// vive bajo /en/. Los slugs se traducen, que es lo que espera un lector en
-// cada idioma.
+// Es la unica fuente de verdad de los paths del sitio: de aca salen la
+// navegacion y los enlaces internos. Va indexado por idioma aunque hoy solo
+// exista el espaniol, para que sumar el ingles despues no obligue a tocar cada
+// enlace.
 import type { Lang } from "./index.ts";
 
 export const PATHS = {
-  home: { es: "/", en: "/en/" },
-  projects: { es: "/proyectos", en: "/en/projects" },
-  blog: { es: "/blog", en: "/en/blog" },
-  experiments: { es: "/experimentos", en: "/en/experiments" },
+  home: { es: "/" },
+  projects: { es: "/proyectos" },
+  experiments: { es: "/experimentos" },
 } as const;
 
 /** Rutas fijas, las que aparecen en la navegacion. */
 export type StaticRoute = keyof typeof PATHS;
 
-/** `post` y `experiment` son las rutas dinamicas: necesitan su slug. */
-export type Route =
-  StaticRoute | "post" | "experiment" | "project" | "notFound";
+/** `project` y `experiment` son las rutas dinamicas: necesitan su slug. */
+export type Route = StaticRoute | "experiment" | "project" | "notFound";
 
 /** Las entradas de la navegacion, en orden. El label sale del diccionario. */
 export const NAV_ROUTES = [
   "home",
   "projects",
-  "blog",
   "experiments",
 ] as const satisfies readonly StaticRoute[];
 
 /** Las entradas del pie, mas cortas que las del header. */
-export const FOOTER_ROUTES = [
-  "home",
-  "projects",
-  "blog",
-  "experiments",
-] as const satisfies readonly StaticRoute[];
+export const FOOTER_ROUTES = NAV_ROUTES;
 
-/**
- * Path de una ruta en un idioma. Para `post` y `experiment` hace falta el
- * slug; es el mismo en los dos idiomas porque los .mdx no se traducen.
- */
+/** Path de una ruta. Para `project` y `experiment` hace falta el slug. */
 export function pathFor(route: Route, lang: Lang, slug?: string): string {
-  if (route === "post") {
+  if (route === "experiment" || route === "project") {
     if (slug === undefined) {
-      throw new Error("pathFor('post') necesita el slug de la nota");
+      throw new Error(`pathFor('${route}') necesita el slug`);
     }
-    return `${PATHS.blog[lang]}/${slug}`;
+    const base = route === "experiment" ? "experiments" : "projects";
+    return `${PATHS[base][lang]}/${slug}`;
   }
 
-  if (route === "experiment") {
-    if (slug === undefined) {
-      throw new Error("pathFor('experiment') necesita el slug del experimento");
-    }
-    return `${PATHS.experiments[lang]}/${slug}`;
-  }
-
-  if (route === "project") {
-    if (slug === undefined) {
-      throw new Error("pathFor('project') necesita el slug del proyecto");
-    }
-    return `${PATHS.projects[lang]}/${slug}`;
-  }
-
-  // El 404 no tiene URL propia: el selector de idioma lo manda al inicio.
+  // El 404 no tiene URL propia.
   if (route === "notFound") return PATHS.home[lang];
 
   return PATHS[route][lang];
