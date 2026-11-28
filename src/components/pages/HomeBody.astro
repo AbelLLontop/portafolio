@@ -164,12 +164,15 @@ const groups = Object.entries(STACK_GROUPS) as [StackGroupKey, string[]][];
 
   {release && (
     <a class="cell release" href={release.href}>
+      {/* La foto es muy apaisada y la tarjeta es alta: para cubrirla se recorta
+          por los costados y se muestra a ~2.5 veces el ancho de la tarjeta. Por
+          eso pide una versión ancha; con una de 800 px se veía borrosa. */}
       <span class="release-photo">
         <Image
           src={release.image}
           alt={release.imageAlt}
-          widths={[480, 800]}
-          sizes="34vw"
+          widths={[960, 1400, 2000]}
+          sizes="(min-width: 961px) 1400px, 100vw"
         />
       </span>
       <span class="release-body">
