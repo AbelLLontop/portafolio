@@ -130,6 +130,22 @@ decisiones. Si cambiás una, actualizá la entrada en el mismo PR.
   del inicio se llamaba `.me`, igual que el cuadro rojo del logo, y el estilo del
   bloque deformaba el logo. Ojo con nombres cortos en estilos con scope.
 
+- **URLs sin barra final.** `/radio`, nunca `/radio/`. Astro arma `radio.html`
+  (`build.format: "file"`, `trailingSlash: "never"`) y Vercel lo sirve como
+  `/radio` (`cleanUrls`) y redirige `/radio/` y `/radio.html`. Antes las dos
+  formas respondían 200 y el canonical no coincidía con los enlaces: Google veía
+  cada página duplicada. Si se vuelve a `directory`, hay que cambiar las dos
+  cosas juntas.
+- **Las rutas viejas redirigen con 301.** `/en/projects/<slug>` y
+  `/en/experiments/<slug>` van a su perfil en español; `/en`, `/proyectos` y
+  `/experimentos` (los listados que ya no existen) van al inicio. El blog no
+  redirige a propósito: queda en 404 para que salga del índice. Viven en
+  `vercel.json`.
+- **JSON-LD solo en el inicio.** Un `Person` y un `WebSite` (`buildHomeJsonLd`
+  en `src/lib/seo.ts`), con los perfiles de `CONTACTS` en `sameAs` y sin
+  ubicación. El sitemap no lleva `lastmod`: el contenido no tiene una fecha de
+  actualización confiable, y una fecha inventada Google la ignora.
+
 ## Flujo
 
 - **`main` protegida con ruleset.** PR obligatorio, checks en verde, solo squash,

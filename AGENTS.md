@@ -104,8 +104,11 @@ No hay páginas de listado: la biblioteca y el tablero las reemplazan.
   mouse. El cuadro rojo late con `--beat`, que escribe el reproductor.
 - **Hover**: nunca cambia el tamaño ni la posición del layout; solo color,
   brillo y fondo (la imagen del lanzamiento hace un zoom contenido en su caja).
-- **SEO**: `src/lib/seo.ts` genera canonical, Open Graph y Twitter Cards. Cada
-  página pasa su `title` y `description`. La imagen al compartir es
+- **SEO**: `src/lib/seo.ts` genera canonical, Open Graph, Twitter Cards y el
+  JSON-LD del inicio (`Person` y `WebSite`). Cada página pasa su `title` y
+  `description`; los perfiles van como `og:type` `article`. Las URLs van sin
+  barra final (`/radio`): lo fijan `astro.config.mjs` y `vercel.json`, que
+  además redirige las rutas viejas. La imagen al compartir es
   `public/og-image.png` (1200x630), generada con `node scripts/og-image.mjs`: si
   cambia el diseño, se edita el script y se regenera. Los perfiles usan su
   propia imagen.

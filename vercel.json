@@ -1,0 +1,22 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/en", "destination": "/", "permanent": true },
+    {
+      "source": "/en/projects/:slug",
+      "destination": "/proyectos/:slug",
+      "permanent": true
+    },
+    {
+      "source": "/en/experiments/:slug",
+      "destination": "/experimentos/:slug",
+      "permanent": true
+    },
+    { "source": "/en/projects", "destination": "/", "permanent": true },
+    { "source": "/en/experiments", "destination": "/", "permanent": true },
+    { "source": "/proyectos", "destination": "/", "permanent": true },
+    { "source": "/experimentos", "destination": "/", "permanent": true }
+  ]
+}
