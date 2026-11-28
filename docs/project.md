@@ -35,7 +35,8 @@ pista ("Quién soy") presenta al autor.
 
 ## Límites
 
-- **Nunca**: foto personal, correo, timeline de empleos, ni proyectos inventados
+- **Nunca**: foto personal, correo, origen o ubicación (país, ciudad), timeline
+  de empleos, ni proyectos inventados
   presentados como reales.
 - **Preguntar antes**: agregar una dependencia nueva, cambiar el dominio o el
   hosting, o publicar cualquier dato personal además de GitHub y LinkedIn.

@@ -74,6 +74,13 @@ No hay páginas de listado: la biblioteca y el tablero las reemplazan.
   en `window` (`react/radio/bus.ts`) y los pedidos son eventos `radio:play` y
   `radio:pause`. El reproductor marca la pista que suena con `aria-current` en
   las filas y `data-playing` en `<html>`.
+- **Spotify**: el objetivo de la radio es mandar a escuchar a Spotify. Cada
+  canción lleva su `spotify` (enlace limpio `https://open.spotify.com/track/<id>`)
+  y donde aparezca (lista, perfil, barra, vista de letra) va con un botón
+  `SpotifyLink`. La cabecera de la radio (la portada del álbum,
+  `src/assets/radio/portada.webp`) lleva al perfil del artista
+  (`SPOTIFY_ARTIST` en `src/lib/radio.ts`). Se enlaza al artista, nunca al
+  álbum: los álbumes van a cambiar.
 - **Perfiles**: `ProfileBody.astro` sirve para proyectos y experimentos. El
   cuerpo del `.mdx` es el "Acerca de"; las pestañas salen del frontmatter
   (`steps`, `videos`, `links`, `prompts`, `gallery`, `flow`, `repoUrl`,
@@ -125,7 +132,10 @@ No hay páginas de listado: la biblioteca y el tablero las reemplazan.
    firmas ni emojis.
 7. **Verificación visual**: un cambio de interfaz se revisa en el navegador en
    escritorio y en móvil. Si algo no se pudo comprobar, se dice en el PR.
-8. **Datos sensibles**: al adaptar un `.md` propio (notas, prompts) a
+8. **Origen y ubicación**: el sitio nunca menciona de dónde es el autor (país,
+   ciudad, lugar de origen), ni en su perfil ni en proyectos o experimentos.
+   Va "desarrollador de software" a secas.
+9. **Datos sensibles**: al adaptar un `.md` propio (notas, prompts) a
    un perfil, nunca copiar IPs, contraseñas, claves, tokens ni usuarios reales de
    servicios con acceso de escritura; van placeholders (`TU_IP`,
    `TU_CLAVE_AQUI`). El dominio propio y el usuario Unix de ejemplo no son

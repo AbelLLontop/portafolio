@@ -89,7 +89,7 @@ Si el cambio toca interfaz, miralo en el navegador en escritorio y en móvil
    sin `intl-es` ni `?si=`: `https://open.spotify.com/track/<id>`).
 3. El cuerpo es la letra en formato LRC: `[mm:ss.xx] una línea`. Lo que va
    entre asteriscos se pinta en el acento. Sin letra, la canción suena igual y
-   la vista de letra lo avisa.
+   el botón del micrófono queda bloqueado.
 4. Sin `audio`, la pista aparece bloqueada ("pronto").
 
 ## Agregar una página

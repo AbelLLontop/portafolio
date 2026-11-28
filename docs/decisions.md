@@ -23,6 +23,9 @@ decisiones. Si cambiás una, actualizá la entrada en el mismo PR.
   corrección no tenía sentido. La estructura por idioma (`src/i18n/`, `Lang`,
   `pathFor`) se conservó para sumar el inglés al final, cuando el contenido se
   estabilice.
+- **No se menciona el origen ni la ubicación del autor.** Ni país ni ciudad,
+  en ningún lado (perfil, proyectos, experimentos, letras, imagen para
+  compartir). Pedido explícito del autor.
 - **El correo no se publica.** Es un dato personal; el contacto es GitHub y
   LinkedIn. Tampoco van foto personal ni timeline de empleos.
 - **Los proyectos no se inventan.** Solo entra software real. El catálogo
