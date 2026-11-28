@@ -152,7 +152,13 @@ export default function Player({ tracks, strings, listPath }: Props) {
   const [measured, setMeasured] = useState<Record<string, number>>({});
   const [lyricsOpen, setLyricsOpen] = useState(false);
   const [volume, setVolume] = useState(0.8);
-  const [muted, setMuted] = useState(false);
+  // Arranca silenciado si la intro tiene audio (ver el efecto de entrada): el
+  // valor inicial tiene que ser ese, si no el efecto del volumen lo
+  // desilenciaría antes de la primera interacción y el navegador lo pararía.
+  const [muted, setMuted] = useState(() => {
+    const intro = tracks[startIndex];
+    return Boolean(intro?.intro && intro.audio);
+  });
   const [onList, setOnList] = useState(false);
 
   // Lo que lee el bucle de animación sin esperar a un render.
@@ -202,7 +208,15 @@ export default function Player({ tracks, strings, listPath }: Props) {
     [tracks],
   );
 
+  // Momento en que la primera interacción activó el sonido de la intro.
+  const unmutedAt = useRef(0);
+
   const toggle = useCallback(() => {
+    // Si ese mismo clic fue sobre un play (el de la barra, el del inicio),
+    // la persona quería escucharla: se activa el sonido y no se pausa.
+    if (live.current.playing && performance.now() - unmutedAt.current < 800) {
+      return;
+    }
     const current = tracks[live.current.index];
     const audio = audioRef.current;
     if (current.audio && audio) {
@@ -243,11 +257,36 @@ export default function Player({ tracks, strings, listPath }: Props) {
     [tracks, load],
   );
 
-  // Al entrar: la intro sin audio arranca sola (no hace ruido). Con audio,
-  // esperaría un clic, porque el navegador no deja sonar sin uno.
+  // Al entrar, la intro arranca sola. El navegador no deja sonar nada sin un
+  // clic, pero sí reproducir en silencio: arranca silenciada (la letra corre
+  // igual) y el sonido se activa con la primera interacción en la página. Si
+  // esa interacción es el propio botón de volumen, se respeta lo que pide.
   useEffect(() => {
     const intro = tracks[startIndex];
-    if (intro?.intro && !intro.audio) setPlaying(true);
+    const audio = audioRef.current;
+    if (!intro?.intro) return;
+    if (!intro.audio || !audio) {
+      setPlaying(true);
+      return;
+    }
+
+    audio.src = intro.audio;
+    audio.muted = true;
+    audio.play().catch(() => setPlaying(false));
+
+    const unmute = (event: Event) => {
+      window.removeEventListener("pointerdown", unmute, true);
+      window.removeEventListener("keydown", unmute, true);
+      if ((event.target as Element | null)?.closest?.(".bar-vol-btn")) return;
+      unmutedAt.current = performance.now();
+      setMuted(false);
+    };
+    window.addEventListener("pointerdown", unmute, true);
+    window.addEventListener("keydown", unmute, true);
+    return () => {
+      window.removeEventListener("pointerdown", unmute, true);
+      window.removeEventListener("keydown", unmute, true);
+    };
   }, [tracks, startIndex]);
 
   // El reloj: avanza la intro silenciosa, lee el audio y avisa al resto.
@@ -364,6 +403,12 @@ export default function Player({ tracks, strings, listPath }: Props) {
     audio.muted = muted;
   }, [volume, muted]);
 
+  // Si la vista de letra está abierta y pasa a sonar una canción sin letra,
+  // se cierra: el micrófono queda bloqueado y no habría cómo volver a él.
+  useEffect(() => {
+    if (track.lines.length === 0) setLyricsOpen(false);
+  }, [track]);
+
   const progress = duration > 0 ? Math.min(1, time / duration) : 0;
   const lit = Math.floor(progress * BARS);
 
@@ -376,6 +421,7 @@ export default function Player({ tracks, strings, listPath }: Props) {
   };
 
   const tag = track.intro ? strings["player.intro"] : "";
+  const hasLyrics = track.lines.length > 0;
 
   return (
     <>
@@ -515,7 +561,11 @@ export default function Player({ tracks, strings, listPath }: Props) {
             className="bar-icon"
             aria-label={strings["player.lyrics"]}
             aria-pressed={lyricsOpen}
-            title={strings["player.lyrics"]}
+            // Sin letra, el micrófono queda bloqueado (como en Spotify).
+            disabled={!hasLyrics}
+            title={
+              hasLyrics ? strings["player.lyrics"] : strings["player.noLyrics"]
+            }
             onClick={() => setLyricsOpen((open) => !open)}
           >
             {Icon.mic}

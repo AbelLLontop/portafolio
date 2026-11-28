@@ -631,9 +631,14 @@ input {
   height: 18px;
 }
 
-.bar-icon:hover,
+.bar-icon:hover:not(:disabled),
 .bar-icon[aria-pressed="true"] {
   color: var(--red);
+}
+
+.bar-icon:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 .bar-vol {
