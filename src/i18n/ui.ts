@@ -12,8 +12,10 @@
 const es = {
   // ---- SEO ---------------------------------------------------------------
   "seo.description":
-    "Página personal de Abel Llontop, desarrollador de software.",
-  "seo.home.title": "abelitolll — Desarrollador de software",
+    "Portafolio de Abel Llontop, desarrollador de software, armado como un sello discográfico: proyectos, experimentos y una radio que sigue sonando.",
+  "seo.home.title": "Abel Llontop — Desarrollador de software · abelitolll",
+  "seo.person.name": "Abel Llontop",
+  "seo.person.jobTitle": "Desarrollador de software",
   "seo.notFound.title": "404 — Página no encontrada",
   "seo.notFound.description":
     "La página que buscas no existe o cambió de lugar.",

@@ -34,6 +34,12 @@ const share = await getImage({
   current={project.id}
   image={share.src}
   imageAlt={project.data.coverAlt}
+  imageSize={{
+    width: Number(share.attributes.width),
+    height: Number(share.attributes.height),
+  }}
+  imageType="image/jpeg"
+  ogType="article"
 >
   <ProfileBody entry={project} lang={lang}>
     <Content />

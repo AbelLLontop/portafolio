@@ -66,8 +66,8 @@ No hay páginas de listado: la biblioteca y el tablero las reemplazan.
 - **La radio**: colección `radio` (`src/content/radio/*.md`). Frontmatter con
   título, portada, orden y `audio` (ruta en `public/audio/`); el cuerpo es la
   letra en LRC (`[mm:ss.xx] línea`, lo que va entre asteriscos va en el acento).
-  Sin `audio` la pista queda bloqueada. La intro (`intro: true`) arranca sola
-  y silenciada, y el sonido se activa con la primera interacción. Sin letra,
+  Sin `audio` la pista queda bloqueada. La intro (`intro: true`) queda cargada
+  en la barra y en pausa: suena cuando la persona le da play. Sin letra,
   el botón del micrófono queda bloqueado. La radio no depende de ninguna página: una
   página le pide tocar una pista con un botón `data-radio-row` +
   `data-track-id`, y el click lo escucha el layout una sola vez. El estado vive
@@ -104,8 +104,11 @@ No hay páginas de listado: la biblioteca y el tablero las reemplazan.
   mouse. El cuadro rojo late con `--beat`, que escribe el reproductor.
 - **Hover**: nunca cambia el tamaño ni la posición del layout; solo color,
   brillo y fondo (la imagen del lanzamiento hace un zoom contenido en su caja).
-- **SEO**: `src/lib/seo.ts` genera canonical, Open Graph y Twitter Cards. Cada
-  página pasa su `title` y `description`. La imagen al compartir es
+- **SEO**: `src/lib/seo.ts` genera canonical, Open Graph, Twitter Cards y el
+  JSON-LD del inicio (`Person` y `WebSite`). Cada página pasa su `title` y
+  `description`; los perfiles van como `og:type` `article`. Las URLs van sin
+  barra final (`/radio`): lo fijan `astro.config.mjs` y `vercel.json`, que
+  además redirige las rutas viejas. La imagen al compartir es
   `public/og-image.png` (1200x630), generada con `node scripts/og-image.mjs`: si
   cambia el diseño, se edita el script y se regenera. Los perfiles usan su
   propia imagen.

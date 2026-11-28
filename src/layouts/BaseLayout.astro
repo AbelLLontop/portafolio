@@ -3,7 +3,7 @@ import { ClientRouter } from "astro:transitions";
 import "../styles/global.css";
 import Library from "../components/layout/Library.astro";
 import Player from "../components/react/radio/Player.tsx";
-import { buildSeoMeta, SITE_NAME } from "../lib/seo.ts";
+import { buildSeoMeta, serializeJsonLd, SITE_NAME } from "../lib/seo.ts";
 import { getRadioTracks } from "../lib/radio.ts";
 import { pickStrings, useTranslations, type Lang } from "../i18n/index.ts";
 import { pathFor } from "../i18n/routes.ts";
@@ -16,12 +16,29 @@ interface Props {
   description?: string;
   image?: string;
   imageAlt?: string;
+  imageSize?: { width: number; height: number };
+  imageType?: string;
+  /** `article` en los perfiles. */
+  ogType?: "website" | "article";
+  /** Datos estructurados (schema.org) que la página quiere declarar. */
+  jsonLd?: Record<string, unknown>;
   /** Páginas que no deben indexarse ni declarar canonical (el 404). */
   noindex?: boolean;
 }
 
-const { title, lang, current, description, image, imageAlt, noindex } =
-  Astro.props;
+const {
+  title,
+  lang,
+  current,
+  description,
+  image,
+  imageAlt,
+  imageSize,
+  imageType,
+  ogType,
+  jsonLd,
+  noindex,
+} = Astro.props;
 const t = useTranslations(lang);
 const tracks = await getRadioTracks();
 const playerStrings = pickStrings(lang, [
@@ -47,6 +64,9 @@ const seo = buildSeoMeta({
   description,
   image,
   imageAlt,
+  imageSize,
+  imageType,
+  type: ogType,
 });
 ---
 
@@ -62,7 +82,7 @@ const seo = buildSeoMeta({
       href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,300..900&family=IBM+Plex+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <meta name="viewport" content="width=device-width" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     {/* Color de la barra del navegador en móvil: el sitio tiene un solo tema. */}
     <meta name="theme-color" content="#0c0c0e" />
     <meta name="generator" content={Astro.generator} />
@@ -77,16 +97,16 @@ const seo = buildSeoMeta({
     {noindex && <meta name="robots" content="noindex" />}
     {!noindex && <link rel="canonical" href={seo.url} />}
 
-    <meta property="og:type" content="website" />
+    <meta property="og:type" content={seo.type} />
     <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:locale" content={seo.locale} />
     <meta property="og:title" content={title} />
     <meta property="og:description" content={seo.description} />
     <meta property="og:image" content={seo.image} />
     <meta property="og:image:alt" content={seo.imageAlt} />
+    {seo.imageType && <meta property="og:image:type" content={seo.imageType} />}
     {seo.imageSize && (
       <>
-        <meta property="og:image:type" content="image/png" />
         <meta property="og:image:width" content={String(seo.imageSize.width)} />
         <meta
           property="og:image:height"
@@ -101,6 +121,13 @@ const seo = buildSeoMeta({
     <meta name="twitter:description" content={seo.description} />
     <meta name="twitter:image" content={seo.image} />
     <meta name="twitter:image:alt" content={seo.imageAlt} />
+    {jsonLd && (
+      <script
+        type="application/ld+json"
+        is:inline
+        set:html={serializeJsonLd(jsonLd)}
+      />
+    )}
   </head>
   <body>
     <div class="app">

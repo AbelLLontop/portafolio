@@ -4,7 +4,8 @@
 // Dos clases de pista:
 // - con audio: manda el <audio>, y el tiempo sale de currentTime;
 // - la intro sin audio: suena "en silencio", con un reloj propio que hace
-//   correr la letra. Es lo que se ve al entrar al sitio.
+//   correr la letra.
+// Al entrar al sitio la intro está cargada y en pausa.
 // Una pista sin audio que no es la intro queda bloqueada.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { navigate } from "astro:transitions/client";
@@ -171,13 +172,7 @@ export default function Player({ tracks, strings, listPath }: Props) {
   const [measured, setMeasured] = useState<Record<string, number>>({});
   const [lyricsOpen, setLyricsOpen] = useState(false);
   const [volume, setVolume] = useState(0.8);
-  // Arranca silenciado si la intro tiene audio (ver el efecto de entrada): el
-  // valor inicial tiene que ser ese, si no el efecto del volumen lo
-  // desilenciaría antes de la primera interacción y el navegador lo pararía.
-  const [muted, setMuted] = useState(() => {
-    const intro = tracks[startIndex];
-    return Boolean(intro?.intro && intro.audio);
-  });
+  const [muted, setMuted] = useState(false);
   const [onList, setOnList] = useState(false);
 
   // Lo que lee el bucle de animación sin esperar a un render.
@@ -227,15 +222,7 @@ export default function Player({ tracks, strings, listPath }: Props) {
     [tracks],
   );
 
-  // Momento en que la primera interacción activó el sonido de la intro.
-  const unmutedAt = useRef(0);
-
   const toggle = useCallback(() => {
-    // Si ese mismo clic fue sobre un play (el de la barra, el del inicio),
-    // la persona quería escucharla: se activa el sonido y no se pausa.
-    if (live.current.playing && performance.now() - unmutedAt.current < 800) {
-      return;
-    }
     const current = tracks[live.current.index];
     const audio = audioRef.current;
     if (current.audio && audio) {
@@ -276,36 +263,14 @@ export default function Player({ tracks, strings, listPath }: Props) {
     [tracks, load],
   );
 
-  // Al entrar, la intro arranca sola. El navegador no deja sonar nada sin un
-  // clic, pero sí reproducir en silencio: arranca silenciada (la letra corre
-  // igual) y el sonido se activa con la primera interacción en la página. Si
-  // esa interacción es el propio botón de volumen, se respeta lo que pide.
+  // Al entrar, la intro queda cargada y en pausa: suena cuando la persona le
+  // da play. Antes arrancaba sola y silenciada (el navegador no deja sonar
+  // nada sin un clic), y la animación corría sin sonido hasta el primer clic
+  // en cualquier parte, que parecía un error.
   useEffect(() => {
     const intro = tracks[startIndex];
     const audio = audioRef.current;
-    if (!intro?.intro) return;
-    if (!intro.audio || !audio) {
-      setPlaying(true);
-      return;
-    }
-
-    audio.src = intro.audio;
-    audio.muted = true;
-    audio.play().catch(() => setPlaying(false));
-
-    const unmute = (event: Event) => {
-      window.removeEventListener("pointerdown", unmute, true);
-      window.removeEventListener("keydown", unmute, true);
-      if ((event.target as Element | null)?.closest?.(".bar-vol-btn")) return;
-      unmutedAt.current = performance.now();
-      setMuted(false);
-    };
-    window.addEventListener("pointerdown", unmute, true);
-    window.addEventListener("keydown", unmute, true);
-    return () => {
-      window.removeEventListener("pointerdown", unmute, true);
-      window.removeEventListener("keydown", unmute, true);
-    };
+    if (intro?.intro && intro.audio && audio) audio.src = intro.audio;
   }, [tracks, startIndex]);
 
   // El reloj: avanza la intro silenciosa, lee el audio y avisa al resto.
