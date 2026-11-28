@@ -67,7 +67,7 @@ const es = {
   "player.volume": "Volumen",
   "player.seek": "Ir a un punto de la canción",
   "player.intro": "intro del sitio",
-  "player.noLyrics": "Esta canción todavía no tiene su letra sincronizada.",
+  "player.noLyrics": "Letra no disponible por ahora.",
 
   // ---- Radio (la lista de canciones) -------------------------------------
   "seo.radio.title": "Radio",
