@@ -44,11 +44,8 @@ pista ("Quién soy") presenta al autor.
 
 ## Roadmap
 
-- **El audio de la radio.** Las canciones de Los Vecinos que están en Spotify,
-  en MP3, con su letra sincronizada en LRC. Hoy la radio tiene los títulos y las
-  pistas quedan bloqueadas hasta tener el audio.
-- **La voz de "Quién soy"**, generada con Suno. Mientras no exista, la intro
-  suena en silencio con su letra.
+- **Las letras de las canciones**, sincronizadas en LRC, con una página para
+  marcar los tiempos escuchando cada canción. Hoy solo "Quién soy" tiene letra.
 - **Prompts reales** en la sección Prompts de cada perfil.
 - **Más proyectos y experimentos.** Agregar uno es crear un `.mdx` con sus
   imágenes, sin tocar código.
