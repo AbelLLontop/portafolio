@@ -5,6 +5,8 @@
 // Las filas son HTML estático: el reproductor marca la que suena con
 // aria-current (por data-track-id) y escribe data-playing en <html>, así el
 // número, las barritas y el play/pausa al pasar el mouse salen solo de CSS.
+import { Image } from "astro:assets";
+import cover from "../../assets/radio/portada.webp";
 import { getRadioTracks } from "../../lib/radio.ts";
 import { formatTime, isPlayable } from "../../lib/player.ts";
 import { interpolate, useTranslations, type Lang } from "../../i18n/index.ts";
@@ -20,9 +22,21 @@ const songs = tracks.filter((track) => !track.intro).length;
 ---
 
 <section class="radio theme-ink">
+  {/* La cabecera es la portada del álbum en Spotify, como la de una lista. */}
   <header class="radio-head">
-    <h1>{t("radio.title")}</h1>
-    <small>{interpolate(t("radio.count"), { count: songs })}</small>
+    <Image
+      class="radio-cover"
+      src={cover}
+      alt={t("radio.coverAlt")}
+      widths={[1000, 1600, 1983]}
+      sizes="(min-width: 961px) 80vw, 100vw"
+      loading="eager"
+    />
+    <div class="radio-head-text">
+      <p class="kicker">{t("radio.kicker")}</p>
+      <h1>{t("radio.title")}</h1>
+      <small>{interpolate(t("radio.count"), { count: songs })}</small>
+    </div>
   </header>
 
   <div class="radio-cols" aria-hidden="true">
@@ -89,21 +103,58 @@ const songs = tracks.filter((track) => !track.intro).length;
     padding: 5vh 3.4vw 8vh;
   }
 
+  /* La cabecera sale de los márgenes del panel y llega a los bordes. */
   .radio-head {
+    position: relative;
     display: flex;
-    align-items: baseline;
-    gap: 14px;
-    margin-bottom: 3vh;
+    align-items: flex-end;
+    height: clamp(220px, 36vh, 360px);
+    margin: -5vh -3.4vw 3vh;
+    padding: 0 3.4vw 3vh;
+    overflow: hidden;
+  }
+
+  .radio-head :global(.radio-cover) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 50% 55%;
+  }
+
+  .radio-head::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      transparent 35%,
+      color-mix(in srgb, var(--bg) 80%, transparent) 78%,
+      var(--bg) 100%
+    );
+  }
+
+  .radio-head-text {
+    position: relative;
+    z-index: 1;
+  }
+
+  .radio-head-text .kicker {
+    margin: 0 0 8px;
   }
 
   .radio-head h1 {
+    font-variation-settings: "wdth" 80;
     margin: 0;
-    font-size: clamp(30px, 3vw, 44px);
+    font-size: clamp(36px, 4.4vw, 72px);
     font-weight: 850;
     letter-spacing: -0.03em;
   }
 
   .radio-head small {
+    display: block;
+    margin-top: 8px;
     font-family: var(--mono);
     font-size: 12px;
     color: var(--mute);

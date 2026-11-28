@@ -73,6 +73,9 @@ const es = {
   "seo.radio.title": "Radio",
   "seo.radio.description":
     "Las canciones de Los Vecinos de Enfrente, para escuchar mientras recorres el sitio.",
+  "radio.kicker": "Lista · Los Vecinos de Enfrente",
+  "radio.coverAlt":
+    "Una casa de noche vista desde otra ventana, con una sala de ensayo iluminada de rojo y la luna arriba.",
   "radio.title": "Radio abelitolll",
   "radio.count": "{count} canciones",
   "radio.colTitle": "Título",
