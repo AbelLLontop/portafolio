@@ -85,7 +85,8 @@ Si el cambio toca interfaz, miralo en el navegador en escritorio y en móvil
 
 1. El audio en `public/audio/<slug>.mp3`, comprimido (128-192 kbps).
 2. Creá `src/content/radio/NN-<slug>.md` con `title`, `cover`, `coverAlt`,
-   `order` y `audio: /audio/<slug>.mp3`.
+   `order`, `audio: /audio/<slug>.mp3` y `spotify` (el enlace de la canción,
+   sin `intl-es` ni `?si=`: `https://open.spotify.com/track/<id>`).
 3. El cuerpo es la letra en formato LRC: `[mm:ss.xx] una línea`. Lo que va
    entre asteriscos se pinta en el acento. Sin letra, la canción suena igual y
    la vista de letra lo avisa.

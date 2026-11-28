@@ -826,3 +826,52 @@ input {
   background: var(--red);
   transform: rotate(-9deg);
 }
+
+/* ---------------------------------------------------------------- Spotify
+   Junto a cada canción: el sitio manda a escucharla entera a Spotify. Es la
+   única excepción al acento: el verde se reconoce como Spotify. */
+
+.sp-link {
+  --spotify: #1ed760;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--mute);
+  text-decoration: none;
+  transition:
+    color 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.sp-link svg {
+  width: 16px;
+  height: 16px;
+}
+
+.sp-link:hover,
+.sp-link:focus-visible {
+  color: var(--spotify);
+  background: color-mix(in srgb, var(--spotify) 12%, transparent);
+}
+
+.sp-link.pill {
+  display: inline-flex;
+  gap: 8px;
+  width: auto;
+  height: auto;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--spotify);
+  color: #000;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.sp-link.pill:hover,
+.sp-link.pill:focus-visible {
+  background: color-mix(in srgb, var(--spotify) 85%, #fff);
+  color: #000;
+}

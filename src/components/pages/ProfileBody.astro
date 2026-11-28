@@ -8,6 +8,7 @@
 import { Image } from "astro:assets";
 import Avatar from "../astro/Avatar.astro";
 import EmbedFacade from "../astro/EmbedFacade.astro";
+import SpotifyLink from "../astro/SpotifyLink.astro";
 import { getRadioTracks } from "../../lib/radio.ts";
 import { formatTime } from "../../lib/player.ts";
 import {
@@ -238,6 +239,14 @@ const flow = proj?.flow ?? [];
                   {song.audio ? formatTime(song.duration) : t("radio.locked")}
                 </span>
               </button>
+              {song.spotify ? (
+                <SpotifyLink
+                  url={song.spotify}
+                  label={interpolate(t("song.spotify"), { title: song.title })}
+                />
+              ) : (
+                <span />
+              )}
             </li>
           ))}
         </ol>
@@ -873,6 +882,12 @@ const flow = proj?.flow ?? [];
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+
+  .songs li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40px;
+    align-items: center;
   }
 
   .song {

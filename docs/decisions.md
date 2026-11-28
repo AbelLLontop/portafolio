@@ -75,6 +75,11 @@ decisiones. Si cambiás una, actualizá la entrada en el mismo PR.
 - **La radio es independiente de las páginas.** Tiene su propia colección
   (`src/content/radio/`) y no lee la página de ningún experimento. Un perfil solo
   puede pedirle "toca esta pista" (con `data-radio-row` y `data-track-id`).
+- **Cada canción lleva a Spotify.** El objetivo de la radio es que la gente
+  vaya a escuchar a Spotify: junto a cada canción (lista, perfil, barra, vista
+  de letra) hay un botón con su enlace, y la cabecera de la radio lleva al
+  perfil del artista. Se enlaza al artista y no al álbum, porque los álbumes
+  van a cambiar.
 - **Solo canciones publicadas.** No hay concepto de "inédita": entran las que
   están en Spotify.
 - **El audio va en el repo** (`public/audio/`), comprimido (MP3 de 128-192

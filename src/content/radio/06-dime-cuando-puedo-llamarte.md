@@ -4,5 +4,6 @@ cover: ../../assets/experiments/los-vecinos-de-enfrente/avatar.jpg
 coverAlt: La portada de Los Vecinos de Enfrente, una cuadrícula de cuadros grises con uno rojo torcido.
 order: 6
 audio: /audio/dime-cuando-puedo-llamarte.mp3
+spotify: https://open.spotify.com/track/1fJJanSTavAQGlDhgS6Sog
 duration: 232.0
 ---

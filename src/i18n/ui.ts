@@ -67,6 +67,7 @@ const es = {
   "player.volume": "Volumen",
   "player.seek": "Ir a un punto de la canción",
   "player.intro": "intro del sitio",
+  "player.spotify": "Escuchar en Spotify",
   "player.noLyrics": "Letra no disponible por ahora.",
 
   // ---- Radio (la lista de canciones) -------------------------------------
@@ -77,6 +78,8 @@ const es = {
   "radio.coverAlt":
     "Una casa de noche vista desde otra ventana, con una sala de ensayo iluminada de rojo y la luna arriba.",
   "radio.title": "Radio abelitolll",
+  "radio.spotify": "Escuchar en Spotify",
+  "song.spotify": "Escuchar {title} en Spotify",
   "radio.count": "{count} canciones",
   "radio.colTitle": "Título",
   "radio.locked": "pronto",

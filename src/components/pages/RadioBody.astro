@@ -7,7 +7,8 @@
 // número, las barritas y el play/pausa al pasar el mouse salen solo de CSS.
 import { Image } from "astro:assets";
 import cover from "../../assets/radio/portada.webp";
-import { getRadioTracks } from "../../lib/radio.ts";
+import SpotifyLink from "../astro/SpotifyLink.astro";
+import { getRadioTracks, SPOTIFY_ARTIST } from "../../lib/radio.ts";
 import { formatTime, isPlayable } from "../../lib/player.ts";
 import { interpolate, useTranslations, type Lang } from "../../i18n/index.ts";
 
@@ -36,6 +37,13 @@ const songs = tracks.filter((track) => !track.intro).length;
       <p class="kicker">{t("radio.kicker")}</p>
       <h1>{t("radio.title")}</h1>
       <small>{interpolate(t("radio.count"), { count: songs })}</small>
+      <div class="radio-head-acts">
+        <SpotifyLink
+          url={SPOTIFY_ARTIST}
+          label={t("radio.spotify")}
+          variant="pill"
+        />
+      </div>
     </div>
   </header>
 
@@ -91,6 +99,14 @@ const songs = tracks.filter((track) => !track.intro).length;
               {playable ? formatTime(track.duration) : t("radio.locked")}
             </span>
           </button>
+          {track.spotify ? (
+            <SpotifyLink
+              url={track.spotify}
+              label={interpolate(t("song.spotify"), { title: track.title })}
+            />
+          ) : (
+            <span />
+          )}
         </li>
       );
     })}
@@ -191,6 +207,18 @@ const songs = tracks.filter((track) => !track.intro).length;
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+
+  /* La fila que toca y el botón de Spotify van lado a lado: un enlace no puede
+     ir dentro de un botón. */
+  .radio-list li {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 40px;
+    align-items: center;
+  }
+
+  .radio-head-acts {
+    margin-top: 14px;
   }
 
   .rr {

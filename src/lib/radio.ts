@@ -2,6 +2,10 @@ import { getImage } from "astro:assets";
 import { getCollection } from "astro:content";
 import { parseLrc, type LyricLine } from "./lrc.ts";
 
+/** El perfil de Los Vecinos en Spotify: adonde manda la radio. */
+export const SPOTIFY_ARTIST =
+  "https://open.spotify.com/artist/3rWmYBExk8Zsb7bDE3Tcpm";
+
 /** Una pista tal como la recibe el reproductor (serializable). */
 export interface RadioTrack {
   id: string;
@@ -10,6 +14,8 @@ export interface RadioTrack {
   /** URL de la portada ya optimizada, o null para el cuadro rojo. */
   cover: string | null;
   audio: string | null;
+  /** La canción en Spotify, o null. */
+  spotify: string | null;
   /** Segundos; con audio se reemplaza por lo que mide el navegador. */
   duration: number | null;
   intro: boolean;
@@ -37,6 +43,7 @@ export async function getRadioTracks(): Promise<RadioTrack[]> {
         artist: data.artist,
         cover,
         audio: data.audio ?? null,
+        spotify: data.spotify ?? null,
         duration: data.duration ?? null,
         intro: data.intro,
         lines: parseLrc(entry.body ?? ""),

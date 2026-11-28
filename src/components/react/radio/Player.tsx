@@ -17,6 +17,24 @@ import {
   nextPlayable,
 } from "../../../lib/player.ts";
 import type { RadioTrack } from "../../../lib/radio.ts";
+import spotifyIcon from "simple-icons/icons/spotify.svg?raw";
+
+const SPOTIFY_SVG = spotifyIcon.replace("<svg ", '<svg fill="currentColor" ');
+
+/** Enlace a la canción en Spotify (el estilo es .sp-link de global.css). */
+function SpotifyLink({ url, label }: { url: string; label: string }) {
+  return (
+    <a
+      className="sp-link"
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      aria-label={label}
+      title={label}
+      dangerouslySetInnerHTML={{ __html: SPOTIFY_SVG }}
+    />
+  );
+}
 
 export type PlayerStrings = Record<
   | "player.play"
@@ -31,7 +49,8 @@ export type PlayerStrings = Record<
   | "player.volume"
   | "player.seek"
   | "player.intro"
-  | "player.noLyrics",
+  | "player.noLyrics"
+  | "player.spotify",
   string
 >;
 
@@ -457,6 +476,12 @@ export default function Player({ tracks, strings, listPath }: Props) {
             <small>{track.artist}</small>
           </span>
           {tag && <span className="lv-tag">{tag}</span>}
+          {track.spotify && (
+            <SpotifyLink
+              url={track.spotify}
+              label={strings["player.spotify"]}
+            />
+          )}
           <button
             type="button"
             className="lv-close"
@@ -490,6 +515,12 @@ export default function Player({ tracks, strings, listPath }: Props) {
             <b>{track.title}</b>
             <small>{track.artist}</small>
           </span>
+          {track.spotify && (
+            <SpotifyLink
+              url={track.spotify}
+              label={strings["player.spotify"]}
+            />
+          )}
         </div>
 
         <div className="bar-center">

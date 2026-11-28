@@ -203,6 +203,11 @@ const radio = defineCollection({
         .string()
         .regex(/^\/audio\/[\w-]+\.(mp3|m4a|ogg|opus)$/)
         .optional(),
+      /** La canción en Spotify: el sitio manda ahí para escucharla entera. */
+      spotify: z
+        .url()
+        .regex(/^https:\/\/open\.spotify\.com\/track\/\w+$/)
+        .optional(),
       /** Duración en segundos; con audio la mide el navegador. */
       duration: z.number().positive().optional(),
       /** Posición en la lista. */
